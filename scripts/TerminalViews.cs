@@ -60,13 +60,69 @@ public static class TerminalViews {
 
     public static string Snapshot() { return Json.Serialize(Tabs()); }
 
+    public static string State() {
+        string focusedType = "";
+        try {
+            var focused = AutomationElement.FocusedElement;
+            if (focused != null) focusedType = focused.Current.ControlType.ProgrammaticName;
+        } catch (ElementNotAvailableException) { }
+        return Json.Serialize(new { foreground = GetForegroundWindow().ToInt64(),
+            focused_type = focusedType, tabs = Tabs() });
+    }
+
     public static bool Activate(string runtimeId) {
+        return Activate(runtimeId, 0);
+    }
+
+    public static bool Activate(string runtimeId, long invokeWindow) {
         var tab = Tabs().FirstOrDefault(t => t.runtime_id == runtimeId);
         if (tab == null) return false;
+        return ActivateTab(tab, invokeWindow);
+    }
+
+    static bool ActivateTab(TerminalTabInfo tab, long invokeWindow) {
         var window = new IntPtr(tab.window);
+        var selection = (SelectionItemPattern)tab.element.GetCurrentPattern(SelectionItemPattern.Pattern);
+        // Recheck after the potentially slow accessibility lookup, immediately
+        // before restoring or selecting a tab. A different app keeps its focus.
+        var origin = GetForegroundWindow();
+        if (invokeWindow != 0 && origin.ToInt64() != invokeWindow) return false;
         if (IsIconic(window)) ShowWindow(window, 9);
-        ((SelectionItemPattern)tab.element.GetCurrentPattern(SelectionItemPattern.Pattern)).Select();
-        return GetForegroundWindow() == window || SetForegroundWindow(window);
+        selection.Select();
+        // Selecting through accessibility can itself take time. Do not undo an
+        // application switch made while that operation was in progress.
+        var foreground = GetForegroundWindow();
+        if (foreground != origin && foreground != window) return false;
+        if (foreground != window && !SetForegroundWindow(window)) return false;
+        return FocusContent(window, selection);
+    }
+
+    static bool FocusContent(IntPtr window, SelectionItemPattern selection) {
+        var condition = new AndCondition(
+            new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Text),
+            new PropertyCondition(AutomationElement.IsKeyboardFocusableProperty, true),
+            new PropertyCondition(AutomationElement.IsOffscreenProperty, false),
+            new PropertyCondition(AutomationElement.IsTextPatternAvailableProperty, true));
+        var deadline = DateTime.UtcNow.AddSeconds(2);
+        while (DateTime.UtcNow < deadline) {
+            if (!selection.Current.IsSelected || GetForegroundWindow() != window) return false;
+            try {
+                var root = AutomationElement.FromHandle(window);
+                var content = root.FindFirst(TreeScope.Descendants, condition);
+                if (content != null) {
+                    // A selected tab strip still consumes keyboard input. Move
+                    // focus into its terminal content, only while it stays active.
+                    if (!selection.Current.IsSelected || GetForegroundWindow() != window) return false;
+                    content.SetFocus();
+                    var focused = AutomationElement.FocusedElement;
+                    if (GetForegroundWindow() == window && selection.Current.IsSelected && focused != null
+                        && focused.Current.ControlType == ControlType.Text
+                        && focused.GetRuntimeId().SequenceEqual(content.GetRuntimeId())) return true;
+                }
+            } catch (ElementNotAvailableException) { }
+            Thread.Sleep(50);
+        }
+        return false;
     }
 
     public static void CloseTestWindow(long handle) {
@@ -95,23 +151,19 @@ public static class TerminalViews {
         var records = Json.Deserialize<TerminalViewRecord[]>(recordsJson);
         var tabs = Tabs();
         long origin = 0;
-        if (scope == "window") {
+        if (!String.IsNullOrEmpty(originTitle)) {
             var launcher = tabs.FirstOrDefault(t => t.title == originTitle);
             if (launcher == null) return "";
             origin = launcher.window;
-        }
+        } else if (scope == "window") return "";
         foreach (var record in records.OrderByDescending(r => r.last_focus)) {
             if (!Alive(record)) continue;
             var tab = tabs.FirstOrDefault(t => t.runtime_id == record.runtime_id
                 && (scope != "window" || t.window == origin));
             if (tab == null) continue;
-            if (!probe) {
-                var window = new IntPtr(tab.window);
-                if (IsIconic(window)) ShowWindow(window, 9);
-                ((SelectionItemPattern)tab.element.GetCurrentPattern(SelectionItemPattern.Pattern)).Select();
-                if (GetForegroundWindow() != window && !SetForegroundWindow(window)) return "";
-            }
-            return Json.Serialize(tab);
+            if (!probe && !ActivateTab(tab, origin)) return "";
+            return Json.Serialize(new { title = tab.title, runtime_id = tab.runtime_id,
+                window = tab.window, selected = tab.selected, origin = origin });
         }
         return "";
     }

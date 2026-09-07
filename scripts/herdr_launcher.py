@@ -1,7 +1,6 @@
 """Attach another Herdr view, or return to the last-used live Terminal tab."""
 import argparse
 import base64
-import ctypes
 import hashlib
 import json
 import os
@@ -44,6 +43,8 @@ def live_records(directory: Path) -> list[dict]:
 
 
 def try_focus(directory: Path, scope: str, origin_title: str = "", probe=False) -> bool:
+    if not probe and not origin_title:
+        return False
     records = live_records(directory)
     if not records:
         return False
@@ -58,10 +59,10 @@ def try_focus(directory: Path, scope: str, origin_title: str = "", probe=False) 
         if probe:
             return True
         target = json.loads(result.stdout)
-        user32 = ctypes.WinDLL("user32")
-        user32.GetForegroundWindow.restype = ctypes.c_void_p
+        if not isinstance(target.get("origin"), int) or not target["origin"]:
+            return False
         return delayed_focus(helper("Activate", "-RuntimeId", target["runtime_id"],
-                                    "-AfterPid", os.getpid(), "-InvokeWindow", user32.GetForegroundWindow()))
+                                    "-AfterPid", os.getpid(), "-InvokeWindow", target["origin"]))
     except (OSError, ValueError, KeyError, subprocess.TimeoutExpired):
         return False
 

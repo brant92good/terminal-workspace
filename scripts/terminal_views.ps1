@@ -25,17 +25,18 @@ try {
     if ($Mode -eq 'List') { [TerminalViews]::Snapshot(); exit 0 }
     if ($Mode -eq 'CloseTestWindow') { [TerminalViews]::CloseTestWindow($WindowHandle); exit 0 }
     if ($Mode -eq 'State') {
-        Write-Output ('{"foreground":' + [TerminalViews]::GetForegroundWindow().ToInt64() + ',"tabs":' + [TerminalViews]::Snapshot() + '}')
+        [TerminalViews]::State()
         exit 0
     }
     if ($Mode -eq 'Activate') {
         if ($AfterPid) {
+            if (-not $InvokeWindow) { exit 1 }
             $herdrLauncher = Get-Process -Id $AfterPid -ErrorAction SilentlyContinue
             if ($herdrLauncher -and -not $herdrLauncher.WaitForExit(5000)) { exit 1 }
             Start-Sleep -Milliseconds 300
             if ([TerminalViews]::GetForegroundWindow().ToInt64() -ne $InvokeWindow) { exit 1 }
         }
-        if ([TerminalViews]::Activate($RuntimeId)) { exit 0 }
+        if ([TerminalViews]::Activate($RuntimeId, $InvokeWindow)) { exit 0 }
         exit 1
     }
     if ($Mode -eq 'Track') {

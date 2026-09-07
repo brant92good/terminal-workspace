@@ -35,6 +35,40 @@ def settings_path():
     return next((p for p in paths if p.exists()), paths[0])
 
 
+def settings_bytes(path):
+    try:
+        return path.read_bytes()
+    except FileNotFoundError:
+        return None
+
+
+def parse_settings(contents):
+    try:
+        data = json.loads(contents)
+    except json.JSONDecodeError:
+        # PowerShell 7 is an installer prerequisite and includes Newtonsoft's
+        # JSONC reader. Read stdin as data and keep date-like strings as strings.
+        command = '''$ErrorActionPreference = 'Stop'
+[Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$reader = [Newtonsoft.Json.JsonTextReader]::new([System.IO.StringReader]::new([Console]::In.ReadToEnd()))
+$reader.DateParseHandling = [Newtonsoft.Json.DateParseHandling]::None
+while ($reader.Read() -and $reader.TokenType -eq [Newtonsoft.Json.JsonToken]::Comment) { }
+$value = [Newtonsoft.Json.Linq.JToken]::ReadFrom($reader)
+while ($reader.Read()) { if ($reader.TokenType -ne [Newtonsoft.Json.JsonToken]::Comment) { throw 'Unexpected content after settings' } }
+$value.ToString([Newtonsoft.Json.Formatting]::None)
+'''
+        result = subprocess.run(["pwsh.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command],
+                                input=contents.decode("utf-8-sig").encode("utf-8"), capture_output=True, timeout=15,
+                                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        if result.returncode:
+            raise ValueError("Windows Terminal settings contain invalid JSON; the file was left unchanged")
+        data = json.loads(result.stdout)
+    if not isinstance(data, dict):
+        raise ValueError("Windows Terminal settings must be a JSON object")
+    return data
+
+
 def write_json(path, data, backup=False):
     path.parent.mkdir(parents=True, exist_ok=True)
     if backup and path.exists():
@@ -47,6 +81,8 @@ def write_json(path, data, backup=False):
 
 def render(original, shared, host, python, herdr, root=ROOT):
     data = deepcopy(original)
+    for key in PORTABLE:
+        data.pop(key, None)
     data.update(shared.get("terminal", {}))
     data["defaultProfile"] = PWSH
     profiles = data.setdefault("profiles", {})
@@ -119,8 +155,10 @@ def main():
     options = parser.parse_args()
     shared_path = ROOT / "config/terminal.json"
     shared = json.loads(shared_path.read_text(encoding="utf-8"))
-    original = options.settings.read_bytes()
-    data = json.loads(original)
+    original = settings_bytes(options.settings)
+    if options.export and original is None:
+        raise ValueError("Open Windows Terminal before exporting its settings")
+    data = parse_settings(original) if original is not None else {}
     if options.export:
         write_json(shared_path, export_shared(data, shared))
         print("Exported portable Terminal preferences to config/terminal.json")
@@ -147,8 +185,8 @@ def main():
             raise ValueError("Stop the port supervisor before changing SSH targets")
         store.host = host
         store.save(store.forwards)
-    updated = render(data, shared, host, python, herdr)
-    if options.settings.read_bytes() != original:
+    updated = render(data, shared, host, python, herdr, root=ROOT)
+    if settings_bytes(options.settings) != original:
         raise ValueError("Terminal settings changed while preparing the update; retry")
     write_json(options.settings, updated, backup=True)
     write_json(machine_path, {"ssh_host": host, "herdr": str(herdr)})

@@ -67,7 +67,8 @@ underlying sessions. The Herdr launcher tracks the identity of each Terminal
 tab, so duplicate or changing titles do not determine the target.
 
 Return shortcuts use a brief launcher tab, then hand focus over after it
-closes. The helper does not raise a window if you switch to another application
+closes. Keyboard focus moves into the terminal content so you can type
+immediately. The helper does not raise a window if you switch to another application
 during that handoff. These are Terminal shortcuts, not system-wide hotkeys.
 Manually moving a Herdr tab between windows may require reopening the view to
 register its new accessibility identity. Separate split panes are not tracked
@@ -90,6 +91,9 @@ behavior, and keyboard shortcuts. Install or sync renders each machine's paths.
 Export includes presentation settings and these managed shortcuts. It excludes
 shell commands, SSH targets, startup commands, and working directories. Your
 private top-level repository can store personal values and pin this repo.
+Removing a shared preference restores its default on the receiving computer.
+Installation also supports a Terminal settings file that has not been created
+yet, and existing JSONC files with comments; an existing file is backed up.
 Sync refuses to discard local Git edits. Submodules stay at the parent-pinned
 version; update the child commit deliberately when adopting an app update.
 
@@ -98,12 +102,18 @@ version; update the child commit deliberately when adopting an app update.
 ```powershell
 python -m unittest discover -s tests -v
 .\apps\port-forward-tui\.venv\Scripts\python.exe scripts/check_interactive.py --yes
+.\apps\port-forward-tui\.venv\Scripts\python.exe scripts/check_terminal_persistence.py --yes
 ```
 
 The second command is an opt-in desktop test. It opens temporary Terminal
 windows, uses the actual keyboard shortcuts, verifies the selected tab and
 foreground window, then closes its test windows and restores the focus-scope
 preference. It requires an installed setup and a reachable Herdr SSH target.
-It does not stop the shared SSH tunnels or Herdr server.
+It also checks switching to another application while shortcut lookup is pending.
+It does not stop the shared SSH tunnels or Herdr server. The last command creates
+an isolated temporary SSH forward to remote port 22 through a real Ports window,
+closes that whole window, verifies SSH traffic still crosses the tunnel, and
+explicitly stops its test supervisor. Your existing favorites and tunnels stay
+unchanged.
 
 [MIT](LICENSE). See [NOTICE](NOTICE) for Herdr artwork attribution.

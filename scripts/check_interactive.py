@@ -54,7 +54,7 @@ def wait_for(predicate, message, timeout=22):
 
 
 def is_active(current, tab):
-    return current["foreground"] == tab["window"] and any(
+    return current["foreground"] == tab["window"] and current.get("focused_type") == "ControlType.Text" and any(
         t["runtime_id"] == tab["runtime_id"] and t["selected"] for t in current["tabs"])
 
 
@@ -125,8 +125,17 @@ def main():
         activate(pa)
         old_tabs = {t["runtime_id"] for t in state()["tabs"]}
         chord("P", shift=True)
-        wait_for(lambda s: any(t["window"] == pa["window"] and t["runtime_id"] not in old_tabs and t["title"].startswith("Ports | ") for t in s["tabs"]),
+        current = wait_for(lambda s: any(t["window"] == pa["window"] and t["runtime_id"] not in old_tabs and t["title"].startswith("Ports | ") for t in s["tabs"]),
                  "Ctrl+Alt+Shift+P opens an additional Ports view")
+        second_ports = next(t for t in current["tabs"] if t["window"] == pa["window"] and t["runtime_id"] not in old_tabs)
+        activate(pa)
+        activate(ha)
+        chord("P")
+        wait_for(lambda s: is_active(s, pa), "Ports return chooses the older duplicate when it was used last")
+        activate(second_ports)
+        activate(ha)
+        chord("P")
+        wait_for(lambda s: is_active(s, second_ports), "Ports return chooses the newer duplicate after its last focus changes")
         existing = before | created
         subprocess.Popen(["wt.exe", "-w", "new", "new-tab", "-p", "{574e775e-4f2a-5b96-ac1e-a2962a402336}"])
         current = wait_for(lambda s: any(t["window"] not in existing for t in s["tabs"]), "empty test window opens")
@@ -140,6 +149,12 @@ def main():
         chord("H")
         wait_for(lambda s: s["foreground"] == shell["window"] and any(r["window"] == shell["window"] for r in live_records(records_dir)),
                  "window with no Herdr view opens one locally instead of jumping elsewhere")
+        from check_foreground import check_handoff
+        save_scope(DATA_DIR, "all")
+        for app, target, other in (("ports", pa, ha), ("herdr", ha, pa)):
+            activate(target)
+            activate(other)
+            check_handoff(app, target, machine)
         print("PASS: real desktop shortcut checks completed", flush=True)
     finally:
         if original is None:

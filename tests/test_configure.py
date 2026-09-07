@@ -1,11 +1,14 @@
 import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from configure import ACTIONS, HERDR, PORTS, PWSH, render, export_shared
+import configure
 
 
 class TerminalSettingsTests(unittest.TestCase):
@@ -48,6 +51,81 @@ class TerminalSettingsTests(unittest.TestCase):
         serialized = json.dumps(exported)
         for private_value in ("workbox", "C:/private", "private command", "C:/herdr", "C:/app"):
             self.assertNotIn(private_value, serialized)
+
+    def test_sync_removes_portable_overrides_absent_on_source_machine(self):
+        shared = export_shared({}, self.shared)
+        target = {"copyOnSelect": True, "initialCols": 160, "startupActions": "private command"}
+        synced = render(target, shared, "workbox", Path("C:/app/python.exe"), Path("C:/herdr.exe"))
+        self.assertNotIn("copyOnSelect", synced)
+        self.assertNotIn("initialCols", synced)
+        self.assertEqual(synced["startupActions"], "private command")
+
+    def test_first_install_creates_missing_terminal_settings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, settings, arguments = self.prepare_install(directory)
+            store = Mock(host="workbox")
+            with patch.object(configure, "ROOT", root), patch.object(configure, "PORT_APP", root / "app"), \
+                    patch.object(configure, "Store", return_value=store), patch.object(sys, "argv", arguments):
+                configure.main()
+            installed = json.loads(settings.read_text())
+            self.assertEqual(installed["defaultProfile"], PWSH)
+            self.assertEqual({p["guid"] for p in installed["profiles"]["list"]}, {PWSH, HERDR, PORTS})
+            self.assertEqual(len(installed["keybindings"]), 4)
+            self.assertTrue((root / ".machine.json").is_file())
+
+    def test_first_install_preserves_concurrently_created_settings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, settings, arguments = self.prepare_install(directory)
+            competing = b'{"initialCols": 123}'
+
+            def concurrent_render(*args, **kwargs):
+                settings.parent.mkdir(parents=True)
+                settings.write_bytes(competing)
+                return render(*args, **kwargs)
+
+            with patch.object(configure, "ROOT", root), patch.object(configure, "PORT_APP", root / "app"), \
+                    patch.object(configure, "Store", return_value=Mock(host="workbox")), \
+                    patch.object(configure, "render", side_effect=concurrent_render), patch.object(sys, "argv", arguments):
+                with self.assertRaisesRegex(ValueError, "settings changed"):
+                    configure.main()
+            self.assertEqual(settings.read_bytes(), competing)
+            self.assertFalse((root / ".machine.json").exists())
+
+    def test_existing_jsonc_settings_install_and_original_backup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, settings, arguments = self.prepare_install(directory)
+            settings.parent.mkdir()
+            original = b'{ // user comment\n "profiles": {"list": [],}, "startupActions": "private command",}'
+            settings.write_bytes(original)
+            with patch.object(configure, "ROOT", root), patch.object(configure, "PORT_APP", root / "app"), \
+                    patch.object(configure, "Store", return_value=Mock(host="workbox")), patch.object(sys, "argv", arguments):
+                configure.main()
+            self.assertEqual(json.loads(settings.read_text())["startupActions"], "private command")
+            backups = list(settings.parent.glob("*.bak"))
+            self.assertEqual(len(backups), 1)
+            self.assertEqual(backups[0].read_bytes(), original)
+
+    def test_jsonc_parser_preserves_strings_and_rejects_invalid_data(self):
+        data = {"url": "https://example.test/*literal*/", "date": "2026-09-08T12:00:00Z",
+                "command": 'echo "$(literal)"', "items": [1, 2], "name": "終端機"}
+        contents = ("/* comment */" + json.dumps(data, ensure_ascii=False)[:-1] + ",}// final comment").encode()
+        self.assertEqual(configure.parse_settings(contents), data)
+        for invalid in (b'{"broken":', b'{} {}', b'[]'):
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(ValueError):
+                    configure.parse_settings(invalid)
+
+    def prepare_install(self, directory):
+        root = Path(directory)
+        (root / "config").mkdir()
+        (root / "config/terminal.json").write_text(json.dumps(self.shared))
+        python = root / "app/.venv/Scripts/python.exe"
+        python.parent.mkdir(parents=True)
+        python.touch()
+        herdr = root / "herdr.exe"
+        herdr.touch()
+        settings = root / "LocalState/settings.json"
+        return root, settings, ["configure.py", "--settings", str(settings), "--ssh-host", "workbox", "--herdr", str(herdr)]
 
 
 if __name__ == "__main__":
