@@ -1,0 +1,3 @@
+[submodule "apps/port-forward-tui"]
+	path = apps/port-forward-tui
+	url = https://github.com/brant92good/port-forward-tui.git

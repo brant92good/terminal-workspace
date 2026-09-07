@@ -1,0 +1,16 @@
+{
+  "terminal": {
+    "copyFormatting": "none",
+    "copyOnSelect": false,
+    "schemes": [],
+    "themes": []
+  },
+  "profileDefaults": {},
+  "compactMenu": true,
+  "shortcuts": {
+    "herdr": "ctrl+alt+h",
+    "newHerdr": "ctrl+alt+shift+h",
+    "ports": "ctrl+alt+p",
+    "newPorts": "ctrl+alt+shift+p"
+  }
+}

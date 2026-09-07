@@ -1,0 +1,8 @@
+.machine.json
+build/
+artifacts/
+__pycache__/
+*.pyc
+*.bak
+*.log
+/local_*.py
