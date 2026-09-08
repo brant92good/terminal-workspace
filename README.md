@@ -70,9 +70,11 @@ Return shortcuts use a brief launcher tab, then hand focus over after it
 closes. Keyboard focus moves into the terminal content so you can type
 immediately. The helper does not raise a window if you switch to another application
 during that handoff. These are Terminal shortcuts, not system-wide hotkeys.
-The Ports return path skips loading the TUI and uses a focus executable built
-once during installation. It waits for launcher closure instead of imposing a
-fixed pause. The same helper process performs lookup and the final handoff.
+Both return shortcuts use a shared focus executable built once during
+installation. It waits for launcher closure instead of imposing a fixed pause.
+The same helper process performs lookup and the final handoff. Ports skips
+loading the TUI, and Herdr matches registered tab identities even when titles
+change or duplicate one another.
 Manually moving a Herdr tab between windows may require reopening the view to
 register its new accessibility identity. Separate split panes are not tracked
 as separate Terminal tabs.
@@ -123,13 +125,21 @@ To measure the installed Ports return shortcut:
 
 ```powershell
 .\apps\port-forward-tui\.venv\Scripts\python.exe scripts/benchmark_switch.py --yes --samples 6 --output artifacts/switch.json
+.\apps\port-forward-tui\.venv\Scripts\python.exe scripts/benchmark_switch.py --yes --app herdr --samples 6 --output artifacts/herdr-switch.json
 ```
 
-This opens a temporary window with Ports before a source tab, presses
-Ctrl+Alt+P, and measures until Ports has keyboard focus. The target is deliberately
+These commands use the default Ctrl+Alt+P/H bindings. They open a temporary
+window with the target before a source tab and measure until the target has
+keyboard focus. The target is deliberately
 not adjacent to the temporary launcher, so closing the launcher cannot itself
 satisfy the measurement. Compilation and setup are outside the stopwatch. The
 report includes every sample and the median; results depend on the machine and
 Terminal version. It restores the focus-scope setting and closes its test window.
+
+For opt-in Herdr stage timings, add `--trace`. This temporarily adds a profiling
+argument to the Herdr return shortcut, restores its settings afterward, and
+records startup, lookup, closure, and focus stages. Normal shortcuts write no
+profiling files. [Latency analysis](docs/latency.md) explains the measurement
+boundaries, results, and remaining costs.
 
 [MIT](LICENSE). See [NOTICE](NOTICE) for Herdr artwork attribution.

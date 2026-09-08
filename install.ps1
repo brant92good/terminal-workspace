@@ -25,7 +25,7 @@ if (-not $SkipDependencies) {
     if ($LASTEXITCODE -ne 0) { throw 'Could not install the port app dependencies.' }
 }
 & $workspacePython (Join-Path $workspaceApp 'build_focus_helper.py')
-if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast Ports shortcut helper.' }
+if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast Herdr/Ports shortcut helper.' }
 & $workspacePython (Join-Path $workspaceRoot 'scripts\build_icon.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }
 $workspaceArguments = @((Join-Path $workspaceRoot 'scripts\configure.py'))

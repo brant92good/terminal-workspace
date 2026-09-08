@@ -29,19 +29,20 @@ def worker(app, gate):
     subprocess.run = hold_probe
     if app == "ports":
         from app import main
-        import views
-        original_native = views.native_focus
-
-        def hold_native_probe(command):
-            wait_at_probe()
-            return original_native(command)
-
-        views.native_focus = hold_native_probe
+        import views as focus_module
         sys.argv = ["app.py", "--focus-existing"]
     else:
         from herdr_launcher import main
+        import herdr_launcher as focus_module
         machine = json.loads((ROOT / ".machine.json").read_text())
         sys.argv = ["herdr_launcher.py", "--focus-existing", "--host", machine["ssh_host"], "--herdr", machine["herdr"]]
+    original_native = focus_module.native_focus
+
+    def hold_native_probe(command, *args, **kwargs):
+        wait_at_probe()
+        return original_native(command, *args, **kwargs)
+
+    focus_module.native_focus = hold_native_probe
     raise SystemExit(main())
 
 

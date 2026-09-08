@@ -1,0 +1,251 @@
+{
+  "app": "herdr",
+  "samples_ms": [
+    375.9,
+    375.3,
+    385.6,
+    377.2,
+    398.1,
+    370.1
+  ],
+  "median_ms": 376.6,
+  "min_ms": 370.1,
+  "max_ms": 398.1,
+  "stage_timings_ms": {
+    "Terminal and Python startup": {
+      "mean": 70.712,
+      "median": 70.488,
+      "min": 66.731,
+      "max": 74.167,
+      "samples": [
+        66.731,
+        69.837,
+        74.167,
+        71.114,
+        72.558,
+        69.861
+      ]
+    },
+    "Python imports and arguments": {
+      "mean": 54.449,
+      "median": 53.848,
+      "min": 52.433,
+      "max": 56.959,
+      "samples": [
+        54.391,
+        56.959,
+        53.013,
+        52.433,
+        56.593,
+        53.304
+      ]
+    },
+    "Settings and origin marker": {
+      "mean": 0.456,
+      "median": 0.453,
+      "min": 0.43,
+      "max": 0.484,
+      "samples": [
+        0.477,
+        0.43,
+        0.441,
+        0.463,
+        0.442,
+        0.484
+      ]
+    },
+    "Read live view records": {
+      "mean": 0.584,
+      "median": 0.569,
+      "min": 0.531,
+      "max": 0.702,
+      "samples": [
+        0.582,
+        0.554,
+        0.568,
+        0.57,
+        0.531,
+        0.702
+      ]
+    },
+    "Payload and helper cache": {
+      "mean": 0.74,
+      "median": 0.707,
+      "min": 0.662,
+      "max": 0.924,
+      "samples": [
+        0.716,
+        0.698,
+        0.662,
+        0.752,
+        0.924,
+        0.687
+      ]
+    },
+    "Create handoff event": {
+      "mean": 0.099,
+      "median": 0.087,
+      "min": 0.082,
+      "max": 0.156,
+      "samples": [
+        0.082,
+        0.085,
+        0.083,
+        0.09,
+        0.1,
+        0.156
+      ]
+    },
+    "Helper process and CLR startup": {
+      "mean": 31.272,
+      "median": 30.924,
+      "min": 29.098,
+      "max": 34.639,
+      "samples": [
+        34.639,
+        30.798,
+        29.749,
+        31.05,
+        32.3,
+        29.098
+      ]
+    },
+    "Native initialization and options": {
+      "mean": 54.284,
+      "median": 54.553,
+      "min": 53.244,
+      "max": 55.342,
+      "samples": [
+        54.758,
+        55.342,
+        53.255,
+        54.531,
+        54.575,
+        53.244
+      ]
+    },
+    "Enumerate Terminal tabs": {
+      "mean": 70.068,
+      "median": 69.795,
+      "min": 68.032,
+      "max": 72.25,
+      "samples": [
+        70.414,
+        68.032,
+        72.25,
+        68.912,
+        71.625,
+        69.177
+      ]
+    },
+    "Choose live MRU target": {
+      "mean": 3.3,
+      "median": 3.217,
+      "min": 3.085,
+      "max": 3.6,
+      "samples": [
+        3.219,
+        3.6,
+        3.216,
+        3.532,
+        3.085,
+        3.147
+      ]
+    },
+    "Signal and wait for launcher exit": {
+      "mean": 8.626,
+      "median": 8.631,
+      "min": 8.25,
+      "max": 9.028,
+      "samples": [
+        8.25,
+        8.579,
+        8.682,
+        9.028,
+        8.382,
+        8.834
+      ]
+    },
+    "Wait for tab closure": {
+      "mean": 55.079,
+      "median": 54.906,
+      "min": 51.545,
+      "max": 59.6,
+      "samples": [
+        55.126,
+        54.685,
+        51.545,
+        59.6,
+        53.549,
+        55.971
+      ]
+    },
+    "Resolve destination tab": {
+      "mean": 13.19,
+      "median": 10.768,
+      "min": 10.409,
+      "max": 18.43,
+      "samples": [
+        10.409,
+        10.829,
+        18.314,
+        10.706,
+        18.43,
+        10.45
+      ]
+    },
+    "Select destination tab": {
+      "mean": 9.762,
+      "median": 9.488,
+      "min": 8.983,
+      "max": 10.769,
+      "samples": [
+        10.594,
+        9.543,
+        10.769,
+        9.433,
+        9.247,
+        8.983
+      ]
+    },
+    "Apply window foreground": {
+      "mean": 0.002,
+      "median": 0.002,
+      "min": 0.002,
+      "max": 0.002,
+      "samples": [
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002,
+        0.002
+      ]
+    },
+    "Focus terminal content": {
+      "mean": 7.754,
+      "median": 5.786,
+      "min": 4.984,
+      "max": 15.756,
+      "samples": [
+        5.534,
+        5.292,
+        8.922,
+        4.984,
+        15.756,
+        6.038
+      ]
+    }
+  },
+  "helper_verification_after_focus_ms": {
+    "median": 16.452,
+    "samples": [
+      13.996,
+      15.568,
+      17.336,
+      18.321,
+      11.21,
+      17.882
+    ]
+  }
+}

@@ -1,4 +1,7 @@
 """Attach another Herdr view, or return to the last-used live Terminal tab."""
+import time
+STARTED = time.perf_counter()
+
 import argparse
 import base64
 import hashlib
@@ -7,16 +10,30 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-import time
 import uuid
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "apps/port-forward-tui"))
 from focus_settings import read_scope
 from forwarding import DATA_DIR, validate_host
-from views import mark_origin, process_alive, delayed_focus
+from views import mark_origin, process_alive, delayed_focus, focus_command, native_focus
 
 POWERSHELL = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
+
+
+class LaunchTrace:
+    """Opt-in profiling only; no files are written during ordinary shortcuts."""
+    def __init__(self, directory):
+        directory.mkdir(parents=True, exist_ok=True)
+        self.path = directory / (uuid.uuid4().hex + ".json")
+        self.events = [{"name": "python_entry", "at": STARTED}]
+        self.mark("arguments_parsed")
+
+    def mark(self, name):
+        self.events.append({"name": name, "at": time.perf_counter()})
+
+    def save(self):
+        self.path.with_suffix(".launcher.json").write_text(json.dumps(self.events), encoding="utf-8")
 
 
 def helper(mode, *arguments):
@@ -42,14 +59,30 @@ def live_records(directory: Path) -> list[dict]:
     return records
 
 
-def try_focus(directory: Path, scope: str, origin_title: str = "", probe=False) -> bool:
+def try_focus(directory: Path, scope: str, origin_title: str = "", probe=False, trace=None) -> bool:
     if not probe and not origin_title:
         return False
     records = live_records(directory)
+    if trace:
+        trace.mark("records_loaded")
     if not records:
         return False
     payload = base64.b64encode(json.dumps(records).encode()).decode("ascii")
+    executable = focus_command()
+    if trace:
+        trace.mark("helper_ready")
     try:
+        if len(executable) == 1:
+            command = [*executable, "-RecordsBase64", payload, "-Scope", scope]
+            if origin_title:
+                command.extend(["-OriginTitle", origin_title])
+            if trace:
+                command.extend(["-TracePath", str(trace.path)])
+            if not probe:
+                return native_focus(command, trace=trace)
+            result = subprocess.run([*command, "-ProbeOnly"], capture_output=True,
+                                    creationflags=subprocess.CREATE_NO_WINDOW, timeout=8)
+            return result.returncode == 0
         result = subprocess.run(helper("Probe", "-RecordsBase64", payload,
                                        "-Scope", scope, "-OriginTitle", origin_title),
                                 stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="utf-8",
@@ -73,7 +106,9 @@ def main():
     parser.add_argument("--herdr", default=str(Path(os.environ["LOCALAPPDATA"]) / "Programs/Herdr/bin/herdr.exe"))
     parser.add_argument("--data-dir", type=Path, default=DATA_DIR)
     parser.add_argument("--focus-existing", action="store_true")
+    parser.add_argument("--trace-dir", type=Path, help=argparse.SUPPRESS)
     options = parser.parse_args()
+    trace = LaunchTrace(options.trace_dir) if options.trace_dir else None
     validate_host(options.host)
     if not Path(options.herdr).is_file():
         raise ValueError("Herdr executable not found; pass --herdr PATH")
@@ -81,8 +116,15 @@ def main():
     directory = view_directory(options.data_dir, options.host)
     directory.mkdir(parents=True, exist_ok=True)
     origin = mark_origin()
-    if options.focus_existing and try_focus(directory, scope, origin):
-        return 0
+    if trace:
+        trace.mark("settings_loaded")
+    if options.focus_existing:
+        try:
+            if try_focus(directory, scope, origin, trace=trace):
+                return 0
+        finally:
+            if trace:
+                trace.save()
     record = directory / (uuid.uuid4().hex + ".json")
     tracker = None
     try:
