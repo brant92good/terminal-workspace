@@ -13,6 +13,9 @@ import configure
 
 class TerminalSettingsTests(unittest.TestCase):
     def setUp(self):
+        catalog = patch.object(configure, 'Catalog')
+        catalog.start()
+        self.addCleanup(catalog.stop)
         self.shared = json.loads((ROOT / "config/terminal.json").read_text())
         self.original = {"profiles": {"list": [
             {"guid": "wsl", "source": "Microsoft.WSL", "name": "Ubuntu"},

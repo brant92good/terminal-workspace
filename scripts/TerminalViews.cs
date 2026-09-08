@@ -16,6 +16,7 @@ public class TerminalViewRecord {
     public string runtime_id;
     public long window;
     public long last_focus;
+    public string machine;
 }
 
 public class TerminalTabInfo {
@@ -168,7 +169,7 @@ public static class TerminalViews {
         return "";
     }
 
-    public static void Track(string path, string title, string runtimeId, int pid) {
+    public static void Track(string path, string title, string runtimeId, int pid, string machine = "", string contextPath = "") {
         TerminalTabInfo tab = null;
         var deadline = DateTime.UtcNow.AddSeconds(6);
         while (DateTime.UtcNow < deadline && tab == null) {
@@ -179,7 +180,7 @@ public static class TerminalViews {
         long started;
         using (var owner = Process.GetProcessById(pid)) started = owner.StartTime.ToUniversalTime().Ticks;
         var record = new TerminalViewRecord { pid = pid, started = started, runtime_id = tab.runtime_id,
-            window = tab.window, last_focus = DateTime.UtcNow.Ticks };
+            window = tab.window, last_focus = DateTime.UtcNow.Ticks, machine = machine };
         var gate = new object();
         bool stopping = false;
         bool wasActive = false;
@@ -188,6 +189,12 @@ public static class TerminalViews {
             File.WriteAllText(temporary, Json.Serialize(record), new UTF8Encoding(false));
             if (File.Exists(path)) File.Replace(temporary, path, null);
             else File.Move(temporary, path);
+            if (!String.IsNullOrEmpty(contextPath)) {
+                var contextTemp = contextPath + ".tmp";
+                File.WriteAllText(contextTemp, Json.Serialize(record), new UTF8Encoding(false));
+                if (File.Exists(contextPath)) File.Replace(contextTemp, contextPath, null);
+                else File.Move(contextTemp, contextPath);
+            }
         };
         Action<bool> observe = (force) => {
             lock (gate) {
@@ -221,6 +228,7 @@ public static class TerminalViews {
             Automation.RemoveAutomationFocusChangedEventHandler(focus);
             Automation.RemoveAutomationEventHandler(SelectionItemPattern.ElementSelectedEvent, tab.element, selection);
             if (File.Exists(path)) File.Delete(path);
+            if (!String.IsNullOrEmpty(contextPath) && File.Exists(contextPath)) File.Delete(contextPath);
         }
     }
 }

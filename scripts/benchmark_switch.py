@@ -73,7 +73,7 @@ Add-Type -Path @((Join-Path $Root 'scripts/TerminalViews.cs'),(Join-Path $Root '
             with trace_herdr(trace_dir) if options.trace else nullcontext():
                 result = subprocess.run(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
                     "-Root", str(ROOT), "-Target", target["runtime_id"], "-Source", source["runtime_id"], "-Count", str(options.samples),
-                    "-Shortcut", str(ord("P" if options.app == "ports" else "H"))],
+                    "-Shortcut", str(ord("P" if options.app == "ports" else "R"))],
                     capture_output=True, encoding="utf-8", errors="replace", creationflags=subprocess.CREATE_NO_WINDOW, timeout=90)
                 if result.returncode:
                     raise RuntimeError(result.stderr)

@@ -15,7 +15,9 @@ import uuid
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "apps/port-forward-tui"))
 from port_forward_tui.focus_settings import read_scope
-from port_forward_tui.forwarding import DATA_DIR, validate_host
+from port_forward_tui.forwarding import DATA_DIR, SSH, validate_host, ssh_options
+from port_forward_tui.machines import Catalog
+from port_forward_tui.window_context import choose_machine
 from port_forward_tui.views import mark_origin, process_alive, delayed_focus, focus_command, native_focus
 
 POWERSHELL = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
@@ -102,18 +104,38 @@ def try_focus(directory: Path, scope: str, origin_title: str = "", probe=False, 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--host", required=True)
+    parser.add_argument("--host")
+    parser.add_argument('--machine')
+    parser.add_argument('--machines', action='store_true')
+    parser.add_argument('--client', choices=('ssh', 'herdr'), default='herdr')
+    parser.add_argument('--local', action='store_true', help='Open local Herdr, without a remote machine')
     parser.add_argument("--herdr", default=str(Path(os.environ["LOCALAPPDATA"]) / "Programs/Herdr/bin/herdr.exe"))
     parser.add_argument("--data-dir", type=Path, default=DATA_DIR)
     parser.add_argument("--focus-existing", action="store_true")
     parser.add_argument("--trace-dir", type=Path, help=argparse.SUPPRESS)
     options = parser.parse_args()
     trace = LaunchTrace(options.trace_dir) if options.trace_dir else None
-    validate_host(options.host)
-    if not Path(options.herdr).is_file():
+    catalog = Catalog(options.data_dir)
+    machine = None
+    if not options.local:
+        selector = catalog.add(options.host).id if options.host else options.machine
+        machine = choose_machine(catalog, selector, picker=options.machines, purpose='Choose a machine for a remote session')
+        if machine is None:
+            return 0
+        options.host = machine.target
+    if (options.local or options.client == 'herdr') and not Path(options.herdr).is_file():
         raise ValueError("Herdr executable not found; pass --herdr PATH")
-    scope = read_scope(options.data_dir)
-    directory = view_directory(options.data_dir, options.host)
+    scope = read_scope(machine.directory if machine else options.data_dir)
+    if options.local:
+        directory = options.data_dir / 'local-herdr-views'
+        session_command = [options.herdr]
+    else:
+        # Herdr accepts SSH aliases. For custom config/port overrides use the
+        # ordinary SSH client, which can honor those settings explicitly.
+        client = 'ssh' if machine.ssh_port or machine.ssh_config else options.client
+        directory = view_directory(options.data_dir, options.host) if client == 'herdr' else options.data_dir / 'ssh-views' / machine.id
+        session_command = ([options.herdr, '--remote', machine.target] if client == 'herdr' else
+                           [SSH, *ssh_options(machine.ssh_port, machine.ssh_config), machine.target])
     directory.mkdir(parents=True, exist_ok=True)
     origin = mark_origin()
     if trace:
@@ -126,11 +148,16 @@ def main():
             if trace:
                 trace.save()
     record = directory / (uuid.uuid4().hex + ".json")
+    context = options.data_dir / 'window-views' / record.name if machine else None
+    if context:
+        context.parent.mkdir(parents=True, exist_ok=True)
     tracker = None
     try:
         with (directory / "tracker.log").open("ab") as log:
-            tracker = subprocess.Popen(helper("Track", "-RecordPath", record, "-InitialTitle", origin,
-                                              "-OwnerPid", os.getpid()),
+            tracker_command = helper("Track", "-RecordPath", record, "-InitialTitle", origin, "-OwnerPid", os.getpid())
+            if context:
+                tracker_command += ['-MachineId', machine.id, '-ContextPath', str(context)]
+            tracker = subprocess.Popen(tracker_command,
                                        stdin=subprocess.DEVNULL, stdout=log, stderr=log,
                                        creationflags=subprocess.CREATE_NO_WINDOW)
         deadline = time.monotonic() + 8
@@ -139,13 +166,15 @@ def main():
         if not record.exists():
             print("Herdr will open, but this tab could not register for the return shortcut.", file=sys.stderr)
         # Inherit the console unchanged; Herdr owns its input, output and SSH session.
-        return subprocess.call([options.herdr, "--remote", options.host])
+        return subprocess.call(session_command)
     finally:
         if tracker:
             if tracker.poll() is None:
                 tracker.terminate()
             tracker.wait(timeout=5)
         record.unlink(missing_ok=True)
+        if context:
+            context.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

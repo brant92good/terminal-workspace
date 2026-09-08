@@ -29,7 +29,7 @@ def worker(app, gate):
     subprocess.run = hold_probe
     if app == "ports":
         from port_forward_tui.ui import main
-        import views as focus_module
+        from port_forward_tui import views as focus_module
         sys.argv = ["app.py", "--focus-existing"]
     else:
         from herdr_launcher import main

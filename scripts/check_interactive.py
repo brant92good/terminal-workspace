@@ -65,6 +65,7 @@ def main():
     if not options.yes:
         parser.error("Run with --yes while you are ready for desktop focus to move")
     machine = json.loads((ROOT / ".machine.json").read_text())
+    tab_count = 3 if machine.get("local_herdr") else 2
     records_dir = view_directory(DATA_DIR, machine["ssh_host"])
     before = {t["window"] for t in state()["tabs"]}
     preferences = DATA_DIR / "ui-settings.json"
@@ -75,23 +76,40 @@ def main():
         for label in ("A", "B"):
             existing = before | created
             subprocess.Popen([str(ROOT / "build/TerminalWorkspace.exe")])
-            current = wait_for(lambda s: len([t for t in s["tabs"] if t["window"] not in existing]) == 2,
-                               f"launcher {label} creates exactly two tabs")
+            current = wait_for(lambda s: len([t for t in s["tabs"] if t["window"] not in existing]) == tab_count,
+                               f"launcher {label} creates {tab_count} tabs")
             window = next(t["window"] for t in current["tabs"] if t["window"] not in existing)
             created.add(window)
             current = wait_for(lambda s: any(t["window"] == window and t["title"].startswith("Ports | ") for t in s["tabs"])
                 and any(r["window"] == window for r in live_records(records_dir)), f"window {label} registers both app views")
             tabs = [t for t in current["tabs"] if t["window"] == window]
             ports = next(t for t in tabs if t["title"].startswith("Ports | "))
-            herdr = next(t for t in tabs if t != ports)
+            identities = {r["runtime_id"] for r in live_records(records_dir)}
+            herdr = next(t for t in tabs if t["runtime_id"] in identities)
             wait_for(lambda s: is_active(s, herdr), f"launcher {label} leaves the Herdr tab selected")
             windows.append((herdr, ports))
         (ha, pa), (hb, pb) = windows
+        if machine.get('local_herdr'):
+            local_dir = DATA_DIR / 'local-herdr-views'
+            current = wait_for(lambda s: all(any(r['window'] == tab['window'] for r in live_records(local_dir))
+                                            for tab in (ha, hb)), 'both local Herdr views register')
+            local_ids = {r['runtime_id'] for r in live_records(local_dir)}
+            la = next(t for t in current['tabs'] if t['window'] == ha['window'] and t['runtime_id'] in local_ids)
+            lb = next(t for t in current['tabs'] if t['window'] == hb['window'] and t['runtime_id'] in local_ids)
+            save_scope(DATA_DIR, 'all')
+            activate(la)
+            activate(pb)
+            chord('L')
+            wait_for(lambda s: is_active(s, la), 'Ctrl+Alt+L returns to local Herdr across windows')
+            save_scope(DATA_DIR, 'window')
+            activate(pb)
+            chord('L')
+            wait_for(lambda s: is_active(s, lb), 'Ctrl+Alt+L respects the current-window scope')
         save_scope(DATA_DIR, "all")
         activate(pa)
         activate(hb)
         chord("P")
-        wait_for(lambda s: is_active(s, pa) and len([t for t in s["tabs"] if t["window"] in created]) == 4,
+        wait_for(lambda s: is_active(s, pa) and len([t for t in s["tabs"] if t["window"] in created]) == tab_count * 2,
                  "Ctrl+Alt+P returns across windows and removes its temporary launcher tab")
         save_scope(DATA_DIR, "window")
         activate(hb)
@@ -100,27 +118,27 @@ def main():
         save_scope(DATA_DIR, "all")
         activate(ha)
         activate(pb)
-        chord("H")
-        wait_for(lambda s: is_active(s, ha), "Ctrl+Alt+H returns to the last-used Herdr view across windows")
+        chord("R")
+        wait_for(lambda s: is_active(s, ha), "Ctrl+Alt+R returns to the last-used Herdr view across windows")
         save_scope(DATA_DIR, "window")
         activate(pb)
-        chord("H")
-        wait_for(lambda s: is_active(s, hb), "Ctrl+Alt+H stays in the invoking window despite duplicate titles")
+        chord("R")
+        wait_for(lambda s: is_active(s, hb), "Ctrl+Alt+R stays in the invoking window despite duplicate titles")
         activate(pb)
         old_tabs = {t["runtime_id"] for t in state()["tabs"]}
-        chord("H", shift=True)
+        chord("R", shift=True)
         current = wait_for(lambda s: any(t["window"] == hb["window"] and t["runtime_id"] not in old_tabs for t in s["tabs"]),
-                           "Ctrl+Alt+Shift+H opens an additional Herdr view")
+                           "Ctrl+Alt+Shift+R opens an additional Herdr view")
         second_herdr = next(t for t in current["tabs"] if t["window"] == hb["window"] and t["runtime_id"] not in old_tabs)
         wait_for(lambda s: any(r["runtime_id"] == second_herdr["runtime_id"] for r in live_records(records_dir)),
                  "duplicate Herdr tab has its own registered identity")
         activate(hb)
         activate(pb)
-        chord("H")
+        chord("R")
         wait_for(lambda s: is_active(s, hb), "return shortcut chooses the older duplicate when it was used last")
         activate(second_herdr)
         activate(pb)
-        chord("H")
+        chord("R")
         wait_for(lambda s: is_active(s, second_herdr), "return shortcut chooses the newer duplicate after its last focus changes")
         activate(pa)
         old_tabs = {t["runtime_id"] for t in state()["tabs"]}
@@ -146,7 +164,7 @@ def main():
         wait_for(lambda s: s["foreground"] == shell["window"] and any(t["window"] == shell["window"] and t["title"].startswith("Ports | ") and t["selected"] for t in s["tabs"]),
                  "window with no Ports view opens one locally instead of jumping elsewhere")
         activate(shell)
-        chord("H")
+        chord("R")
         wait_for(lambda s: s["foreground"] == shell["window"] and any(r["window"] == shell["window"] for r in live_records(records_dir)),
                  "window with no Herdr view opens one locally instead of jumping elsewhere")
         from check_foreground import check_handoff

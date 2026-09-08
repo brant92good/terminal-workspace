@@ -1,19 +1,20 @@
 # Terminal Workspace
 
-Open Herdr and your SSH port forwards in one Windows Terminal window.
+Open a remote shell and its SSH port forwards in one Windows Terminal window.
 
-This is a Windows setup for working on a remote computer: a
-[Herdr](https://herdr.dev/) tab for your shell, a
+Choose a machine, then open an **SSH** tab for your shell, a
 [Ports](https://github.com/brant92good/port-forward-tui) tab for its web apps
 and notebooks, and shortcuts to return to the tab you were using.
+[Herdr](https://herdr.dev/) is an optional alternative for remote sessions;
+you can also add a third tab for local Herdr.
 
 ```text
 Terminal Workspace button
   └─ Windows Terminal
-       ├─ Herdr   ← selected when the window opens
+       ├─ Remote  ← selected; ordinary SSH or optional Herdr
        └─ Ports   ← saved connections to remote apps
 
-Ctrl+Alt+H → return to Herdr     Ctrl+Alt+P → return to Ports
+Ctrl+Alt+R → return to remote     Ctrl+Alt+P → return to Ports
 ```
 
 [Install](#set-up-on-windows) · [Daily use](#use-it-every-day) · [Test results](#what-has-been-checked) · [Setup help](docs/setup.md)
@@ -21,8 +22,9 @@ Ctrl+Alt+H → return to Herdr     Ctrl+Alt+P → return to Ports
 ## When this is useful
 
 If you regularly use both a remote shell and remote web apps, this gives them
-one Start/desktop button and consistent return shortcuts. Multiple open tabs
-share the underlying sessions; adding Shift opens another view.
+one Start/desktop button and consistent return shortcuts. Ports tabs share
+background connections; adding Shift opens another view. Ordinary SSH tabs
+are separate shell sessions; Herdr manages its own persistent sessions.
 
 The installer can keep your current Terminal appearance, default shell and
 menu. If you want the same appearance and shortcuts on another computer, it
@@ -30,36 +32,36 @@ also supports sharing those preferences through your own fork.
 
 Only need saved port forwards? Install
 [Port Forward TUI](https://github.com/brant92good/port-forward-tui) on its own.
-This repository adds the Herdr integration and Terminal setup. It targets one
-SSH destination per installed app data folder.
+This repository adds machine-aware Terminal windows and optional Herdr integration.
+Each machine keeps separate favorites and running forwards.
 
 ## Set up on Windows
 
 You need **Windows 10/11, Windows Terminal, PowerShell 7, Git, Windows Python
-3.12+, OpenSSH Client and Herdr**. The [setup guide](docs/setup.md) links to
+3.12+ and OpenSSH Client**. The [setup guide](docs/setup.md) links to
 installation instructions for missing tools. These prerequisites are installed
 separately.
 
-Use the name from your working SSH command in place of `workbox`. Background
-port connections need an SSH key or agent that can log in without a password
-prompt. Run these commands in a PowerShell tab on Windows:
+You do not need to choose a host during installation. Background port connections
+will need an SSH key or agent when you start them. Run in PowerShell on Windows:
 
 ```powershell
 git clone --recurse-submodules https://github.com/brant92good/terminal-workspace.git
 cd terminal-workspace
-.\install.ps1 -SshHost workbox -IntegrationOnly
+.\install.ps1 -IntegrationOnly
 .\open.ps1
 ```
 
-You should get a new Terminal window with **Herdr selected and Ports in the
-second tab**. The installer also creates **Terminal Workspace** in Start and
+On first launch, **A** adds a machine or **I** imports names from your SSH config.
+Choose one: its **remote shell opens first and Ports second**, with the remote
+tab selected. The installer also creates **Terminal Workspace** in Start and
 on the desktop. Pin its Start entry to the taskbar if you want a taskbar button.
 Keep the checkout in place; the shortcuts refer to it.
 
 `-IntegrationOnly` adds the two profiles, four keyboard shortcuts and the
 button, while preserving your appearance, default shell and menu. Settings
 are backed up before changes. The mode is remembered when you reinstall or
-sync. For a custom menu listing specific profiles, add Herdr/Ports to that menu
+sync. For a custom menu listing specific profiles, add Remote/Ports to that menu
 manually if desired; the button and keyboard shortcuts work independently.
 
 To also apply this repository's appearance, PowerShell default and compact
@@ -67,9 +69,14 @@ menu, run `.\install.ps1 -ApplySharedSettings`. Existing installations keep
 their saved mode; older installs without a saved mode retain the original
 shared-settings behavior. See [setup options](docs/setup.md).
 
+To use Herdr, install it separately and run `.\install.ps1 -RemoteClient herdr`.
+Add `-LocalHerdr` for a third, local Herdr tab and **Ctrl+Alt+L** to return to it.
+These choices survive updates. Custom SSH config files and login-port overrides
+use ordinary SSH because Herdr's remote command accepts an SSH target only.
+
 ## Use it every day
 
-Work in Herdr as usual. To open a remote web app, switch to Ports, press **A**,
+Work in your remote shell as usual. To open a remote web app, switch to Ports, press **A**,
 enter its port (for example `8000`), then Enter. When it shows ON, **B** opens
 its local HTTP address. The remote app must already be running.
 
@@ -79,14 +86,18 @@ its local HTTP address. The remote app must already be running.
 
 | Key inside Windows Terminal | Action |
 | --- | --- |
-| Ctrl+Alt+H | Return to the most recently used Herdr tab; open one if needed |
-| Ctrl+Alt+P | Return to the most recently used Ports tab; open one if needed |
-| Add Shift to either | Open another connected view |
+| Ctrl+Alt+R | Return to a remote tab for this window's machine; open one if needed |
+| Ctrl+Alt+P | Return to a Ports tab for this window's machine; open one if needed |
+| Ctrl+Alt+L, when enabled | Return to local Herdr |
+| Add Shift | Open another view |
 | F2 inside Ports | Search this Terminal window or all Terminal windows |
+| Esc, then H inside Ports | Choose another machine without stopping background forwards |
 
 These shortcuts apply while Terminal has focus. In the default all-windows
-mode, a return shortcut may bring another Terminal window forward. Use F2
-for the current-window setting. A temporary launcher tab may appear during
+mode, a return shortcut may bring another Terminal window for the **same machine**
+forward. The last-focused machine view in the invoking window supplies the
+machine context. A new window with several saved machines shows a picker.
+Use F2 for the current-window setting. A temporary launcher tab may appear during
 the handoff. Moved Herdr tabs may need reopening; split panes are not tracked
 as separate tabs.
 
@@ -112,6 +123,8 @@ Six keypresses per before/after batch, on one Windows 11 desktop. These are
 same-window returns to an already open tab, **not new-window or SSH startup
 times**. The [full report](docs/before-after.md) includes raw samples, method,
 hardware, and remaining costs. These numbers are not a comparison with other tools.
+They predate multiple-machine routing: resolving a window's machine adds a
+lookup when several machines are saved, and is not included in those timings.
 
 ## Check setup or use a coding agent
 
@@ -125,15 +138,17 @@ Doctor does not install, change settings or contact SSH. It needs a usable
 Windows Python. If the included port app folder is empty, run
 `git submodule update --init --recursive` first.
 
-Agents can install with `-SshHost YOUR_SSH_NAME -IntegrationOnly -NonInteractive`
-and use the port app's [command guide](https://github.com/brant92good/port-forward-tui/blob/main/docs/automation.md).
+Agents can install with `-IntegrationOnly -NonInteractive`, then use
+`ports.ps1 machines add YOUR_SSH_NAME --json` and the returned machine id.
+See the port app's [command guide](https://github.com/brant92good/port-forward-tui/blob/main/docs/automation.md).
 For repository work, read [AGENTS.md](AGENTS.md).
 
 ## Use the same settings on another computer
 
 In your own fork, `config/terminal.json` stores appearance and shortcut
-preferences. Each computer keeps its SSH name, paths and install mode in
-ignored `.machine.json`. The included port app is pinned to a specific version.
+preferences. Each computer keeps paths, client choice and install mode in
+ignored `.machine.json`; the port app keeps machines in private local app data.
+The included port app is pinned to a specific version.
 
 ```powershell
 .\sync.ps1             # Download the saved version and apply it here

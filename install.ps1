@@ -2,6 +2,9 @@ param(
     [string]$SshHost = '',
     [string]$Python = '',
     [string]$HerdrPath = '',
+    [ValidateSet('', 'ssh', 'herdr')][string]$RemoteClient = '',
+    [switch]$LocalHerdr,
+    [switch]$NoLocalHerdr,
     [switch]$NoShortcuts,
     [switch]$SkipDependencies,
     [switch]$NonInteractive,
@@ -12,6 +15,7 @@ $ErrorActionPreference = 'Stop'
 if ($IntegrationOnly -and $ApplySharedSettings) {
     throw 'Choose -IntegrationOnly or -ApplySharedSettings, not both.'
 }
+if ($LocalHerdr -and $NoLocalHerdr) { throw 'Choose -LocalHerdr or -NoLocalHerdr, not both.' }
 $workspaceRoot = $PSScriptRoot
 $workspaceApp = Join-Path $workspaceRoot 'apps\port-forward-tui'
 $workspaceGitPrompt = $env:GIT_TERMINAL_PROMPT
@@ -54,6 +58,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }
 $workspaceArguments = @((Join-Path $workspaceRoot 'scripts\configure.py'))
 if ($SshHost) { $workspaceArguments += @('--ssh-host', $SshHost) }
 if ($HerdrPath) { $workspaceArguments += @('--herdr', $HerdrPath) }
+if ($RemoteClient) { $workspaceArguments += @('--remote-client', $RemoteClient) }
+if ($LocalHerdr) { $workspaceArguments += '--local-herdr' }
+if ($NoLocalHerdr) { $workspaceArguments += '--no-local-herdr' }
 if ($IntegrationOnly) { $workspaceArguments += '--integration-only' }
 if ($ApplySharedSettings) { $workspaceArguments += '--apply-shared-settings' }
 & $workspacePython -E -s @workspaceArguments
@@ -73,6 +80,6 @@ if (-not $NoShortcuts) {
         $workspaceShortcut.Save()
     }
 }
-Write-Output 'Ready. Open Terminal Workspace from Start or the desktop: Herdr opens first, Ports second.'
-Write-Output 'In Ports, press A to add a connection. In Terminal, Ctrl+Alt+H/P returns to Herdr/Ports.'
+Write-Output 'Ready. Open Terminal Workspace from Start: choose a machine, then use its remote and Ports tabs.'
+Write-Output 'H in Ports changes machines. Installation does not require choosing a host.'
 Write-Output 'Setup help: .\doctor.ps1. Connection commands for agents: .\ports.ps1 --help.'

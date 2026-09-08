@@ -1,14 +1,15 @@
 # Working on Terminal Workspace
 
-This is the Windows setup around two apps: Herdr is the remote terminal, and
+This is the Windows setup around remote SSH (optionally Herdr), and
 Port Forward TUI opens remote services on local ports. The Start/desktop button
 opens Herdr first and Ports second, leaving Herdr selected. This repo can be
-installed without anyone's private personal-setup repository.
+installed without anyone's private personal-setup repository. An optional third
+tab runs local Herdr independently of the remote machine.
 
 Read README.md. Run `./doctor.ps1 --json` for local checks and
 `./ports.ps1 list --json` for connection state. These commands do not start SSH.
-For setup use `./install.ps1 -SshHost EXISTING_ALIAS -NonInteractive` with an
-actual SSH name supplied by the user or existing configuration. Respect prior
+For setup use `./install.ps1 -NonInteractive`; no SSH host or Herdr is required.
+Machines are added manually or explicitly imported at runtime. Respect prior
 authorization; do not invent additional approval steps.
 
 ## Where changes belong
@@ -24,6 +25,9 @@ authorization; do not invent additional approval steps.
   preferences. Keep older installations' default behavior.
 - Herdr tab identity and return behavior: `scripts/herdr_launcher.py` and the
   port app's shared focus helper. Never use duplicate titles as Herdr identity.
+- `scripts/workspace.py` selects a machine before creating companion tabs;
+  the legacy-named `herdr_launcher.py` supports SSH, remote Herdr and local Herdr.
+  `remote_client` and `local_herdr` in ignored `.machine.json` are installation choices.
 
 Preserve settings backups, unrelated profiles, both shortcut scopes, and the
 guard against stealing focus from another application. Document intended menu

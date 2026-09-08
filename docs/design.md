@@ -8,9 +8,9 @@ appropriate existing view. Portable appearance settings are optional.
 
 Port Forward TUI can be used without Herdr or this setup. It owns favorites,
 the TUI, connection commands and the background SSH processes. This repository
-owns the two-tab button, Herdr tab registration, Terminal profiles, return
-shortcuts and settings export. Keeping it separate lets port-only users avoid
-the Herdr and workspace setup prerequisites.
+owns the workspace button, remote/local tab registration, Terminal profiles,
+return shortcuts and settings export. Ordinary SSH is the public default;
+Herdr and a third local Herdr tab are optional.
 
 The app is a Git submodule: a separate repository whose exact commit is
 recorded here. `git clone --recurse-submodules` downloads that version. A
@@ -20,7 +20,7 @@ users do not need one.
 ## Add integration without replacing preferences
 
 Developers may already have a default shell, themes, fonts and a custom menu.
-The public quickstart uses `-IntegrationOnly` to add the managed Herdr/Ports
+The public quickstart uses `-IntegrationOnly` to add the managed Remote/Ports
 profiles, shortcuts and button while keeping those preferences. Conflicts
 with unrelated shortcut bindings still stop installation.
 
@@ -35,11 +35,27 @@ See [setup details](setup.md).
 
 ## Current boundary
 
-This is a Herdr-and-Ports setup for Windows, with one SSH destination per app
-data folder. It is not a general plugin host or fleet configuration system.
-Making Herdr optional or packaging a self-contained installer would be a
-separate product change, with its own install and update testing. The current
-installer openly lists its prerequisites.
+Machines are selected at runtime. The independent port app owns manual entry,
+opt-in SSH-config import, and separate data folders/controllers per machine.
+Old favorites and their running controller stay in place during upgrades.
+Installation creates the environment and Terminal integration without requiring
+a host. A fresh public installation does not require Herdr.
+
+The workspace picker opens a remote session and Ports for the same machine.
+An optional third tab opens local Herdr. Return shortcuts resolve the invoking
+Terminal window by a unique title marker, then use its last-focused registered
+machine view. Candidate tabs are filtered by machine before applying the saved
+window scope and most-recent-focus ordering. A window without a known machine
+asks the user when several machines are saved; it does not guess another
+window's machine. This extra window lookup is skipped for a single saved machine.
+
+Session identity is independent of display titles. Local Herdr has its own
+registry, separate from remote sessions. The port app's context format contains
+machine IDs and window/view identity, with no dependency on Herdr. Custom SSH
+config/port overrides use the ordinary SSH client, which supports those options.
+The current launcher does not preserve SSH shell sessions after their terminal
+closes; Herdr supplies that behavior when selected. Packaged prerequisites and
+general terminal-plugin support remain outside this implementation.
 
 The READMEs show what the tools do, a first usable example and verifiable
 test results. They do not claim installation times, customer adoption or

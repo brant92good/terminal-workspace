@@ -12,12 +12,15 @@ ROOT = Path(__file__).resolve().parent.parent
 PORT_APP = ROOT / "apps/port-forward-tui"
 sys.path.insert(0, str(PORT_APP))
 from port_forward_tui.forwarding import Store, DATA_DIR, validate_host
+from port_forward_tui.machines import Catalog
 
 HERDR = "{a9a0b421-7dd6-4425-9843-59b5f5d6c2d1}"
 PORTS = "{5e483274-6f37-40d5-b42b-1eaef7f9da82}"
 PWSH = "{574e775e-4f2a-5b96-ac1e-a2962a402336}"
+LOCAL = "{f7c9cd21-fd21-429b-93ac-bd21e5ef8b11}"
 ACTIONS = {"herdr": "User.TerminalWorkspace.Herdr", "newHerdr": "User.TerminalWorkspace.NewHerdr",
            "ports": "User.TerminalWorkspace.Ports", "newPorts": "User.TerminalWorkspace.NewPorts"}
+LOCAL_ACTIONS = {'local': 'User.TerminalWorkspace.Local', 'newLocal': 'User.TerminalWorkspace.NewLocal'}
 # Export presentation preferences, never shell commands, addresses, or paths.
 PORTABLE = {"copyFormatting", "copyOnSelect", "schemes", "themes", "theme", "tabWidthMode",
             "alwaysShowTabs", "showTabsInTitlebar", "useAcrylicInTabRow", "confirmCloseAllTabs",
@@ -79,7 +82,8 @@ def write_json(path, data, backup=False):
     os.replace(temporary, path)
 
 
-def render(original, shared, host, python, herdr, root=ROOT, integration_only=False):
+def render(original, shared, host, python, herdr, root=ROOT, integration_only=False,
+           remote_client='herdr', local_herdr=False, shortcuts=None):
     data = deepcopy(original)
     if not integration_only:
         for key in PORTABLE:
@@ -92,22 +96,33 @@ def render(original, shared, host, python, herdr, root=ROOT, integration_only=Fa
     entries = profiles.setdefault("list", [])
     wsl = [p for p in entries if p.get("source") == "Microsoft.WSL"]
     if not integration_only and shared.get("compactMenu", True):
-        keep = {PWSH, HERDR, PORTS} | {p["guid"] for p in wsl}
+        keep = {PWSH, HERDR, PORTS} | ({LOCAL} if local_herdr else set()) | {p["guid"] for p in wsl}
         for entry in entries:
             entry["hidden"] = entry.get("guid") not in keep
     commands = {
         "herdr": subprocess.list2cmdline([str(python), "-E", "-s", str(root / "scripts/herdr_launcher.py"),
-                                         "--host", host, "--herdr", str(herdr)]),
+                                         "--client", remote_client, "--herdr", str(herdr)]),
+        "local": subprocess.list2cmdline([str(python), "-E", "-s", str(root / "scripts/herdr_launcher.py"),
+                                         "--local", "--herdr", str(herdr)]),
         "ports": subprocess.list2cmdline([str(python), "-E", "-s", str(root / "apps/port-forward-tui/app.py")])
     }
     desired = [
         {"guid": PWSH, "name": "PowerShell", "source": "Windows.Terminal.PowershellCore", "hidden": False},
-        {"guid": HERDR, "name": "Herdr", "commandline": commands["herdr"], "icon": str(root / "build/herdr.ico"),
-         "tabTitle": "Herdr", "suppressApplicationTitle": False, "closeOnExit": "automatic", "hidden": False,
+        {"guid": HERDR, "name": "Remote Herdr" if remote_client == 'herdr' else 'Remote SSH', "commandline": commands["herdr"], "icon": str(root / "build/herdr.ico") if remote_client == 'herdr' else '\U0001f5a5',
+         "tabTitle": "Remote", "suppressApplicationTitle": False, "closeOnExit": "automatic", "hidden": False,
          "startingDirectory": "%USERPROFILE%"},
         {"guid": PORTS, "name": "Ports", "commandline": commands["ports"], "icon": "\U0001f50c",
          "tabTitle": "Ports", "suppressApplicationTitle": False, "closeOnExit": "automatic", "hidden": False,
          "startingDirectory": "%USERPROFILE%"}]
+    if local_herdr:
+        desired.append({'guid': LOCAL, 'name': 'Local Herdr', 'commandline': commands['local'],
+                        'icon': str(root / 'build/herdr.ico'), 'tabTitle': 'Local Herdr',
+                        'suppressApplicationTitle': False, 'closeOnExit': 'automatic', 'hidden': False,
+                        'startingDirectory': '%USERPROFILE%'})
+    else:
+        for entry in entries:
+            if entry.get('guid') == LOCAL:
+                entry['hidden'] = True
     for profile in desired:
         if integration_only and profile["guid"] == PWSH:
             continue
@@ -121,16 +136,23 @@ def render(original, shared, host, python, herdr, root=ROOT, integration_only=Fa
     actions = data.setdefault("actions", [])
     bindings = data.setdefault("keybindings", [])
     managed_ids = {a.get("id") for a in actions if isinstance(a.get("command"), dict)
-                   and a["command"].get("profile") in (HERDR, PORTS)} | set(ACTIONS.values())
+                   and a["command"].get("profile") in (HERDR, PORTS, LOCAL)} | set(ACTIONS.values()) | set(LOCAL_ACTIONS.values())
     actions[:] = [a for a in actions if a.get("id") not in managed_ids]
     bindings[:] = [b for b in bindings if b.get("id") not in managed_ids]
-    for key, action_id in ACTIONS.items():
-        chord = shared["shortcuts"][key]
-        if any(k.get("keys") == chord and k.get("id") not in ACTIONS.values() for k in bindings):
+    enabled = dict(ACTIONS, **(LOCAL_ACTIONS if local_herdr else {}))
+    chosen_shortcuts = dict(shared['shortcuts'], **(shortcuts or {}))
+    chosen_shortcuts.setdefault('local', 'ctrl+alt+l')
+    chosen_shortcuts.setdefault('newLocal', 'ctrl+alt+shift+l')
+    if len({chosen_shortcuts[k] for k in enabled}) != len(enabled):
+        raise ValueError('Each workspace action needs a different shortcut.')
+    for key, action_id in enabled.items():
+        chord = chosen_shortcuts[key]
+        if any(k.get("keys") == chord and k.get("id") not in enabled.values() for k in bindings):
             raise ValueError(f"Shortcut {chord} is already assigned to another action")
         is_herdr = key in ("herdr", "newHerdr")
-        command = {"action": "newTab", "profile": HERDR if is_herdr else PORTS}
-        if key in ("herdr", "ports"):
+        is_local = key in ('local', 'newLocal')
+        command = {"action": "newTab", "profile": LOCAL if is_local else HERDR if is_herdr else PORTS}
+        if key in ("herdr", "ports", 'local'):
             command["commandline"] = commands[key] + " --focus-existing"
         actions[:] = [a for a in actions if a.get("id") != action_id]
         actions.append({"id": action_id, "command": command})
@@ -163,6 +185,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ssh-host")
     parser.add_argument("--herdr", type=Path)
+    parser.add_argument('--remote-client', choices=('ssh', 'herdr'))
+    local_mode = parser.add_mutually_exclusive_group()
+    local_mode.add_argument('--local-herdr', action='store_const', const=True, default=None, dest='local_herdr')
+    local_mode.add_argument('--no-local-herdr', action='store_const', const=False, dest='local_herdr')
     parser.add_argument("--settings", type=Path, default=settings_path())
     parser.add_argument("--export", action="store_true")
     mode = parser.add_mutually_exclusive_group()
@@ -185,30 +211,27 @@ def main():
     machine = json.loads(machine_path.read_text()) if machine_path.exists() else {}
     integration_only = install_mode(machine, options.integration_only)
     host = options.ssh_host or machine.get("ssh_host")
-    validate_host(host)
+    if host:
+        validate_host(host)
+    remote_client = options.remote_client or machine.get('remote_client') or ('herdr' if machine.get('herdr') and machine.get('ssh_host') else 'ssh')
+    local_herdr = machine.get('local_herdr', False) if options.local_herdr is None else options.local_herdr
+    if remote_client not in ('ssh', 'herdr') or not isinstance(local_herdr, bool):
+        raise ValueError('Invalid remote_client or local_herdr in .machine.json')
     herdr = options.herdr or Path(machine.get("herdr", str(Path(os.environ["LOCALAPPDATA"]) / "Programs/Herdr/bin/herdr.exe")))
-    if not herdr.is_file():
+    if (remote_client == 'herdr' or local_herdr) and not herdr.is_file():
         raise ValueError("Install Herdr first or pass --herdr PATH")
     python = PORT_APP / ".venv/Scripts/python.exe"
     if not python.is_file():
         raise ValueError("Run install.ps1 to create the port app environment")
-    store = Store(DATA_DIR)
-    store.load()
-    if store.host != host:
-        from port_forward_tui.background import exchange
-        try:
-            running = exchange(DATA_DIR, "status")
-        except (OSError, ValueError):
-            running = None
-        if running:
-            raise ValueError("Stop the port supervisor before changing SSH targets")
-        store.host = host
-        store.save(store.forwards)
-    updated = render(data, shared, host, python, herdr, root=ROOT, integration_only=integration_only)
+    if host:
+        Catalog(DATA_DIR).add(host)
+    updated = render(data, shared, host, python, herdr, root=ROOT, integration_only=integration_only,
+                     remote_client=remote_client, local_herdr=local_herdr, shortcuts=machine.get('shortcuts'))
     if settings_bytes(options.settings) != original:
         raise ValueError("Terminal settings changed while preparing the update; retry")
     write_json(options.settings, updated, backup=True)
-    machine.update({"ssh_host": host, "herdr": str(herdr), "integration_only": integration_only})
+    machine.update({"ssh_host": host, "herdr": str(herdr), "integration_only": integration_only,
+                    'remote_client': remote_client, 'local_herdr': local_herdr})
     write_json(machine_path, machine)
     if integration_only:
         print("Herdr and Ports profiles and shortcuts are ready. Kept existing Terminal appearance, default shell and menu.")

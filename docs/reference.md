@@ -1,9 +1,9 @@
 # Terminal Workspace
 
-A repeatable Windows Terminal setup for PowerShell, WSL, remote Herdr, and
-saved SSH port forwards. The desktop/Start shortcut opens Herdr in the first
-tab and Ports in the second, with Herdr selected. Its Herdr icon can be pinned
-to the taskbar.
+A repeatable Windows Terminal setup for PowerShell, WSL, remote SSH (optionally
+Herdr), and saved port forwards. Choose a machine when opening a workspace.
+The remote session opens first, Ports second, and optional local Herdr third,
+with the remote tab selected. The Start/desktop shortcut can be pinned to the taskbar.
 
 This is the public middle layer of a personal setup:
 
@@ -28,8 +28,8 @@ It preserves appearance, default shell and menu and saves that choice locally.
 installs without a saved choice retain that full mode. See [setup options](setup.md).
 
 Prerequisites: Windows 10/11, Git, Python 3.12+, Windows Terminal, PowerShell 7,
-Windows OpenSSH Client, and [Herdr](https://herdr.dev/). Configure and verify
-your existing SSH alias with `ssh workbox` first. Background port forwards use
+Windows OpenSSH Client. [Herdr](https://herdr.dev/) is optional. Configure and verify
+your SSH login before starting connections. Background port forwards use
 SSH keys or ssh-agent.
 
 For missing Windows apps:
@@ -39,12 +39,12 @@ winget install --id Microsoft.WindowsTerminal -e
 winget install --id Microsoft.PowerShell -e
 ```
 
-Use Herdr's official Windows installation instructions on its website. Then:
+Install the prerequisites, then:
 
 ```powershell
 git clone --recurse-submodules https://github.com/brant92good/terminal-workspace.git
 cd terminal-workspace
-.\install.ps1 -SshHost workbox
+.\install.ps1
 ```
 
 Use `-Python C:\path\python.exe` or `-HerdrPath C:\path\herdr.exe` when needed.
@@ -63,22 +63,26 @@ Global packages and PATH are preserved. Keep the base Python installed. A broken
 [app installation notes](../apps/port-forward-tui/README.md#set-up) for details.
 
 Right-click **Terminal Workspace** in Start and choose **Pin to taskbar** for
-the one-click two-tab launcher.
+the workspace launcher. Installation does not require a host. Add or import
+machines when opening the app. Use `-RemoteClient herdr` for remote Herdr,
+`-LocalHerdr` for local Herdr, or `-RemoteClient ssh -NoLocalHerdr` for plain SSH.
 
 ## Keyboard and focus scope
 
 | Shortcut in Windows Terminal | Behavior |
 | --- | --- |
-| Ctrl+Alt+H | Return to the most recently focused Herdr view, or open one |
-| Ctrl+Alt+Shift+H | Open another Herdr view attached to the same remote session |
+| Ctrl+Alt+R | Return to a remote view for this window's machine, or open one |
+| Ctrl+Alt+Shift+R | Open another remote view for this window's machine |
 | Ctrl+Alt+P | Return to the most recently focused Ports view, or open one |
 | Ctrl+Alt+Shift+P | Open another connected Ports view |
 | F2 inside Ports | Choose shortcut focus scope |
+| Ctrl+Alt+L / Ctrl+Alt+Shift+L | Return to / open another local Herdr view, when enabled |
+| Esc then H inside Ports | Choose another machine; background forwards continue |
 
 F2 offers **All Terminal windows** (default) and **Current Terminal window
-only**. Both Herdr and Ports read this preference. In current-window mode, a
+only** for the selected machine. Both Remote and Ports read this preference. In current-window mode, a
 window with no matching view gets a new one there. Separate views share their
-underlying sessions. The Herdr launcher tracks the identity of each Terminal
+underlying forwards; ordinary SSH shell tabs remain separate sessions. The session launcher tracks the identity of each Terminal
 tab, so duplicate or changing titles do not determine the target.
 
 Return shortcuts use a brief launcher tab, then hand focus over after it

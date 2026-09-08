@@ -5,6 +5,37 @@ Pro build 26200, Terminal 1.24.11911.0, PowerShell 7.6.5, Python 3.12.11 from
 Miniforge, and an existing SSH destination. Another physical laptop remains
 untested.
 
+The multi-machine update passed **24 local Terminal tests**, including an
+installation with no host and no Herdr, optional local Herdr, distinct R/L/P
+bindings, and machine-specific companion-tab arguments. The port app passed
+71 local tests and its Windows Python matrix; private setup passed 12 tests.
+
+Real desktop checks passed again after installing this update: the optional
+three-tab launcher opened remote, Ports and local Herdr, leaving remote selected.
+R/P returned correctly for both scopes and duplicate MRU cases; L returned to
+local Herdr across windows and respected the current-window scope. Delayed
+lookups left another focused application alone.
+
+[check_machine_routing.py](../scripts/check_machine_routing.py) additionally
+opened two machine profiles, made the other profile's target more recent, and
+verified R/P still returned to the invoking window's machine. An A Ports view
+in B's window returned to A's remote session. Both profiles used one physical
+SSH endpoint (one through Herdr, one through ordinary SSH with an explicit
+login port), so this is routing evidence rather than a two-server network test.
+Original favorites stayed byte-for-byte unchanged; temporary windows and the
+second profile/controller were removed.
+
+Reproduce that opt-in check using an existing machine with default SSH settings:
+
+```powershell
+.\apps\port-forward-tui\.venv\Scripts\python.exe -E -s scripts/check_machine_routing.py --yes --machine YOUR_SSH_NAME
+```
+
+The latency figures below predate multiple-machine routing. Resolving context
+adds a lookup when several machines are saved; no new timing claim is made.
+
+Earlier baseline checks:
+
 | Behavior | Observed check | Reproduction/source |
 | --- | --- | --- |
 | Return to the right existing view | Real keypresses for both apps, duplicate tabs, both window scopes, keyboard content focus, new-view fallback and cancellation after another app took focus | [check_interactive.py](../scripts/check_interactive.py) |

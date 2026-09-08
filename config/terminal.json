@@ -8,8 +8,8 @@
     "profileDefaults": {},
     "compactMenu": true,
     "shortcuts": {
-        "herdr": "ctrl+alt+h",
-        "newHerdr": "ctrl+alt+shift+h",
+        "herdr": "ctrl+alt+r",
+        "newHerdr": "ctrl+alt+shift+r",
         "ports": "ctrl+alt+p",
         "newPorts": "ctrl+alt+shift+p"
     }

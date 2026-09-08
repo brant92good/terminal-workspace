@@ -4,6 +4,8 @@ param(
     [string]$InitialTitle,
     [string]$RuntimeId,
     [int]$OwnerPid,
+    [string]$MachineId = '',
+    [string]$ContextPath = '',
     [string]$RecordsBase64,
     [ValidateSet('all', 'window')][string]$Scope = 'all',
     [string]$OriginTitle = '',
@@ -40,7 +42,7 @@ try {
         exit 1
     }
     if ($Mode -eq 'Track') {
-        [TerminalViews]::Track($RecordPath, $InitialTitle, $RuntimeId, $OwnerPid)
+        [TerminalViews]::Track($RecordPath, $InitialTitle, $RuntimeId, $OwnerPid, $MachineId, $ContextPath)
         exit 0
     }
     $herdrRecords = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($RecordsBase64))
