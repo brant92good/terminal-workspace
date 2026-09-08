@@ -8,7 +8,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'apps/port-forward-tui'))
-from diagnostics import app_checks, check, print_report, report
+from port_forward_tui.diagnostics import app_checks, check, print_report, report
 
 
 def workspace_checks(root=ROOT):

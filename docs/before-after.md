@@ -18,13 +18,13 @@ sample after the change.
 
 Before samples: `1291.4, 1292.9, 1276.5, 1298.0, 1283.9, 1293.8` ms.
 After samples: `421.2, 362.1, 371.5, 359.7, 364.8, 361.1` ms.
-Raw data: [before](herdr-switch-before.json), [after](herdr-switch-after.json).
+Raw data: [before](benchmarks/herdr-switch-before.json), [after](benchmarks/herdr-switch-after.json).
 
 Ports previously measured **1,360.1 -> 369.6 ms median** in its six-sample
-optimization comparison ([before](ports-switch-before.json),
-[after](ports-switch-after.json)). A subsequent three-sample check with the helper now
+optimization comparison ([before](benchmarks/ports-switch-before.json),
+[after](benchmarks/ports-switch-after.json)). A subsequent three-sample check with the helper now
 shared by both apps measured **365.3 ms median**; see
-[shared-helper check](ports-shared-helper-check.json). The detailed stage
+[shared-helper check](benchmarks/ports-shared-helper-check.json). The detailed stage
 comparison below is for Herdr only.
 
 ## What changed
@@ -88,9 +88,9 @@ process/CLR startup averaged **34.9 ms** and native initialization/options
 
 Raw files contain all samples plus mean, median, minimum and maximum for each
 of the **25 old** and **16 new** sequential stages:
-[before stages](herdr-switch-before-stages.json),
-[after stages](herdr-comparison-after-stages.json).
-An [earlier after-only profile](herdr-switch-stages.json) is retained separately.
+[before stages](benchmarks/herdr-switch-before-stages.json),
+[after stages](benchmarks/herdr-comparison-after-stages.json).
+An [earlier after-only profile](benchmarks/herdr-switch-stages.json) is retained separately.
 Post-focus verification took a median 18.4 ms before and 16.8 ms after; this
 tail is excluded from the user-visible latency and stage totals.
 

@@ -10,8 +10,8 @@ import time
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "apps/port-forward-tui"))
-from forwarding import DATA_DIR
-from focus_settings import save_scope
+from port_forward_tui.forwarding import DATA_DIR
+from port_forward_tui.focus_settings import save_scope
 from herdr_launcher import helper, live_records, view_directory
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)

@@ -14,9 +14,9 @@ import uuid
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "apps/port-forward-tui"))
-from focus_settings import read_scope
-from forwarding import DATA_DIR, validate_host
-from views import mark_origin, process_alive, delayed_focus, focus_command, native_focus
+from port_forward_tui.focus_settings import read_scope
+from port_forward_tui.forwarding import DATA_DIR, validate_host
+from port_forward_tui.views import mark_origin, process_alive, delayed_focus, focus_command, native_focus
 
 POWERSHELL = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
 

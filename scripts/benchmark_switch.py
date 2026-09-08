@@ -7,8 +7,8 @@ import statistics
 import subprocess
 
 from check_interactive import ROOT, state, wait_for
-from focus_settings import save_scope
-from forwarding import DATA_DIR
+from port_forward_tui.focus_settings import save_scope
+from port_forward_tui.forwarding import DATA_DIR
 from herdr_launcher import helper, live_records, view_directory
 from configure import HERDR, PORTS
 

@@ -73,7 +73,7 @@ Work in Herdr as usual. To open a remote web app, switch to Ports, press **A**,
 enter its port (for example `8000`), then Enter. When it shows ON, **B** opens
 its local HTTP address. The remote app must already be running.
 
-![The Ports tab with saved example web apps and notebooks](docs/images/ports.svg)
+![The Ports tab with saved example web apps and notebooks](https://raw.githubusercontent.com/brant92good/port-forward-tui/main/docs/screenshots/connections.svg)
 
 *Actual Ports interface with simulated data; this image shows the Ports tab only.*
 
@@ -145,4 +145,4 @@ when syncing. Choose `-ApplySharedSettings` on computers where you want the
 shared appearance too. Save local Git changes before syncing. Keys and tokens
 belong outside Git; a private parent for personal values is optional.
 
-[Technical reference](REFERENCE.md) · [Design and scope](docs/design.md) · [MIT license](LICENSE) · [Herdr artwork attribution](NOTICE)
+[Technical reference](docs/reference.md) · [Design and scope](docs/design.md) · [MIT license](LICENSE) · [Herdr artwork attribution](NOTICE)

@@ -28,7 +28,7 @@ def worker(app, gate):
 
     subprocess.run = hold_probe
     if app == "ports":
-        from app import main
+        from port_forward_tui.ui import main
         import views as focus_module
         sys.argv = ["app.py", "--focus-existing"]
     else:

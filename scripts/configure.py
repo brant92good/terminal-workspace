@@ -11,7 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 PORT_APP = ROOT / "apps/port-forward-tui"
 sys.path.insert(0, str(PORT_APP))
-from forwarding import Store, DATA_DIR, validate_host
+from port_forward_tui.forwarding import Store, DATA_DIR, validate_host
 
 HERDR = "{a9a0b421-7dd6-4425-9843-59b5f5d6c2d1}"
 PORTS = "{5e483274-6f37-40d5-b42b-1eaef7f9da82}"
@@ -195,7 +195,7 @@ def main():
     store = Store(DATA_DIR)
     store.load()
     if store.host != host:
-        from background import exchange
+        from port_forward_tui.background import exchange
         try:
             running = exchange(DATA_DIR, "status")
         except (OSError, ValueError):

@@ -30,8 +30,8 @@ foreach ($workspaceCommand in @('wt.exe', 'pwsh.exe', 'ssh.exe')) {
         throw "Missing $workspaceCommand. $workspaceFix"
     }
 }
-. (Join-Path $workspaceApp 'python_bootstrap.ps1')
-. (Join-Path $workspaceApp 'setup_helpers.ps1')
+. (Join-Path $workspaceApp 'scripts\python_bootstrap.ps1')
+. (Join-Path $workspaceApp 'scripts\setup_helpers.ps1')
 $SshHost = Get-SetupHost -Value $SshHost -SettingsPath (Join-Path $workspaceRoot '.machine.json') -Key 'ssh_host' -NonInteractive:$NonInteractive
 $workspaceSavedHerdr = ''
 if (Test-Path -LiteralPath (Join-Path $workspaceRoot '.machine.json')) {
@@ -47,7 +47,7 @@ if (-not $SkipDependencies) {
     & $workspacePython -E -s -m pip install --no-input -r (Join-Path $workspaceApp 'requirements.txt')
     if ($LASTEXITCODE -ne 0) { throw 'Could not install the port app dependencies.' }
 }
-& $workspacePython -E -s (Join-Path $workspaceApp 'build_focus_helper.py')
+& $workspacePython -E -s (Join-Path $workspaceApp 'port_forward_tui\build_focus_helper.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast Herdr/Ports shortcut helper.' }
 & $workspacePython -E -s (Join-Path $workspaceRoot 'scripts\build_icon.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }

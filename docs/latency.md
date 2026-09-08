@@ -90,8 +90,8 @@ another tab can still appear briefly during handoff.
 .\apps\port-forward-tui\.venv\Scripts\python.exe scripts/benchmark_switch.py --yes --app herdr --trace --samples 6 --output artifacts/herdr-stages.json
 ```
 
-Raw samples: [old](herdr-switch-before.json), [new](herdr-switch-after.json),
-[stage profile](herdr-switch-stages.json), [Ports check](ports-shared-helper-check.json).
+Raw samples: [old](benchmarks/herdr-switch-before.json), [new](benchmarks/herdr-switch-after.json),
+[stage profile](benchmarks/herdr-switch-stages.json), [Ports check](benchmarks/ports-shared-helper-check.json).
 
 Validation: 45 app tests and 15 Terminal setup tests passed. Real keyboard checks
 passed both focus scopes, duplicate MRU selection for both apps, new-view fallback,

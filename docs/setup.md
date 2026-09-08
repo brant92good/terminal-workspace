@@ -74,4 +74,4 @@ SSH login. `doctor.ps1` checks local prerequisites; it does not test remote SSH.
 
 For scripts, add `-NonInteractive` and supply the SSH name or reuse a saved one.
 Pass `-NoShortcuts` to skip Start/desktop shortcuts. The full settings and
-verification options are in [REFERENCE.md](../REFERENCE.md).
+verification options are in [REFERENCE.md](reference.md).

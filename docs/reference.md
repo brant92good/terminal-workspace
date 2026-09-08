@@ -22,10 +22,10 @@ specific commit for repeatable installation.
 ## Install
 
 For adding the apps to an existing Terminal setup, follow the
-[public quickstart](README.md#set-up-on-windows) with `-IntegrationOnly`.
+[public quickstart](../README.md#set-up-on-windows) with `-IntegrationOnly`.
 It preserves appearance, default shell and menu and saves that choice locally.
 `-ApplySharedSettings` applies the full preferences described below. Older
-installs without a saved choice retain that full mode. See [setup options](docs/setup.md).
+installs without a saved choice retain that full mode. See [setup options](setup.md).
 
 Prerequisites: Windows 10/11, Git, Python 3.12+, Windows Terminal, PowerShell 7,
 Windows OpenSSH Client, and [Herdr](https://herdr.dev/). Configure and verify
@@ -60,7 +60,7 @@ use the private executable directly without activation or shell profile startup.
 Managed Python commands ignore `PYTHONHOME`, `PYTHONPATH`, and user site packages.
 Global packages and PATH are preserved. Keep the base Python installed. A broken
 `.venv` produces repair guidance and is never automatically deleted. See the
-[app installation notes](apps/port-forward-tui/README.md#set-up) for details.
+[app installation notes](../apps/port-forward-tui/README.md#set-up) for details.
 
 Right-click **Terminal Workspace** in Start and choose **Pin to taskbar** for
 the one-click two-tab launcher.
@@ -154,8 +154,8 @@ Terminal version. It restores the focus-scope setting and closes its test window
 For opt-in Herdr stage timings, add `--trace`. This temporarily adds a profiling
 argument to the Herdr return shortcut, restores its settings afterward, and
 records startup, lookup, closure, and focus stages. Normal shortcuts write no
-profiling files. The [before-and-after report](docs/before-after.md) compares
+profiling files. The [before-and-after report](before-after.md) compares
 stage timings, identifies possible optimizations, and explains environment
-differences including Conda. The [earlier profile](docs/latency.md) is retained.
+differences including Conda. The [earlier profile](latency.md) is retained.
 
-[MIT](LICENSE). See [NOTICE](NOTICE) for Herdr artwork attribution.
+[MIT](../LICENSE). See [NOTICE](../NOTICE) for Herdr artwork attribution.

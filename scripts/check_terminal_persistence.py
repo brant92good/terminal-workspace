@@ -12,9 +12,9 @@ import time
 
 from check_interactive import ROOT, state, wait_for, activate, user32
 from herdr_launcher import helper
-from background import exchange
-from forwarding import Store, Forward
-from views import process_alive
+from port_forward_tui.background import exchange
+from port_forward_tui.forwarding import Store, Forward
+from port_forward_tui.views import process_alive
 
 
 def has_process_job(pid):
