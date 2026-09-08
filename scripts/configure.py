@@ -79,17 +79,19 @@ def write_json(path, data, backup=False):
     os.replace(temporary, path)
 
 
-def render(original, shared, host, python, herdr, root=ROOT):
+def render(original, shared, host, python, herdr, root=ROOT, integration_only=False):
     data = deepcopy(original)
-    for key in PORTABLE:
-        data.pop(key, None)
-    data.update(shared.get("terminal", {}))
-    data["defaultProfile"] = PWSH
+    if not integration_only:
+        for key in PORTABLE:
+            data.pop(key, None)
+        data.update(shared.get("terminal", {}))
+        data["defaultProfile"] = PWSH
     profiles = data.setdefault("profiles", {})
-    profiles["defaults"] = shared.get("profileDefaults", {})
+    if not integration_only:
+        profiles["defaults"] = shared.get("profileDefaults", {})
     entries = profiles.setdefault("list", [])
     wsl = [p for p in entries if p.get("source") == "Microsoft.WSL"]
-    if shared.get("compactMenu", True):
+    if not integration_only and shared.get("compactMenu", True):
         keep = {PWSH, HERDR, PORTS} | {p["guid"] for p in wsl}
         for entry in entries:
             entry["hidden"] = entry.get("guid") not in keep
@@ -107,12 +109,15 @@ def render(original, shared, host, python, herdr, root=ROOT):
          "tabTitle": "Ports", "suppressApplicationTitle": False, "closeOnExit": "automatic", "hidden": False,
          "startingDirectory": "%USERPROFILE%"}]
     for profile in desired:
+        if integration_only and profile["guid"] == PWSH:
+            continue
         existing = next((p for p in entries if p.get("guid") == profile["guid"]), None)
         if existing is None:
             entries.append(profile)
         else:
             existing.update(profile)
-    data["newTabMenu"] = [{"type": "remainingProfiles"}]
+    if not integration_only:
+        data["newTabMenu"] = [{"type": "remainingProfiles"}]
     actions = data.setdefault("actions", [])
     bindings = data.setdefault("keybindings", [])
     managed_ids = {a.get("id") for a in actions if isinstance(a.get("command"), dict)
@@ -146,12 +151,25 @@ def export_shared(data, shared):
     return result
 
 
+def install_mode(machine, requested):
+    """Keep this computer's install choice on updates; preserve legacy defaults."""
+    mode = machine.get("integration_only", False) if requested is None else requested
+    if not isinstance(mode, bool):
+        raise ValueError("integration_only in .machine.json must be true or false")
+    return mode
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ssh-host")
     parser.add_argument("--herdr", type=Path)
     parser.add_argument("--settings", type=Path, default=settings_path())
     parser.add_argument("--export", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--integration-only", dest="integration_only", action="store_const", const=True,
+                      default=None, help="Add app profiles and shortcuts; keep existing Terminal preferences")
+    mode.add_argument("--apply-shared-settings", dest="integration_only", action="store_const", const=False,
+                      help="Also apply shared appearance, PowerShell default and menu preferences")
     options = parser.parse_args()
     shared_path = ROOT / "config/terminal.json"
     shared = json.loads(shared_path.read_text(encoding="utf-8"))
@@ -165,6 +183,7 @@ def main():
         return
     machine_path = ROOT / ".machine.json"
     machine = json.loads(machine_path.read_text()) if machine_path.exists() else {}
+    integration_only = install_mode(machine, options.integration_only)
     host = options.ssh_host or machine.get("ssh_host")
     validate_host(host)
     herdr = options.herdr or Path(machine.get("herdr", str(Path(os.environ["LOCALAPPDATA"]) / "Programs/Herdr/bin/herdr.exe")))
@@ -185,12 +204,16 @@ def main():
             raise ValueError("Stop the port supervisor before changing SSH targets")
         store.host = host
         store.save(store.forwards)
-    updated = render(data, shared, host, python, herdr, root=ROOT)
+    updated = render(data, shared, host, python, herdr, root=ROOT, integration_only=integration_only)
     if settings_bytes(options.settings) != original:
         raise ValueError("Terminal settings changed while preparing the update; retry")
     write_json(options.settings, updated, backup=True)
-    write_json(machine_path, {"ssh_host": host, "herdr": str(herdr)})
-    print("Applied shared Terminal settings. PowerShell is default; Herdr and Ports shortcuts are ready.")
+    machine.update({"ssh_host": host, "herdr": str(herdr), "integration_only": integration_only})
+    write_json(machine_path, machine)
+    if integration_only:
+        print("Herdr and Ports profiles and shortcuts are ready. Kept existing Terminal appearance, default shell and menu.")
+    else:
+        print("Applied shared Terminal settings. PowerShell is default; Herdr and Ports shortcuts are ready.")
 
 
 if __name__ == "__main__":

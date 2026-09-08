@@ -42,6 +42,67 @@ class TerminalSettingsTests(unittest.TestCase):
             self.render(self.original)
         self.assertEqual(json.dumps(self.original), before)
 
+    def test_integration_only_preserves_custom_terminal_setup(self):
+        original = {
+            "defaultProfile": "custom-shell", "theme": "light", "initialCols": 140,
+            "profiles": {"defaults": {"font": {"face": "Custom Mono", "size": 15}},
+                         "list": [{"guid": "custom-shell", "name": "My shell", "hidden": False},
+                                  {"guid": PWSH, "name": "My PowerShell", "hidden": True}]},
+            "newTabMenu": [{"type": "profile", "profile": "custom-shell"}],
+            "actions": [{"id": "my-action", "command": "copy"}],
+            "keybindings": [{"id": "my-action", "keys": "ctrl+shift+c"}],
+        }
+        before = json.dumps(original)
+        updated = render(original, self.shared, "workbox", Path("C:/python.exe"),
+                         Path("C:/herdr.exe"), integration_only=True)
+        for key in ("defaultProfile", "theme", "initialCols", "newTabMenu"):
+            self.assertEqual(updated[key], original[key])
+        self.assertEqual(updated["profiles"]["defaults"], original["profiles"]["defaults"])
+        self.assertEqual(updated["profiles"]["list"][:2], original["profiles"]["list"])
+        self.assertEqual(updated["actions"][0], original["actions"][0])
+        self.assertEqual(updated["keybindings"][0], original["keybindings"][0])
+        self.assertEqual({p["guid"] for p in updated["profiles"]["list"][2:]}, {HERDR, PORTS})
+        self.assertEqual({a["id"] for a in updated["actions"][1:]}, set(ACTIONS.values()))
+        self.assertEqual(render(updated, self.shared, "workbox", Path("C:/python.exe"),
+                                Path("C:/herdr.exe"), integration_only=True), updated)
+        self.assertEqual(json.dumps(original), before)
+
+    def test_integration_only_does_not_invent_a_default_shell_or_menu(self):
+        updated = render({}, self.shared, "workbox", Path("C:/python.exe"),
+                         Path("C:/herdr.exe"), integration_only=True)
+        for key in ("defaultProfile", "theme", "newTabMenu", "initialCols"):
+            self.assertNotIn(key, updated)
+        self.assertNotIn("defaults", updated["profiles"])
+        self.assertEqual({p["guid"] for p in updated["profiles"]["list"]}, {HERDR, PORTS})
+
+    def test_install_mode_remembers_choice_and_allows_explicit_change(self):
+        self.assertFalse(configure.install_mode({}, None))
+        self.assertTrue(configure.install_mode({"integration_only": True}, None))
+        self.assertFalse(configure.install_mode({"integration_only": True}, False))
+        self.assertTrue(configure.install_mode({"integration_only": False}, True))
+        with self.assertRaisesRegex(ValueError, "must be true or false"):
+            configure.install_mode({"integration_only": "false"}, None)
+
+    def test_integration_only_persists_on_reinstall_and_can_apply_shared_settings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, settings, arguments = self.prepare_install(directory)
+            original = {"defaultProfile": "custom-shell", "theme": "light"}
+            settings.parent.mkdir()
+            settings.write_text(json.dumps(original))
+            with patch.object(configure, "ROOT", root), patch.object(configure, "PORT_APP", root / "app"), \
+                    patch.object(configure, "Store", return_value=Mock(host="workbox")):
+                for flags in (["--integration-only"], []):
+                    with patch.object(sys, "argv", arguments + flags):
+                        configure.main()
+                    installed = json.loads(settings.read_text())
+                    self.assertEqual(installed["defaultProfile"], "custom-shell")
+                    self.assertEqual(installed["theme"], "light")
+                    self.assertTrue(json.loads((root / ".machine.json").read_text())["integration_only"])
+                with patch.object(sys, "argv", arguments + ["--apply-shared-settings"]):
+                    configure.main()
+                self.assertEqual(json.loads(settings.read_text())["defaultProfile"], PWSH)
+                self.assertFalse(json.loads((root / ".machine.json").read_text())["integration_only"])
+
     def test_export_keeps_preferences_and_excludes_machine_values(self):
         settings = self.render(self.original)
         settings["profiles"]["defaults"] = {"font": {"size": 14}, "startingDirectory": "C:/private/project"}

@@ -18,6 +18,10 @@ authorization; do not invent additional approval steps.
 - Terminal appearance and shortcuts: `config/terminal.json` (public preferences).
 - Machine paths and SSH name: ignored `.machine.json` (local values).
 - Installation and settings rendering: `install.ps1`, `scripts/configure.py`.
+  `-IntegrationOnly` adds the managed app profiles/shortcuts while preserving
+  appearance, default shell and menu. The mode is local to `.machine.json`
+  and reused on updates. `-ApplySharedSettings` explicitly opts into the full
+  preferences. Keep older installations' default behavior.
 - Herdr tab identity and return behavior: `scripts/herdr_launcher.py` and the
   port app's shared focus helper. Never use duplicate titles as Herdr identity.
 
@@ -38,3 +42,5 @@ Publish app changes first; then update the app submodule pin and publish this
 repository. A private parent can pin this resulting commit. Sync should follow
 recorded child commits, not automatically advance every child to its main branch.
 Screenshots use demonstration data; see README captions for what is simulated.
+Setup details and supported claims live in docs/setup.md and
+docs/verification.md. Keep README claims tied to those recorded checks.

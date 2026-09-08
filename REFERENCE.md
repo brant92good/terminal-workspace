@@ -21,6 +21,12 @@ specific commit for repeatable installation.
 
 ## Install
 
+For adding the apps to an existing Terminal setup, follow the
+[public quickstart](README.md#set-up-on-windows) with `-IntegrationOnly`.
+It preserves appearance, default shell and menu and saves that choice locally.
+`-ApplySharedSettings` applies the full preferences described below. Older
+installs without a saved choice retain that full mode. See [setup options](docs/setup.md).
+
 Prerequisites: Windows 10/11, Git, Python 3.12+, Windows Terminal, PowerShell 7,
 Windows OpenSSH Client, and [Herdr](https://herdr.dev/). Configure and verify
 your existing SSH alias with `ssh workbox` first. Background port forwards use
@@ -54,7 +60,7 @@ use the private executable directly without activation or shell profile startup.
 Managed Python commands ignore `PYTHONHOME`, `PYTHONPATH`, and user site packages.
 Global packages and PATH are preserved. Keep the base Python installed. A broken
 `.venv` produces repair guidance and is never automatically deleted. See the
-[app installation notes](apps/port-forward-tui/README.md#install) for details.
+[app installation notes](apps/port-forward-tui/README.md#set-up) for details.
 
 Right-click **Terminal Workspace** in Start and choose **Pin to taskbar** for
 the one-click two-tab launcher.

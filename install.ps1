@@ -4,9 +4,14 @@ param(
     [string]$HerdrPath = '',
     [switch]$NoShortcuts,
     [switch]$SkipDependencies,
-    [switch]$NonInteractive
+    [switch]$NonInteractive,
+    [switch]$IntegrationOnly,
+    [switch]$ApplySharedSettings
 )
 $ErrorActionPreference = 'Stop'
+if ($IntegrationOnly -and $ApplySharedSettings) {
+    throw 'Choose -IntegrationOnly or -ApplySharedSettings, not both.'
+}
 $workspaceRoot = $PSScriptRoot
 $workspaceApp = Join-Path $workspaceRoot 'apps\port-forward-tui'
 $workspaceGitPrompt = $env:GIT_TERMINAL_PROMPT
@@ -49,6 +54,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }
 $workspaceArguments = @((Join-Path $workspaceRoot 'scripts\configure.py'))
 if ($SshHost) { $workspaceArguments += @('--ssh-host', $SshHost) }
 if ($HerdrPath) { $workspaceArguments += @('--herdr', $HerdrPath) }
+if ($IntegrationOnly) { $workspaceArguments += '--integration-only' }
+if ($ApplySharedSettings) { $workspaceArguments += '--apply-shared-settings' }
 & $workspacePython -E -s @workspaceArguments
 if ($LASTEXITCODE -ne 0) { throw 'Terminal settings were not applied.' }
 $workspaceCompiler = Join-Path $env:SystemRoot 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
