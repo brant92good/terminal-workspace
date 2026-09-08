@@ -13,19 +13,30 @@ sys.path.insert(0, str(ROOT / "apps/port-forward-tui"))
 def worker(app, gate):
     original_run = subprocess.run
 
+    def wait_at_probe():
+        gate.with_suffix(".ready").write_text("ready")
+        deadline = time.monotonic() + 20
+        while not gate.exists():
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Desktop test did not release the probe")
+            time.sleep(.05)
+
     def hold_probe(command, *args, **kwargs):
         if "-ProbeOnly" in command or ("-Mode" in command and command[command.index("-Mode") + 1] == "Probe"):
-            gate.with_suffix(".ready").write_text("ready")
-            deadline = time.monotonic() + 20
-            while not gate.exists():
-                if time.monotonic() >= deadline:
-                    raise TimeoutError("Desktop test did not release the probe")
-                time.sleep(.05)
+            wait_at_probe()
         return original_run(command, *args, **kwargs)
 
     subprocess.run = hold_probe
     if app == "ports":
         from app import main
+        import views
+        original_native = views.native_focus
+
+        def hold_native_probe(command):
+            wait_at_probe()
+            return original_native(command)
+
+        views.native_focus = hold_native_probe
         sys.argv = ["app.py", "--focus-existing"]
     else:
         from herdr_launcher import main

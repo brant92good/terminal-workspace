@@ -70,6 +70,9 @@ Return shortcuts use a brief launcher tab, then hand focus over after it
 closes. Keyboard focus moves into the terminal content so you can type
 immediately. The helper does not raise a window if you switch to another application
 during that handoff. These are Terminal shortcuts, not system-wide hotkeys.
+The Ports return path skips loading the TUI and uses a focus executable built
+once during installation. It waits for launcher closure instead of imposing a
+fixed pause. The same helper process performs lookup and the final handoff.
 Manually moving a Herdr tab between windows may require reopening the view to
 register its new accessibility identity. Separate split panes are not tracked
 as separate Terminal tabs.
@@ -115,5 +118,18 @@ an isolated temporary SSH forward to remote port 22 through a real Ports window,
 closes that whole window, verifies SSH traffic still crosses the tunnel, and
 explicitly stops its test supervisor. Your existing favorites and tunnels stay
 unchanged.
+
+To measure the installed Ports return shortcut:
+
+```powershell
+.\apps\port-forward-tui\.venv\Scripts\python.exe scripts/benchmark_switch.py --yes --samples 6 --output artifacts/switch.json
+```
+
+This opens a temporary window with Ports before a source tab, presses
+Ctrl+Alt+P, and measures until Ports has keyboard focus. The target is deliberately
+not adjacent to the temporary launcher, so closing the launcher cannot itself
+satisfy the measurement. Compilation and setup are outside the stopwatch. The
+report includes every sample and the median; results depend on the machine and
+Terminal version. It restores the focus-scope setting and closes its test window.
 
 [MIT](LICENSE). See [NOTICE](NOTICE) for Herdr artwork attribution.
