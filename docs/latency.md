@@ -1,5 +1,8 @@
 # Herdr return shortcut latency
 
+See the expanded [before-and-after report](before-after.md) for matching old/new
+stage measurements, optimization candidates, and developer-environment differences.
+
 Ctrl+Alt+H now uses the shared compiled focus helper to find a registered Herdr
 tab and complete the handoff after the temporary launcher closes. Matching uses
 the tab runtime identity and checks the owner PID plus process start time, so

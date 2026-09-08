@@ -94,9 +94,9 @@ def render(original, shared, host, python, herdr, root=ROOT):
         for entry in entries:
             entry["hidden"] = entry.get("guid") not in keep
     commands = {
-        "herdr": subprocess.list2cmdline([str(python), str(root / "scripts/herdr_launcher.py"),
+        "herdr": subprocess.list2cmdline([str(python), "-E", "-s", str(root / "scripts/herdr_launcher.py"),
                                          "--host", host, "--herdr", str(herdr)]),
-        "ports": subprocess.list2cmdline([str(python), str(root / "apps/port-forward-tui/app.py")])
+        "ports": subprocess.list2cmdline([str(python), "-E", "-s", str(root / "apps/port-forward-tui/app.py")])
     }
     desired = [
         {"guid": PWSH, "name": "PowerShell", "source": "Windows.Terminal.PowershellCore", "hidden": False},

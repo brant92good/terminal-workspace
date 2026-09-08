@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $workspaceRoot = $PSScriptRoot
 $workspacePython = Join-Path $workspaceRoot 'apps\port-forward-tui\.venv\Scripts\python.exe'
 if ($Publish) {
-    & $workspacePython (Join-Path $workspaceRoot 'scripts\configure.py') --export
+    & $workspacePython -E -s (Join-Path $workspaceRoot 'scripts\configure.py') --export
     if ($LASTEXITCODE -ne 0) { throw 'Export failed.' }
     & git -C $workspaceRoot diff --quiet -- config/terminal.json
     if ($LASTEXITCODE -eq 1) {

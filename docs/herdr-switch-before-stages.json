@@ -1,0 +1,377 @@
+{
+  "app": "herdr",
+  "samples_ms": [
+    1373.3,
+    1344.1,
+    1333.7,
+    1333.8,
+    1341.0,
+    1325.0
+  ],
+  "median_ms": 1337.4,
+  "min_ms": 1325.0,
+  "max_ms": 1373.3,
+  "stage_timings_ms": {
+    "Terminal and Python startup": {
+      "mean": 71.633,
+      "median": 70.888,
+      "min": 67.011,
+      "max": 79.465,
+      "samples": [
+        79.465,
+        70.591,
+        67.011,
+        67.663,
+        71.186,
+        73.882
+      ]
+    },
+    "Python imports and arguments": {
+      "mean": 53.791,
+      "median": 53.484,
+      "min": 52.064,
+      "max": 56.374,
+      "samples": [
+        52.064,
+        56.374,
+        54.208,
+        53.135,
+        53.658,
+        53.309
+      ]
+    },
+    "Settings and origin marker": {
+      "mean": 0.439,
+      "median": 0.434,
+      "min": 0.422,
+      "max": 0.461,
+      "samples": [
+        0.456,
+        0.422,
+        0.426,
+        0.443,
+        0.426,
+        0.461
+      ]
+    },
+    "Read live view records": {
+      "mean": 0.569,
+      "median": 0.567,
+      "min": 0.541,
+      "max": 0.599,
+      "samples": [
+        0.541,
+        0.556,
+        0.59,
+        0.548,
+        0.578,
+        0.599
+      ]
+    },
+    "Prepare probe request": {
+      "mean": 0.02,
+      "median": 0.02,
+      "min": 0.019,
+      "max": 0.021,
+      "samples": [
+        0.021,
+        0.021,
+        0.02,
+        0.019,
+        0.021,
+        0.02
+      ]
+    },
+    "Probe PowerShell startup": {
+      "mean": 125.401,
+      "median": 122.193,
+      "min": 117.452,
+      "max": 146.285,
+      "samples": [
+        146.285,
+        123.877,
+        117.452,
+        120.405,
+        122.591,
+        121.795
+      ]
+    },
+    "Probe assembly load": {
+      "mean": 48.956,
+      "median": 49.059,
+      "min": 47.514,
+      "max": 50.132,
+      "samples": [
+        50.132,
+        49.886,
+        49.478,
+        47.514,
+        48.088,
+        48.641
+      ]
+    },
+    "Probe helper compilation": {
+      "mean": 156.452,
+      "median": 155.3,
+      "min": 150.287,
+      "max": 164.403,
+      "samples": [
+        162.188,
+        151.233,
+        164.403,
+        150.287,
+        156.974,
+        153.627
+      ]
+    },
+    "Probe initialization": {
+      "mean": 34.462,
+      "median": 34.651,
+      "min": 33.386,
+      "max": 34.791,
+      "samples": [
+        34.685,
+        34.616,
+        33.386,
+        34.791,
+        34.746,
+        34.55
+      ]
+    },
+    "Probe tab enumeration": {
+      "mean": 78.031,
+      "median": 78.036,
+      "min": 74.573,
+      "max": 81.52,
+      "samples": [
+        81.52,
+        77.916,
+        77.831,
+        78.156,
+        78.191,
+        74.573
+      ]
+    },
+    "Choose live MRU target": {
+      "mean": 2.087,
+      "median": 2.106,
+      "min": 1.979,
+      "max": 2.181,
+      "samples": [
+        2.181,
+        2.155,
+        2.124,
+        1.994,
+        2.087,
+        1.979
+      ]
+    },
+    "Probe output and process exit": {
+      "mean": 22.203,
+      "median": 22.125,
+      "min": 21.491,
+      "max": 23.08,
+      "samples": [
+        21.491,
+        21.916,
+        22.482,
+        22.295,
+        23.08,
+        21.955
+      ]
+    },
+    "Prepare handoff": {
+      "mean": 0.021,
+      "median": 0.021,
+      "min": 0.02,
+      "max": 0.022,
+      "samples": [
+        0.02,
+        0.021,
+        0.022,
+        0.022,
+        0.02,
+        0.02
+      ]
+    },
+    "Activation PowerShell startup": {
+      "mean": 125.847,
+      "median": 125.951,
+      "min": 122.616,
+      "max": 128.477,
+      "samples": [
+        122.616,
+        126.698,
+        126.961,
+        128.477,
+        125.129,
+        125.204
+      ]
+    },
+    "Activation assembly load": {
+      "mean": 49.044,
+      "median": 48.513,
+      "min": 47.72,
+      "max": 52.254,
+      "samples": [
+        48.947,
+        47.72,
+        48.504,
+        52.254,
+        48.317,
+        48.523
+      ]
+    },
+    "Activation helper compilation": {
+      "mean": 146.003,
+      "median": 145.349,
+      "min": 136.985,
+      "max": 155.472,
+      "samples": [
+        154.601,
+        155.472,
+        136.985,
+        139.134,
+        138.265,
+        151.564
+      ]
+    },
+    "Prepare parent wait": {
+      "mean": 3.039,
+      "median": 2.999,
+      "min": 2.944,
+      "max": 3.321,
+      "samples": [
+        2.951,
+        2.944,
+        3.011,
+        2.987,
+        3.321,
+        3.018
+      ]
+    },
+    "Check launcher process exit": {
+      "mean": 4.952,
+      "median": 4.791,
+      "min": 4.704,
+      "max": 5.507,
+      "samples": [
+        5.507,
+        4.726,
+        4.704,
+        5.197,
+        4.724,
+        4.857
+      ]
+    },
+    "Fixed 300 ms handoff sleep": {
+      "mean": 314.475,
+      "median": 315.701,
+      "min": 304.328,
+      "max": 326.151,
+      "samples": [
+        305.738,
+        314.818,
+        319.233,
+        326.151,
+        316.584,
+        304.328
+      ]
+    },
+    "Prepare destination lookup": {
+      "mean": 6.781,
+      "median": 6.791,
+      "min": 5.095,
+      "max": 8.12,
+      "samples": [
+        5.095,
+        6.174,
+        6.832,
+        6.75,
+        8.12,
+        7.713
+      ]
+    },
+    "Activation tab enumeration": {
+      "mean": 83.32,
+      "median": 83.528,
+      "min": 80.012,
+      "max": 85.727,
+      "samples": [
+        84.997,
+        83.73,
+        82.13,
+        83.326,
+        85.727,
+        80.012
+      ]
+    },
+    "Resolve destination tab": {
+      "mean": 0.378,
+      "median": 0.373,
+      "min": 0.36,
+      "max": 0.411,
+      "samples": [
+        0.386,
+        0.361,
+        0.36,
+        0.36,
+        0.411,
+        0.393
+      ]
+    },
+    "Select destination tab": {
+      "mean": 8.8,
+      "median": 8.875,
+      "min": 8.494,
+      "max": 9.067,
+      "samples": [
+        8.494,
+        8.989,
+        8.785,
+        9.067,
+        8.502,
+        8.965
+      ]
+    },
+    "Apply window foreground": {
+      "mean": 0.002,
+      "median": 0.002,
+      "min": 0.001,
+      "max": 0.002,
+      "samples": [
+        0.002,
+        0.002,
+        0.002,
+        0.001,
+        0.002,
+        0.002
+      ]
+    },
+    "Focus terminal content": {
+      "mean": 5.101,
+      "median": 3.932,
+      "min": 2.854,
+      "max": 10.296,
+      "samples": [
+        2.87,
+        2.854,
+        6.727,
+        2.863,
+        10.296,
+        4.994
+      ]
+    }
+  },
+  "helper_verification_after_focus_ms": {
+    "median": 18.373,
+    "samples": [
+      19.52,
+      18.661,
+      18.085,
+      20.193,
+      13.258,
+      17.858
+    ]
+  }
+}

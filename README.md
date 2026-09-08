@@ -47,6 +47,15 @@ Python environment, renders app paths, backs up Terminal settings, makes
 PowerShell the default, and creates desktop and Start menu shortcuts. Existing
 WSL profiles stay visible. Other profiles are hidden when `compactMenu` is true.
 
+Python discovery tries `python.exe`, `py.exe`, then `python3.exe`. Setup validates
+the Windows runtime and SSL support, then reuses a healthy app `.venv` or creates
+one. Conda users can select their environment for setup; subsequent shortcuts
+use the private executable directly without activation or shell profile startup.
+Managed Python commands ignore `PYTHONHOME`, `PYTHONPATH`, and user site packages.
+Global packages and PATH are preserved. Keep the base Python installed. A broken
+`.venv` produces repair guidance and is never automatically deleted. See the
+[app installation notes](apps/port-forward-tui/README.md#install) for details.
+
 Right-click **Terminal Workspace** in Start and choose **Pin to taskbar** for
 the one-click two-tab launcher.
 
@@ -139,7 +148,8 @@ Terminal version. It restores the focus-scope setting and closes its test window
 For opt-in Herdr stage timings, add `--trace`. This temporarily adds a profiling
 argument to the Herdr return shortcut, restores its settings afterward, and
 records startup, lookup, closure, and focus stages. Normal shortcuts write no
-profiling files. [Latency analysis](docs/latency.md) explains the measurement
-boundaries, results, and remaining costs.
+profiling files. The [before-and-after report](docs/before-after.md) compares
+stage timings, identifies possible optimizations, and explains environment
+differences including Conda. The [earlier profile](docs/latency.md) is retained.
 
 [MIT](LICENSE). See [NOTICE](NOTICE) for Herdr artwork attribution.

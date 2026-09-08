@@ -1,6 +1,6 @@
 param(
     [string]$SshHost = '',
-    [string]$Python = 'python',
+    [string]$Python = '',
     [string]$HerdrPath = '',
     [switch]$NoShortcuts,
     [switch]$SkipDependencies
@@ -15,23 +15,20 @@ foreach ($workspaceCommand in @('wt.exe', 'pwsh.exe', 'ssh.exe')) {
         throw "Missing $workspaceCommand. See README prerequisites."
     }
 }
-$workspacePython = Join-Path $workspaceApp '.venv\Scripts\python.exe'
-if (-not (Test-Path -LiteralPath $workspacePython)) {
-    & $Python -m venv (Join-Path $workspaceApp '.venv')
-    if ($LASTEXITCODE -ne 0) { throw 'Python 3.12+ is required.' }
-}
+. (Join-Path $workspaceApp 'python_bootstrap.ps1')
+$workspacePython = Initialize-AppPython -Root $workspaceApp -Python $Python
 if (-not $SkipDependencies) {
-    & $workspacePython -m pip install -r (Join-Path $workspaceApp 'requirements.txt')
+    & $workspacePython -E -s -m pip install -r (Join-Path $workspaceApp 'requirements.txt')
     if ($LASTEXITCODE -ne 0) { throw 'Could not install the port app dependencies.' }
 }
-& $workspacePython (Join-Path $workspaceApp 'build_focus_helper.py')
+& $workspacePython -E -s (Join-Path $workspaceApp 'build_focus_helper.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast Herdr/Ports shortcut helper.' }
-& $workspacePython (Join-Path $workspaceRoot 'scripts\build_icon.py')
+& $workspacePython -E -s (Join-Path $workspaceRoot 'scripts\build_icon.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }
 $workspaceArguments = @((Join-Path $workspaceRoot 'scripts\configure.py'))
 if ($SshHost) { $workspaceArguments += @('--ssh-host', $SshHost) }
 if ($HerdrPath) { $workspaceArguments += @('--herdr', $HerdrPath) }
-& $workspacePython @workspaceArguments
+& $workspacePython -E -s @workspaceArguments
 if ($LASTEXITCODE -ne 0) { throw 'Terminal settings were not applied.' }
 $workspaceCompiler = Join-Path $env:SystemRoot 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $workspaceLauncher = Join-Path $workspaceRoot 'build\TerminalWorkspace.exe'
