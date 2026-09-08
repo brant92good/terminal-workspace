@@ -234,9 +234,11 @@ def main():
                     'remote_client': remote_client, 'local_herdr': local_herdr})
     write_json(machine_path, machine)
     if integration_only:
-        print("Herdr and Ports profiles and shortcuts are ready. Kept existing Terminal appearance, default shell and menu.")
+        print("Remote and Ports profiles and shortcuts are ready. Kept existing Terminal appearance, default shell and menu.")
     else:
-        print("Applied shared Terminal settings. PowerShell is default; Herdr and Ports shortcuts are ready.")
+        print("Applied shared Terminal settings. PowerShell is default; remote and Ports shortcuts are ready.")
+    if local_herdr:
+        print("Local Herdr is enabled as the third workspace tab, with its own return and new-view shortcuts.")
 
 
 if __name__ == "__main__":

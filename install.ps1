@@ -45,14 +45,14 @@ if (-not $HerdrPath -and -not $workspaceSavedHerdr) {
     $herdrCommand = Get-Command herdr.exe -CommandType Application -ErrorAction SilentlyContinue
     if ($herdrCommand) { $HerdrPath = $herdrCommand.Source }
 }
-Write-Host 'Preparing the app environment and the two-tab launcher...'
+Write-Host 'Preparing the app environment and workspace launcher...'
 $workspacePython = Initialize-AppPython -Root $workspaceApp -Python $Python
 if (-not $SkipDependencies) {
     & $workspacePython -E -s -m pip install --no-input -r (Join-Path $workspaceApp 'requirements.txt')
     if ($LASTEXITCODE -ne 0) { throw 'Could not install the port app dependencies.' }
 }
 & $workspacePython -E -s (Join-Path $workspaceApp 'port_forward_tui\build_focus_helper.py')
-if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast Herdr/Ports shortcut helper.' }
+if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast return-shortcut helper.' }
 & $workspacePython -E -s (Join-Path $workspaceRoot 'scripts\build_icon.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }
 $workspaceArguments = @((Join-Path $workspaceRoot 'scripts\configure.py'))
@@ -76,7 +76,7 @@ if (-not $NoShortcuts) {
         $workspaceShortcut.TargetPath = $workspaceLauncher
         $workspaceShortcut.WorkingDirectory = $workspaceRoot
         $workspaceShortcut.IconLocation = "$workspaceLauncher,0"
-        $workspaceShortcut.Description = 'Open Herdr and Ports in one Terminal window, focused on Herdr'
+        $workspaceShortcut.Description = 'Open the configured remote workspace and Ports, with the remote tab selected'
         $workspaceShortcut.Save()
     }
 }
