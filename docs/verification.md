@@ -5,6 +5,32 @@ Pro build 26200, Terminal 1.24.11911.0, PowerShell 7.6.5, Python 3.12.11 from
 Miniforge, and an existing SSH destination. Another physical laptop remains
 untested.
 
+## Combined server list and automatic reconnect — September 9, 2026
+
+The pinned port app is v0.6.0 / **42b32cf**, with 88 local tests and passing
+[main](https://github.com/brant92good/port-forward-tui/actions/runs/34264686897)
+and [release](https://github.com/brant92good/port-forward-tui/actions/runs/34265018250)
+Windows Python 3.12/3.13/3.14 CI. Terminal setup passed its 24 tests and the
+private setup passed 12 tests against that app version.
+
+The real machine-routing check now selects B's row inside an A-initialized
+combined Ports view, verifies that view's registration moves to B, and presses
+Ctrl+Alt+R to reach B's remote tab. Selecting A again returns to A. Existing
+cross-window and mixed-machine checks passed. Both profiles use the same
+physical SSH endpoint, with independent identities and connection settings.
+
+The full R/P/L desktop check passed both scopes, duplicate MRU selection, new
+views, and delayed-lookup cancellation while another application had focus.
+The current overview also passed the whole-Terminal-window persistence check
+with real SSH traffic. That test now waits for the controller to appear after
+the first Start key: opening an overview alone no longer starts controllers.
+
+The app's [recovery test](https://github.com/brant92good/port-forward-tui/blob/main/scripts/check_reconnect_live.py)
+verified two simultaneous forwards, interruption of one isolated TCP relay,
+automatic recovery after closing the overview, and stop-while-offline
+cancellation. Actual laptop suspend/resume and Wi-Fi roaming remain untested;
+see its [evidence and limits](https://github.com/brant92good/port-forward-tui/blob/main/docs/verification.md).
+
 The multi-machine update passed **24 local Terminal tests**, including an
 installation with no host and no Herdr, optional local Herdr, distinct R/L/P
 bindings, and machine-specific companion-tab arguments. The port app passed

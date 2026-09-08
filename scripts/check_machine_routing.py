@@ -15,11 +15,11 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'apps/port-forward-tui'))
 from port_forward_tui.machines import Catalog, machine_id
-from port_forward_tui.forwarding import DATA_DIR, SSH, ssh_options
+from port_forward_tui.forwarding import DATA_DIR, SSH, Store, ssh_options
 from port_forward_tui.background import exchange
 from port_forward_tui.focus_settings import save_scope
 from port_forward_tui.views import process_alive
-from check_interactive import state, activate, chord, wait_for, is_active
+from check_interactive import state, activate, chord, wait_for, is_active, user32
 from herdr_launcher import helper, live_records, view_directory
 from configure import PORTS
 
@@ -94,6 +94,31 @@ def main():
         activate(mixed)
         chord('R')
         wait_for(lambda s: is_active(s, ra), 'an explicitly selected A view returns to A remote')
+        # A combined Ports view changes context when the keyboard selection
+        # crosses into another server's group, without opening a different view.
+        activate(mixed)
+        primary_store = Store(primary.directory)
+        primary_store.load()
+        steps = max(1, len(primary_store.forwards))
+        for _ in range(steps):
+            user32.keybd_event(0x28, 0, 0, 0)
+            time.sleep(.05)
+            user32.keybd_event(0x28, 0, 2, 0)
+        wait_for(lambda s: any(r.get('window') == mixed['window'] and r.get('machine') == secondary.id and r.get('title') == mixed['title']
+                              for r in [json.loads(p.read_text()) for p in (secondary.directory / 'views').glob('*.json')]),
+                 'selecting a B server row retargets the same Ports view')
+        chord('R')
+        wait_for(lambda s: is_active(s, rb), 'R follows the selected B server from the combined list')
+        activate(mixed)
+        for _ in range(steps):
+            user32.keybd_event(0x26, 0, 0, 0)
+            time.sleep(.05)
+            user32.keybd_event(0x26, 0, 2, 0)
+        wait_for(lambda s: any(r.get('machine') == primary.id and r.get('title') == mixed['title']
+                              for r in [json.loads(p.read_text()) for p in (primary.directory / 'views').glob('*.json')]),
+                 'selecting an A server row restores the Ports registration')
+        chord('R')
+        wait_for(lambda s: is_active(s, ra), 'selecting A again restores its remote shortcut context')
         for path, original in originals.items():
             assert path.read_bytes() == original, 'An existing favorites file changed'
         print('PASS: two-profile machine routing; physical SSH endpoint shared for this test', flush=True)

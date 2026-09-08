@@ -68,7 +68,13 @@ def main():
             user32.keybd_event(0x0D, 0, 2, 0)
             deadline = time.monotonic() + 20
             while time.monotonic() < deadline:
-                response = exchange(directory, "status")
+                try:
+                    response = exchange(directory, "status")
+                except FileNotFoundError:
+                    # The overview reads status without starting a controller;
+                    # the first real start key creates it asynchronously.
+                    time.sleep(.05)
+                    continue
                 if response["states"].get(rule.id) == "ON":
                     break
                 if response["states"].get(rule.id) == "ERROR":

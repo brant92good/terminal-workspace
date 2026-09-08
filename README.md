@@ -76,7 +76,9 @@ use ordinary SSH because Herdr's remote command accepts an SSH target only.
 
 ## Use it every day
 
-Work in your remote shell as usual. To open a remote web app, switch to Ports, press **A**,
+Work in your remote shell as usual. Ports now shows all saved servers together;
+the chosen workspace's server is selected initially. To open a remote web app,
+select a row for its server, press **A**,
 enter its port (for example `8000`), then Enter. When it shows ON, **B** opens
 its local HTTP address. The remote app must already be running.
 
@@ -91,19 +93,30 @@ its local HTTP address. The remote app must already be running.
 | Ctrl+Alt+L, when enabled | Return to local Herdr |
 | Add Shift | Open another view |
 | F2 inside Ports | Search this Terminal window or all Terminal windows |
-| Esc, then H inside Ports | Choose another machine without stopping background forwards |
+| Esc, then H inside Ports | Add/import machines or choose a server without stopping forwards |
 
 These shortcuts apply while Terminal has focus. In the default all-windows
 mode, a return shortcut may bring another Terminal window for the **same machine**
 forward. The last-focused machine view in the invoking window supplies the
-machine context. A new window with several saved machines shows a picker.
+machine context. Selecting a different server's row in Ports updates that tab's
+context, so Ctrl+Alt+R follows the selected server. A new workspace window with
+several saved machines shows a picker.
 Use F2 for the current-window setting. A temporary launcher tab may appear during
 the handoff. Moved Herdr tabs may need reopening; split panes are not tracked
 as separate tabs.
 
 Closing the terminal leaves background port forwards running. **S** in Ports
-stops them. Reboot, sign-out or a lost SSH connection ends tunnels. Herdr owns
+stops all listed servers and their pending retries. Interrupted network
+connections retry automatically after SSH detects the drop; Enter cancels a
+retry and R tries again now. Authentication, host-key and local-port errors need
+attention. Reboot or sign-out ends tunnels. Herdr owns
 its workspace on the remote server; use its detach command to leave a client.
+
+After updating, close old Ports views and run
+`ports.ps1 restart-manager --machine MACHINE_ID` for each running server to load
+the new controller. This briefly interrupts and restores its requested forwards;
+OFF favorites remain stopped. See the app's
+[network recovery and update guide](https://github.com/brant92good/port-forward-tui#when-a-laptop-loses-its-connection).
 
 ## What has been checked
 
