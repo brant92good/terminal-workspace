@@ -123,6 +123,8 @@ def main():
         if machine is None:
             return 0
         options.host = machine.target
+    if trace:
+        trace.mark("machine_selected")
     if (options.local or options.client == 'herdr') and not Path(options.herdr).is_file():
         raise ValueError("Herdr executable not found; pass --herdr PATH")
     scope = read_scope(machine.directory if machine else options.data_dir)

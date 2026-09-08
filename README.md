@@ -123,8 +123,10 @@ Six keypresses per before/after batch, on one Windows 11 desktop. These are
 same-window returns to an already open tab, **not new-window or SSH startup
 times**. The [full report](docs/before-after.md) includes raw samples, method,
 hardware, and remaining costs. These numbers are not a comparison with other tools.
-They predate multiple-machine routing: resolving a window's machine adds a
-lookup when several machines are saved, and is not included in those timings.
+Those historical batches predate multiple-machine routing. On the current
+version, another six-press check measured Ports at **405 ms with one saved
+machine / 572 ms with two**, and remote Herdr at **411 / 606 ms** with tracing
+enabled. The report records the extra window lookup, conditions and raw samples.
 
 ## Check setup or use a coding agent
 

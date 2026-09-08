@@ -6,11 +6,11 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 public static class WorkspaceLauncher {
-    [STAThread]
     static string Quote(string value) {
         return "\"" + Regex.Replace(value, "(\\\\*)\"", "$1$1\\\"") +
             new string('\\', value.Reverse().TakeWhile(c => c == '\\').Count()) + "\"";
     }
+    [STAThread]
     public static void Main(string[] args) {
         try {
             var root = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\')).FullName;

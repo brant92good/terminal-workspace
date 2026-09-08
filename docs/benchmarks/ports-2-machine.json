@@ -1,0 +1,16 @@
+{
+  "app": "ports",
+  "saved_machine_count": 2,
+  "remote_client": "herdr",
+  "samples_ms": [
+    598.9,
+    574.3,
+    583.9,
+    566.9,
+    569.0,
+    568.7
+  ],
+  "median_ms": 571.6,
+  "min_ms": 566.9,
+  "max_ms": 598.9
+}

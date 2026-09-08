@@ -167,6 +167,24 @@ def main():
         chord("R")
         wait_for(lambda s: s["foreground"] == shell["window"] and any(r["window"] == shell["window"] for r in live_records(records_dir)),
                  "window with no Herdr view opens one locally instead of jumping elsewhere")
+        if machine.get('local_herdr'):
+            save_scope(DATA_DIR, 'window')
+            activate(pb)
+            old_tabs = {t['runtime_id'] for t in state()['tabs']}
+            chord('L', shift=True)
+            current = wait_for(lambda s: any(t['window'] == pb['window'] and t['runtime_id'] not in old_tabs for t in s['tabs']),
+                               'Ctrl+Alt+Shift+L opens another local Herdr view')
+            new_local = next(t for t in current['tabs'] if t['window'] == pb['window'] and t['runtime_id'] not in old_tabs)
+            wait_for(lambda s: any(r['runtime_id'] == new_local['runtime_id'] for r in live_records(local_dir)),
+                     'duplicate local Herdr view registers independently')
+            activate(lb)
+            activate(pb)
+            chord('L')
+            wait_for(lambda s: is_active(s, lb), 'local Herdr return chooses the older duplicate when last used')
+            activate(new_local)
+            activate(pb)
+            chord('L')
+            wait_for(lambda s: is_active(s, new_local), 'local Herdr return chooses the newer duplicate when last used')
         from check_foreground import check_handoff
         save_scope(DATA_DIR, "all")
         for app, target, other in (("ports", pa, ha), ("herdr", ha, pa)):

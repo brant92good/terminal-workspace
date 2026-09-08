@@ -15,6 +15,11 @@ three-tab launcher opened remote, Ports and local Herdr, leaving remote selected
 R/P returned correctly for both scopes and duplicate MRU cases; L returned to
 local Herdr across windows and respected the current-window scope. Delayed
 lookups left another focused application alone.
+The completion check also pressed Ctrl+Alt+Shift+L and verified returning to
+both the older and newer duplicate local view after each became most recently
+used. Opening the installed taskbar shortcut produced the same three-tab order
+and initial remote focus. A fresh real SSH traffic check with the current app
+passed after closing its whole temporary Terminal window.
 
 [check_machine_routing.py](../scripts/check_machine_routing.py) additionally
 opened two machine profiles, made the other profile's target more recent, and
@@ -31,8 +36,11 @@ Reproduce that opt-in check using an existing machine with default SSH settings:
 .\apps\port-forward-tui\.venv\Scripts\python.exe -E -s scripts/check_machine_routing.py --yes --machine YOUR_SSH_NAME
 ```
 
-The latency figures below predate multiple-machine routing. Resolving context
-adds a lookup when several machines are saved; no new timing claim is made.
+The [timing report](before-after.md#current-version-cost-of-multiple-machine-routing)
+now includes six samples each for one and two saved machines: Ports medians
+404.8/571.6 ms, instrumented remote Herdr 410.6/606.2 ms. Machine/window selection
+took 0.47/182.96 ms mean in the Herdr traces. The second profile remained dormant;
+these are same-window timings on this desktop, with raw samples retained.
 
 Earlier baseline checks:
 

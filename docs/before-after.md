@@ -27,7 +27,53 @@ shared by both apps measured **365.3 ms median**; see
 [shared-helper check](benchmarks/ports-shared-helper-check.json). The detailed stage
 comparison below is for Herdr only.
 
-## What changed
+## Current version: cost of multiple-machine routing
+
+After adding machine selection and R/P/L shortcuts, another six-keypress batch
+per condition measured the current launcher. These results supersede the older
+numbers for describing today's installed behavior; the old/new optimization
+comparison above remains a record of that earlier change.
+
+| Current return path | One saved machine: median (range), ms | Two saved machines: median (range), ms | Median difference, ms |
+| --- | ---: | ---: | ---: |
+| Ports, normal shortcut | 404.8 (395.6–427.4) | 571.6 (566.9–598.9) | +166.8 |
+| Remote Herdr, tracing enabled | 410.6 (406.3–415.9) | 606.2 (582.5–627.0) | +195.6 |
+
+Raw samples: [Ports, one](benchmarks/ports-1-machine.json),
+[Ports, two](benchmarks/ports-2-machine.json),
+[Herdr, one](benchmarks/herdr-1-machine.json),
+[Herdr, two](benchmarks/herdr-2-machine.json). Herdr files also retain all
+17 stage distributions; the stage means add to their batch's mean total.
+The Ports batches have no stage tracing.
+
+With one machine, choosing it took **0.47 ms mean** in Herdr. With two, choosing
+the invoking window's machine took **182.96 ms mean**. The latter starts an
+extra native helper and reads accessibility/window records before the usual
+return helper starts. This is the clearest additional cost. Consolidating that
+lookup into the existing helper might remove a process startup and duplicate
+window discovery, but would need fresh routing and focus-stealing tests. It
+has not been implemented, and its possible savings are not measured.
+
+Other current two-machine Herdr means: Terminal/Python startup and imports
+144.48 ms, return-helper startup and initialization 90.52 ms, initial tab
+enumeration 80.27 ms, and waiting for launcher-tab closure 60.92 ms. Those remain
+possible optimization targets, subject to the compatibility tradeoffs below.
+
+Conditions: the same desktop and interpreter described below; both views in
+one temporary window; the actual installed Ctrl+Alt+R/P return commands; six
+samples per condition, one-machine batches followed by two-machine batches.
+Initial views explicitly select the same primary machine. The second saved
+profile stays dormant: no second server, tunnel or view is opened. It activates
+the multi-machine context path while keeping the visible tab count comparable.
+The temporary profile is removed afterward and original favorites are verified
+unchanged. This sequential comparison includes ordinary desktop variation; it
+does not establish a cross-machine distribution or isolate tracing overhead.
+
+To select the initial target on an installation with several machines, append
+`--machine ID_OR_NAME` to either reproduction command below. The benchmark
+leaves the actual return shortcut's machine detection enabled.
+
+## What changed in the original optimization
 
 The old sequence was: create a temporary Terminal tab, start Python, start a
 PowerShell probe, load libraries and compile its C# helper, find the saved tab,

@@ -5,10 +5,12 @@ import json
 from pathlib import Path
 import statistics
 import subprocess
+import sys
 
 from check_interactive import ROOT, state, wait_for
 from port_forward_tui.focus_settings import save_scope
 from port_forward_tui.forwarding import DATA_DIR
+from port_forward_tui.machines import Catalog
 from herdr_launcher import helper, live_records, view_directory
 from configure import HERDR, PORTS
 
@@ -20,6 +22,7 @@ def main():
     parser.add_argument("--app", choices=("ports", "herdr"), default="ports")
     parser.add_argument("--trace", action="store_true", help="Profile Herdr stages using a temporary shortcut override")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--machine", help="Saved machine ID/name for the initial benchmark views")
     options = parser.parse_args()
     if not options.yes:
         parser.error("Use --yes to allow temporary windows and focus changes")
@@ -27,24 +30,41 @@ def main():
         parser.error("Use between 1 and 30 samples")
     if options.trace and options.app != "herdr":
         parser.error("Stage tracing currently requires --app herdr")
+    catalog = Catalog(DATA_DIR)
+    machines = catalog.list()
+    if not options.machine and len(machines) != 1:
+        parser.error("Select an existing machine with --machine ID_OR_NAME")
+    machine = catalog.get(options.machine) if options.machine else machines[0]
+    settings = json.loads((ROOT / ".machine.json").read_text(encoding="utf-8-sig"))
+    client = "ssh" if machine.ssh_port or machine.ssh_config else settings.get("remote_client", "ssh")
     before = {t["window"] for t in state()["tabs"]}
-    preferences = DATA_DIR / "ui-settings.json"
+    preferences = machine.directory / "ui-settings.json"
     original = preferences.read_bytes() if preferences.exists() else None
     created = set()
     try:
-        save_scope(DATA_DIR, "all")
+        save_scope(machine.directory, "all")
         # Put the target before the source, so closing the temporary launcher
         # cannot accidentally focus the target just because it is adjacent.
         profiles = (PORTS, HERDR) if options.app == "ports" else (HERDR, PORTS)
-        subprocess.Popen(["wt.exe", "-w", "new", "new-tab", "-p", profiles[0], ";", "new-tab", "-p", profiles[1]])
+        commands = {
+            PORTS: [sys.executable, "-E", "-s", str(ROOT / "apps/port-forward-tui/app.py"), "--machine", machine.id],
+            HERDR: [sys.executable, "-E", "-s", str(ROOT / "scripts/herdr_launcher.py"),
+                    "--machine", machine.id, "--client", client],
+        }
+        if settings.get("herdr"):
+            commands[HERDR].extend(["--herdr", settings["herdr"]])
+        # Explicit selection only initializes the views. Actual return keypresses
+        # use the installed shortcut, including its window/machine lookup.
+        subprocess.Popen(["wt.exe", "-w", "new", "new-tab", "-p", profiles[0], *commands[profiles[0]],
+                          ";", "new-tab", "-p", profiles[1], *commands[profiles[1]]])
         current = wait_for(lambda s: len([t for t in s["tabs"] if t["window"] not in before]) == 2,
                            "benchmark window opened")
         created = {t["window"] for t in current["tabs"]} - before
         current = wait_for(lambda s: any(t["window"] in created and t["title"].startswith("Ports | ") for t in s["tabs"]),
                            "Ports benchmark view ready")
         if options.app == "herdr":
-            machine = json.loads((ROOT / ".machine.json").read_text())
-            records = view_directory(DATA_DIR, machine["ssh_host"])
+            records = (view_directory(DATA_DIR, machine.target) if client == "herdr"
+                       else DATA_DIR / "ssh-views" / machine.id)
             current = wait_for(lambda s: any(r["window"] in created for r in live_records(records)),
                                "Herdr benchmark view registered")
             target_ids = {r["runtime_id"] for r in live_records(records) if r["window"] in created}
@@ -80,7 +100,8 @@ Add-Type -Path @((Join-Path $Root 'scripts/TerminalViews.cs'),(Join-Path $Root '
             measurements = json.loads(result.stdout)
             stages, verification_tail = collect(trace_dir, measurements) if options.trace else (None, None)
         samples = [m["milliseconds"] for m in measurements]
-        report = {"app": options.app, "samples_ms": [round(x, 1) for x in samples], "median_ms": round(statistics.median(samples), 1),
+        report = {"app": options.app, "saved_machine_count": len(machines), "remote_client": client,
+                  "samples_ms": [round(x, 1) for x in samples], "median_ms": round(statistics.median(samples), 1),
                   "min_ms": round(min(samples), 1), "max_ms": round(max(samples), 1)}
         if stages:
             report["stage_timings_ms"] = stages

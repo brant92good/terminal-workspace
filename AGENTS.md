@@ -1,8 +1,8 @@
 # Working on Terminal Workspace
 
-This is the Windows setup around remote SSH (optionally Herdr), and
-Port Forward TUI opens remote services on local ports. The Start/desktop button
-opens Herdr first and Ports second, leaving Herdr selected. This repo can be
+This Windows setup pairs remote SSH (optionally Herdr) with Port Forward TUI,
+which opens remote services on local ports. The Start/desktop button opens the
+remote session first and Ports second, leaving remote selected. This repo can be
 installed without anyone's private personal-setup repository. An optional third
 tab runs local Herdr independently of the remote machine.
 

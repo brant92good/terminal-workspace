@@ -60,7 +60,8 @@ def trace_herdr(directory):
 STAGES = [
     ("Terminal and Python startup", "keypress", "python_entry"),
     ("Python imports and arguments", "python_entry", "arguments_parsed"),
-    ("Settings and origin marker", "arguments_parsed", "settings_loaded"),
+    ("Select machine and resolve window context", "arguments_parsed", "machine_selected"),
+    ("Settings and origin marker", "machine_selected", "settings_loaded"),
     ("Read live view records", "settings_loaded", "records_loaded"),
     ("Payload and helper cache", "records_loaded", "helper_ready"),
     ("Create handoff event", "helper_ready", "helper_spawn"),
