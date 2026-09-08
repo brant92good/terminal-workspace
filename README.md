@@ -1,155 +1,152 @@
 # Terminal Workspace
 
-A repeatable Windows Terminal setup for PowerShell, WSL, remote Herdr, and
-saved SSH port forwards. The desktop/Start shortcut opens Herdr in the first
-tab and Ports in the second, with Herdr selected. Its Herdr icon can be pinned
-to the taskbar.
+**One button opens your remote terminal and your saved app connections. Bring either one back with a keyboard shortcut.**
 
-This is the public middle layer of a personal setup:
+This Windows setup combines **Herdr**, where you work on a remote computer,
+with **Ports**, where you make its web apps and notebooks available in your
+local browser. It also makes PowerShell 7 the default shell and keeps your WSL
+Linux profiles easy to find.
 
 ```text
-personal-setup (private, optional)
-├── terminal-workspace (this public repo)
-│   └── apps/port-forward-tui (public submodule)
-└── skills (private submodule)
+Open Terminal Workspace
+       |
+       +-- Tab 1: Herdr  <- selected, ready for remote work
+       +-- Tab 2: Ports <- saved connections to remote apps
 ```
 
-You can use this repository on its own. The public tree contains portable
-preferences and app launchers. SSH targets and resolved installation paths are
-saved locally in the ignored `.machine.json`. Each submodule is pinned to a
-specific commit for repeatable installation.
+![Ports, the connection manager included in Terminal Workspace](docs/images/ports.svg)
 
-## Install
+*Actual Ports interface with simulated example data. Herdr runs in the other tab.*
 
-Prerequisites: Windows 10/11, Git, Python 3.12+, Windows Terminal, PowerShell 7,
-Windows OpenSSH Client, and [Herdr](https://herdr.dev/). Configure and verify
-your existing SSH alias with `ssh workbox` first. Background port forwards use
-SSH keys or ssh-agent.
+## Choose the right project
 
-For missing Windows apps:
+| What you need | Repository |
+| --- | --- |
+| Only saved port connections | [Port Forward TUI](https://github.com/brant92good/port-forward-tui) — smaller, independent install |
+| Herdr, Ports, shortcuts and shared Terminal appearance | **This repository** |
+| Your private SSH values, agent skills and a repeatable personal laptop setup | An optional private repository that includes this one |
 
-```powershell
-winget install --id Microsoft.WindowsTerminal -e
-winget install --id Microsoft.PowerShell -e
-```
+You do not need access to the author's private repository. This public project
+works on its own. It includes the port app as a **submodule**: a separate Git
+repository held at a specific version. The download command below fetches both.
 
-Use Herdr's official Windows installation instructions on its website. Then:
+## Set up on Windows
+
+Use a **PowerShell tab on Windows 10/11**. You need:
+
+| Tool / information | Purpose and where to get it |
+| --- | --- |
+| Windows Terminal | The window that holds the tabs; available in Microsoft Store |
+| PowerShell 7 | The default command shell; install with `winget install --id Microsoft.PowerShell -e` |
+| Git for Windows | Downloads this project and its included port app; [download](https://git-scm.com/downloads/win) |
+| Windows Python 3.12+ | Runs Ports; [download](https://www.python.org/downloads/windows/) or select an existing Conda Python |
+| Windows OpenSSH Client | Connects to your remote computer; install through Windows Optional features |
+| Herdr | The remote-terminal app; follow [Herdr's installation guide](https://herdr.dev/) |
+| Your working SSH name | If you connect using `ssh workbox`, your name is `workbox` |
+
+Before installing, run `ssh YOUR_SSH_NAME`, confirm you can log in, and type
+`exit`. If this is new to you, the port app's [first-connection walkthrough](https://github.com/brant92good/port-forward-tui#set-up)
+explains ports, SSH names and keys. Saved background connections need a working
+SSH key or key agent because they cannot ask for a password.
 
 ```powershell
 git clone --recurse-submodules https://github.com/brant92good/terminal-workspace.git
 cd terminal-workspace
+.\doctor.ps1
 .\install.ps1 -SshHost workbox
+.\open.ps1
 ```
 
-Use `-Python C:\path\python.exe` or `-HerdrPath C:\path\herdr.exe` when needed.
-Keep the checkout at its installed location. The installer creates an isolated
-Python environment, renders app paths, backs up Terminal settings, makes
-PowerShell the default, and creates desktop and Start menu shortcuts. Existing
-WSL profiles stay visible. Other profiles are hidden when `compactMenu` is true.
+Replace `workbox` with your SSH name. On the first doctor run, missing local
+environment/launcher checks are expected: installation creates them. You can
+omit `-SshHost` to answer a question; later runs reuse the saved name.
 
-Python discovery tries `python.exe`, `py.exe`, then `python3.exe`. Setup validates
-the Windows runtime and SSL support, then reuses a healthy app `.venv` or creates
-one. Conda users can select their environment for setup; subsequent shortcuts
-use the private executable directly without activation or shell profile startup.
-Managed Python commands ignore `PYTHONHOME`, `PYTHONPATH`, and user site packages.
-Global packages and PATH are preserved. Keep the base Python installed. A broken
-`.venv` produces repair guidance and is never automatically deleted. See the
-[app installation notes](apps/port-forward-tui/README.md#install) for details.
+**What setup changes:** it creates a private Python environment, backs up
+Terminal settings, adds Herdr/Ports profiles and shortcuts, sets PowerShell 7 as
+default, and creates a **Terminal Workspace** button in Start and on the desktop.
+The default compact menu hides other profiles while keeping PowerShell, WSL,
+Herdr and Ports. Hidden profiles are not deleted. To retain your full menu,
+set `compactMenu` to `false` in `config/terminal.json` before installing.
 
-Right-click **Terminal Workspace** in Start and choose **Pin to taskbar** for
-the one-click two-tab launcher.
+Keep the checkout where you installed it; shortcuts refer to that folder.
+For custom installations, pass `-Python 'C:\path\python.exe'` or
+`-HerdrPath 'C:\path\herdr.exe'`. Conda is not activated on each shortcut press.
+If script execution is blocked, inspect the script and, where allowed, run it
+through `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -SshHost workbox`.
 
-## Keyboard and focus scope
+## Use it every day
 
-| Shortcut in Windows Terminal | Behavior |
+Open **Terminal Workspace** from Start, the desktop, or `.\open.ps1`.
+Right-click its Start entry and choose **Pin to taskbar** for a taskbar button.
+
+In Herdr, work on your remote computer. In Ports, press **A** to add a connection
+or type the remote app's port, such as `8000`, then Enter. Press **B** on an ON
+row to open its HTTP address here. The remote app must already be running.
+
+These shortcuts work **while Windows Terminal has focus**:
+
+| Key | Result |
 | --- | --- |
-| Ctrl+Alt+H | Return to the most recently focused Herdr view, or open one |
-| Ctrl+Alt+Shift+H | Open another Herdr view attached to the same remote session |
-| Ctrl+Alt+P | Return to the most recently focused Ports view, or open one |
-| Ctrl+Alt+Shift+P | Open another connected Ports view |
-| F2 inside Ports | Choose shortcut focus scope |
+| Ctrl+Alt+H | Return to the Herdr tab you used most recently; open one if needed |
+| Ctrl+Alt+P | Return to the Ports tab you used most recently; open one if needed |
+| Add Shift to either shortcut | Open another connected tab |
+| F2 inside Ports | Choose whether return shortcuts search this window or all Terminal windows |
 
-F2 offers **All Terminal windows** (default) and **Current Terminal window
-only**. Both Herdr and Ports read this preference. In current-window mode, a
-window with no matching view gets a new one there. Separate views share their
-underlying sessions. The Herdr launcher tracks the identity of each Terminal
-tab, so duplicate or changing titles do not determine the target.
+![Settings choose this Terminal window or all Terminal windows](docs/images/settings.svg)
 
-Return shortcuts use a brief launcher tab, then hand focus over after it
-closes. Keyboard focus moves into the terminal content so you can type
-immediately. The helper does not raise a window if you switch to another application
-during that handoff. These are Terminal shortcuts, not system-wide hotkeys.
-Both return shortcuts use a shared focus executable built once during
-installation. It waits for launcher closure instead of imposing a fixed pause.
-The same helper process performs lookup and the final handoff. Ports skips
-loading the TUI, and Herdr matches registered tab identities even when titles
-change or duplicate one another.
-Manually moving a Herdr tab between windows may require reopening the view to
-register its new accessibility identity. Separate split panes are not tracked
-as separate Terminal tabs.
+*Actual settings screen. Both Herdr and Ports use this preference.*
 
-Ports keeps tunnels running when every UI closes. Herdr's remote server owns
-its panes. Detach Herdr with Ctrl+B then Q. Do not stop the remote server just
-to close a client view.
+Multiple Ports tabs share their favorites and connection state. Closing every
+Terminal window leaves the background SSH forwards running; **S** in Ports stops
+them. Reboot, sign-out or network loss ends tunnels. Herdr keeps its workspace
+on the remote server; use its detach command when leaving a client.
 
-## Share Terminal preferences across computers
+The return shortcut briefly opens a launcher tab. It selects the most recently
+used matching tab within your chosen window scope. A tab may appear briefly
+during that handoff. Moving Herdr tabs between windows may require reopening
+the view; separate split panes are not tracked as separate tabs.
 
-`config/terminal.json` stores shared appearance, profile defaults, compact-menu
-behavior, and keyboard shortcuts. Install or sync renders each machine's paths.
+## Check setup or ask an agent for help
 
 ```powershell
-.\sync.ps1             # Pull the shared version and apply it here
-.\sync.ps1 -Publish    # Export portable preferences, commit, and push them
+.\doctor.ps1                 # Human-readable local checks and next steps
+.\doctor.ps1 --json          # The same checks for an agent
+.\ports.ps1 list --json      # Favorites and available live connection state
+.\ports.ps1 save --remote 8000 --name 'My web app' --json
 ```
 
-Export includes presentation settings and these managed shortcuts. It excludes
-shell commands, SSH targets, startup commands, and working directories. Your
-private top-level repository can store personal values and pin this repo.
-Removing a shared preference restores its default on the receiving computer.
-Installation also supports a Terminal settings file that has not been created
-yet, and existing JSONC files with comments; an existing file is backed up.
-Sync refuses to discard local Git edits. Submodules stay at the parent-pinned
-version; update the child commit deliberately when adopting an app update.
+`doctor` does not install, write settings or contact SSH. You need a usable
+Windows Python to run it. If included files are missing, run
+`git submodule update --init --recursive` from this folder first.
+An unreadable `.machine.json` should be backed up and repaired rather than deleted.
+If a shortcut opens a new tab unexpectedly, check F2's scope and whether the old
+Herdr tab was moved or reopened.
 
-## Verification
+For agents, read [AGENTS.md](AGENTS.md). Setup accepts `-NonInteractive` to avoid
+host questions and Git credential prompts; missing information is an error.
+The connection command's [examples and JSON contract](https://github.com/brant92good/port-forward-tui#use-it-with-a-coding-agent-or-script)
+apply unchanged from this folder. Agents should use exact favorite IDs, not
+guess row numbers or directly overwrite a live favorites file.
+
+## Share settings between computers
+
+`config/terminal.json` stores shared appearance and shortcuts. Your SSH name and
+resolved app paths stay in ignored `.machine.json` on each computer. A submodule
+pin stores the version of the port app; each install uses that recorded version.
 
 ```powershell
-python -m unittest discover -s tests -v
-.\apps\port-forward-tui\.venv\Scripts\python.exe scripts/check_interactive.py --yes
-.\apps\port-forward-tui\.venv\Scripts\python.exe scripts/check_terminal_persistence.py --yes
+.\sync.ps1             # Download shared preferences and apply them here
+.\sync.ps1 -Publish    # Save and push this computer's portable preferences
 ```
 
-The second command is an opt-in desktop test. It opens temporary Terminal
-windows, uses the actual keyboard shortcuts, verifies the selected tab and
-foreground window, then closes its test windows and restores the focus-scope
-preference. It requires an installed setup and a reachable Herdr SSH target.
-It also checks switching to another application while shortcut lookup is pending.
-It does not stop the shared SSH tunnels or Herdr server. The last command creates
-an isolated temporary SSH forward to remote port 22 through a real Ports window,
-closes that whole window, verifies SSH traffic still crosses the tunnel, and
-explicitly stops its test supervisor. Your existing favorites and tunnels stay
-unchanged.
+Use `-Publish` only in a repository you can write to, such as your own fork.
+It exports appearance and managed shortcuts, not shell commands, SSH targets or
+machine paths. Existing local Git changes must be saved before downloading a
+new version. Keep personal values in your own private parent if desired.
 
-To measure the installed Ports return shortcut:
+The [technical reference](REFERENCE.md) covers settings details and desktop
+verification. The [latency report](docs/before-after.md) shows measured results,
+possible improvements and environment differences; it is not a speed guarantee
+for every Windows machine.
 
-```powershell
-.\apps\port-forward-tui\.venv\Scripts\python.exe scripts/benchmark_switch.py --yes --samples 6 --output artifacts/switch.json
-.\apps\port-forward-tui\.venv\Scripts\python.exe scripts/benchmark_switch.py --yes --app herdr --samples 6 --output artifacts/herdr-switch.json
-```
-
-These commands use the default Ctrl+Alt+P/H bindings. They open a temporary
-window with the target before a source tab and measure until the target has
-keyboard focus. The target is deliberately
-not adjacent to the temporary launcher, so closing the launcher cannot itself
-satisfy the measurement. Compilation and setup are outside the stopwatch. The
-report includes every sample and the median; results depend on the machine and
-Terminal version. It restores the focus-scope setting and closes its test window.
-
-For opt-in Herdr stage timings, add `--trace`. This temporarily adds a profiling
-argument to the Herdr return shortcut, restores its settings afterward, and
-records startup, lookup, closure, and focus stages. Normal shortcuts write no
-profiling files. The [before-and-after report](docs/before-after.md) compares
-stage timings, identifies possible optimizations, and explains environment
-differences including Conda. The [earlier profile](docs/latency.md) is retained.
-
-[MIT](LICENSE). See [NOTICE](NOTICE) for Herdr artwork attribution.
+[MIT license](LICENSE). Herdr artwork attribution: [NOTICE](NOTICE).
