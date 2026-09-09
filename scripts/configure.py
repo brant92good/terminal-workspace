@@ -20,6 +20,7 @@ PWSH = "{574e775e-4f2a-5b96-ac1e-a2962a402336}"
 LOCAL = "{f7c9cd21-fd21-429b-93ac-bd21e5ef8b11}"
 SESSIONS = "{2ab64c44-ef5c-48d2-8f4d-678473aae748}"
 SHELL_ACTION = 'User.TerminalWorkspace.LocalShell'
+TAB_ACTION = 'User.TerminalWorkspace.NewTab'
 ACTIONS = {"herdr": "User.TerminalWorkspace.Herdr", "newHerdr": "User.TerminalWorkspace.NewHerdr",
            "ports": "User.TerminalWorkspace.Ports", "newPorts": "User.TerminalWorkspace.NewPorts"}
 LOCAL_ACTIONS = {'local': 'User.TerminalWorkspace.Local', 'newLocal': 'User.TerminalWorkspace.NewLocal'}
@@ -154,13 +155,15 @@ def render(original, shared, host, python, herdr, root=ROOT, integration_only=Fa
     actions = data.setdefault("actions", [])
     bindings = data.setdefault("keybindings", [])
     managed_ids = {a.get("id") for a in actions if isinstance(a.get("command"), dict)
-                   and a["command"].get("profile") in (HERDR, PORTS, LOCAL, SESSIONS)} | set(ACTIONS.values()) | set(LOCAL_ACTIONS.values()) | {SHELL_ACTION}
+                   and a["command"].get("profile") in (HERDR, PORTS, LOCAL, SESSIONS)} | set(ACTIONS.values()) | set(LOCAL_ACTIONS.values()) | {SHELL_ACTION, TAB_ACTION}
     actions[:] = [a for a in actions if a.get("id") not in managed_ids]
     bindings[:] = [b for b in bindings if b.get("id") not in managed_ids]
     enabled = dict(ACTIONS, **(LOCAL_ACTIONS if local_herdr else {}))
     if session_picker:
         enabled['shell'] = SHELL_ACTION
     chosen_shortcuts = dict(shared['shortcuts'], **(shortcuts or {}))
+    if chosen_shortcuts.get('newTab'):
+        enabled['newTab'] = TAB_ACTION
     chosen_shortcuts.setdefault('local', 'ctrl+alt+l')
     chosen_shortcuts.setdefault('newLocal', 'ctrl+alt+shift+l')
     chosen_shortcuts.setdefault('shell', 'ctrl+alt+n')
@@ -173,6 +176,8 @@ def render(original, shared, host, python, herdr, root=ROOT, integration_only=Fa
         is_herdr = key in ("herdr", "newHerdr")
         is_local = key in ('local', 'newLocal')
         command = {"action": "newTab", "profile": PWSH if key == 'shell' else LOCAL if is_local else HERDR if is_herdr else PORTS}
+        if key == 'newTab':
+            command = {'action': 'newTab'}
         if key in ("herdr", "ports", 'local'):
             command["commandline"] = commands[key] + " --focus-existing"
         actions[:] = [a for a in actions if a.get("id") != action_id]
@@ -211,6 +216,7 @@ def main():
     picker_mode.add_argument('--session-picker', action='store_const', const=True, default=None, dest='session_picker', help='Make new tabs show the SSH machine picker; Ctrl+Alt+N opens PowerShell')
     picker_mode.add_argument('--no-session-picker', action='store_const', const=False, dest='session_picker')
     parser.add_argument('--session-catalog', type=Path, help='Metadata file in a private repo; keys stay with the existing SSH client')
+    parser.add_argument('--new-tab-shortcut', choices=('ctrl+n', 'ctrl+t', 'none'), help='Optional simpler new-tab key; intercepts the key before shell programs')
     local_mode = parser.add_mutually_exclusive_group()
     local_mode.add_argument('--local-herdr', action='store_const', const=True, default=None, dest='local_herdr')
     local_mode.add_argument('--no-local-herdr', action='store_const', const=False, dest='local_herdr')
@@ -234,6 +240,8 @@ def main():
         return
     machine_path = ROOT / ".machine.json"
     machine = json.loads(machine_path.read_text()) if machine_path.exists() else {}
+    if options.new_tab_shortcut is not None:
+        machine.setdefault('shortcuts', {})['newTab'] = None if options.new_tab_shortcut == 'none' else options.new_tab_shortcut
     integration_only = install_mode(machine, options.integration_only)
     host = options.ssh_host or machine.get("ssh_host")
     if host:

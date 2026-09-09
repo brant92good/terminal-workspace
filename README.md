@@ -90,6 +90,14 @@ This explicitly makes **SSH Sessions** the default new-tab screen and adds
 unchanged in integration-only mode. Press **A** to add a machine, **Enter** to
 connect, or **R** to add and select a route such as LAN or Tailscale. Logging out
 returns to the picker. Installation does not require a host.
+Press **I** to preview and import local SSH hosts, including static Include files.
+Import retains local aliases for existing key/proxy settings; no keys or commands
+are copied into the shared catalog.
+
+For a simpler new-tab shortcut, run `.\install.ps1 -NewTabShortcut ctrl+n`.
+Ctrl+Shift+T remains available. This optional binding is kept on this computer;
+it intercepts Ctrl+N before shells or editors can use it. Use `ctrl+t` for the
+usual browser new-tab key, or `none` to remove the extra shortcut.
 
 ![SSH Sessions with example machines](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
 
@@ -131,6 +139,7 @@ its local HTTP address. The remote app must already be running.
 | Ctrl+Alt+P | Return to a Ports tab for this window's machine; open one if needed |
 | Ctrl+Alt+L, when enabled | Return to local Herdr |
 | Ctrl+Alt+N, with SessionPicker enabled | Open local PowerShell |
+| Ctrl+N or Ctrl+T, when explicitly configured | Open the default new-tab profile |
 | Add Shift | Open another view |
 | F2 inside Ports | Search this Terminal window or all Terminal windows |
 | Esc, then H inside Ports | Add/import machines or choose a server without stopping forwards |

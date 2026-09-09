@@ -51,3 +51,17 @@ class SessionPickerSettingsTests(unittest.TestCase):
         data = self.render({})
         shared = json.loads((ROOT / 'config/terminal.json').read_text())
         self.assertNotIn('Private catalog', json.dumps(configure.export_shared(data, shared)))
+
+    def test_optional_new_tab_shortcut_opens_default_profile_and_is_idempotent(self):
+        data = self.render({}, shortcuts={'newTab': 'ctrl+n'})
+        self.assertEqual(next(a['command'] for a in data['actions'] if a['id'] == configure.TAB_ACTION), {'action': 'newTab'})
+        self.assertIn({'id': configure.TAB_ACTION, 'keys': 'ctrl+n'}, data['keybindings'])
+        self.assertEqual(self.render(data, shortcuts={'newTab': 'ctrl+n'}), data)
+        self.assertFalse(any(a['id'] == configure.TAB_ACTION for a in self.render(data)['actions']))
+
+    def test_new_tab_shortcut_conflict_is_rejected_without_changing_input(self):
+        original = {'keybindings': [{'keys': 'ctrl+n', 'id': 'User.Existing'}]}
+        before = json.dumps(original)
+        with self.assertRaisesRegex(ValueError, 'already assigned'):
+            self.render(original, shortcuts={'newTab': 'ctrl+n'})
+        self.assertEqual(json.dumps(original), before)

@@ -18,6 +18,16 @@ passing `-SessionPicker` explicitly selects the picker again. Shared-settings
 mode restores the saved default. `-NoSessionPicker` disables its profile and
 local-shell shortcut and restores PowerShell as the default. The installer
 backs up settings before writing.
+`-NewTabShortcut ctrl+n` optionally adds a simpler new-tab key; `ctrl+t` is also
+available and `none` removes it. The default public install claims neither key.
+This binding opens the default profile directly, without a temporary launcher
+tab. It stays local in `.machine.json`; a private parent can record the preference.
+Terminal consumes that key before terminal programs see it. Ctrl+Alt+N continues
+to open local PowerShell, and Ctrl+L inside the picker opens its internal shell.
+
+The picker now supports I for explicit read-only SSH import. See the
+[import guide](../apps/ssh-session-tui/docs/ssh-import.md). Writing SSH configuration
+and designing agent session policy remain deferred.
 If integration-only setup has no PowerShell profile, enabling the picker adds
 a direct `pwsh.exe` profile for the local shortcut. This also works when the
 automatic PowerShell profile source is disabled; existing profiles are preserved.
@@ -48,3 +58,9 @@ all-network guarantee. No existing user window was activated by the test.
 Headless app tests additionally cover route choice, temporary fallback,
 catalog conflicts, form validation and sync through two isolated local Git clones.
 See [leaf verification](../apps/ssh-session-tui/docs/verification.md).
+
+The follow-up `--new-tab-key ctrl+n` check passed the same real SSH/local-shell
+flow after the optional key was installed. Existing tab identities remained
+unchanged. The extra binding opens the default profile through Terminal's native
+newTab action. Import's read-only parser and keyboard selection have their own
+tests in the leaf, including a static comparison with real OpenSSH.

@@ -20,6 +20,7 @@ public static class SessionPickerCheck {
     public static void Press(long window, string name) {
         Guard(window);
         byte[] keys = name == "newTab" ? new byte[] {0x11,0x10,0x54} :
+                      name == "simpleNewTab" ? new byte[] {0x11,0x4e} :
                       name == "local" ? new byte[] {0x11,0x12,0x4e} : new byte[] {0x0d};
         try {
             foreach (var key in keys) { Guard(window); keybd_event(key,0,0,UIntPtr.Zero); }

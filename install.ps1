@@ -8,6 +8,7 @@ param(
     [switch]$SessionPicker,
     [switch]$NoSessionPicker,
     [string]$SessionCatalog = '',
+    [ValidateSet('', 'ctrl+n', 'ctrl+t', 'none')][string]$NewTabShortcut = '',
     [switch]$NoShortcuts,
     [switch]$SkipDependencies,
     [switch]$NonInteractive,
@@ -68,6 +69,7 @@ if ($NoLocalHerdr) { $workspaceArguments += '--no-local-herdr' }
 if ($SessionPicker) { $workspaceArguments += '--session-picker' }
 if ($NoSessionPicker) { $workspaceArguments += '--no-session-picker' }
 if ($SessionCatalog) { $workspaceArguments += @('--session-catalog', $SessionCatalog) }
+if ($NewTabShortcut) { $workspaceArguments += @('--new-tab-shortcut', $NewTabShortcut) }
 if ($IntegrationOnly) { $workspaceArguments += '--integration-only' }
 if ($ApplySharedSettings) { $workspaceArguments += '--apply-shared-settings' }
 & $workspacePython -E -s @workspaceArguments

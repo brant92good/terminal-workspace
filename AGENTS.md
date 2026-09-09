@@ -28,6 +28,8 @@ authorization; do not invent additional approval steps.
   preferences. Keep older installations' default behavior.
   Explicit `-SessionPicker` changes the default profile even in integration-only
   mode and adds Ctrl+Alt+N for local PowerShell. The catalog path stays local.
+  `-NewTabShortcut ctrl+n` (or ctrl+t/none) is an optional local preference; the
+  public installer does not claim either key by default.
 - Herdr tab identity and return behavior: `scripts/herdr_launcher.py` and the
   port app's shared focus helper. Never use duplicate titles as Herdr identity.
 - `scripts/workspace.py` selects a machine before creating companion tabs;

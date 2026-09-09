@@ -26,6 +26,7 @@ else { [SessionPickerCheck]::Press($Window,$Action) }
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--yes', action='store_true')
+    parser.add_argument('--new-tab-key', choices=('ctrl+shift+t', 'ctrl+n'), default='ctrl+shift+t')
     parser.add_argument('--output', type=Path, default=ROOT / 'artifacts/session-picker-desktop.json')
     options = parser.parse_args()
     if not options.yes:
@@ -62,8 +63,8 @@ def main():
                         return
                     time.sleep(.2)
                 raise AssertionError(message)
-            act('newTab')
-            wait_text('Choose a machine.', 'Ctrl+Shift+T opens the installed picker')
+            act('simpleNewTab' if options.new_tab_key == 'ctrl+n' else 'newTab')
+            wait_text('Choose a machine.', options.new_tab_key + ' opens the installed picker')
             act('enter')
             wait_text('Connecting to ', 'Enter hands the selected route to SSH')
             act('text', "printf 'SESSION_%s\\n' PICKER_REMOTE_OK")
@@ -81,7 +82,7 @@ def main():
     assert {t['runtime_id'] for t in after['tabs']} == {t['runtime_id'] for t in before['tabs']}, 'Original tabs changed'
     result = {'default_new_tab_picker': True, 'keyboard_ssh_handoff': True, 'remote_marker_received': True,
               'returns_to_picker': True, 'local_pwsh_hotkey': True, 'original_tabs_preserved': True,
-              'test_window_initial_cells': [70, 18], 'date': time.strftime('%Y-%m-%d')}
+              'test_window_initial_cells': [70, 18], 'new_tab_key': options.new_tab_key, 'date': time.strftime('%Y-%m-%d')}
     options.output.parent.mkdir(parents=True, exist_ok=True)
     options.output.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     print('PASS: owned test window closed; original tabs preserved', flush=True)
