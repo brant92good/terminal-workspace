@@ -13,8 +13,10 @@ from port_forward_tui.diagnostics import app_checks, check, print_report, report
 
 def workspace_checks(root=ROOT):
     checks = app_checks(root=root / 'apps/port-forward-tui')
-    for name, fix in [('git.exe', 'Install Git for Windows.'),
-                      ('pwsh.exe', 'Install PowerShell 7 from Microsoft Store or winget.')]:
+    prerequisites = [('pwsh.exe', 'Install PowerShell 7 from Microsoft Store or winget.')]
+    if (root / '.git').exists():
+        prerequisites.append(('git.exe', 'Install Git for Windows to update this checkout.'))
+    for name, fix in prerequisites:
         checks.append(check(name, bool(shutil.which(name)), name + ' is available.', fix))
     machine = {}
     path = root / '.machine.json'

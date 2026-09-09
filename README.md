@@ -43,34 +43,43 @@ Only need saved port forwards? Install
 This repository adds machine-aware Terminal windows and optional Herdr integration.
 Each machine keeps separate favorites and running forwards.
 
+[Existing tools and design alternatives](docs/alternatives.md) compares this
+workflow with SSHM, SSHub, Portato, sshroute, WezTerm and chezmoi.
+
 ## Set up on Windows
 
-You need **Windows 10/11, Windows Terminal, PowerShell 7, Git, Windows Python
-3.12+ and OpenSSH Client**. The [setup guide](docs/setup.md) links to
-installation instructions for missing tools. These prerequisites are installed
-separately.
+You need **Windows 10/11, Windows Terminal, PowerShell 7 and OpenSSH Client**.
+The bootstrap downloads the apps and a private Python runtime automatically.
+Git and a preinstalled Python are not required. The [setup guide](docs/setup.md)
+explains missing Windows components and advanced options.
 
 You do not need to choose a host during installation. Background port connections
 will need an SSH key or agent when you start them. Run in PowerShell on Windows:
 
 ```powershell
-git clone --recurse-submodules https://github.com/brant92good/terminal-workspace.git
-cd terminal-workspace
-.\install.ps1 -IntegrationOnly
-.\open.ps1
+irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex
 ```
 
 On first launch, **A** adds a machine or **I** imports names from your SSH config.
 Choose one: its **remote shell opens first and Ports second**, with the remote
 tab selected. The installer also creates **Terminal Workspace** in Start and
 on the desktop. Pin its Start entry to the taskbar if you want a taskbar button.
-Keep the checkout in place; the shortcuts refer to it.
+New tabs open **SSH Sessions**; **Ctrl+Alt+N** opens local PowerShell. Your
+appearance and menu are preserved. Rerun the same bootstrap command to update;
+it retains local preferences and downloads the exact app versions pinned by
+the workspace. Its files live under `%LOCALAPPDATA%\TerminalWorkspace\install`.
+
+For a source checkout or private parent that already manages Python, keep using
+`.\install.ps1 -IntegrationOnly`; the existing submodule workflow is unchanged.
 
 `-IntegrationOnly` adds the two profiles, four keyboard shortcuts and the
 button, while preserving your appearance, default shell and menu. Settings
 are backed up before changes. The mode is remembered when you reinstall or
 sync. For a custom menu listing specific profiles, add Remote/Ports to that menu
 manually if desired; the button and keyboard shortcuts work independently.
+
+The bootstrap also enables `-SessionPicker` on a fresh installation, so its
+new-tab default changes explicitly. Source installs enable that option separately.
 
 To also apply this repository's appearance, PowerShell default and compact
 menu, run `.\install.ps1 -ApplySharedSettings`. Existing installations keep

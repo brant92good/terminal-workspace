@@ -13,15 +13,15 @@ existing window-return code works there.
 
 | Component | Windows | Linux and macOS |
 | --- | --- | --- |
-| SSH Sessions leaf | Installed and tested; CI on Python 3.12/3.13 | Python/Textual code has Unix file locking, SSH and local-shell paths. No platform CI or real terminal handoff verification yet. Experimental only. |
+| SSH Sessions leaf | Installed and tested; CI on Python 3.12/3.13 | Version 0.5 adds one-command installers, Linux/macOS CI and a Unix pseudo-terminal local-shell test. Live remote login in Linux/macOS terminal apps remains unqualified. See the leaf's verification record. |
 | Port Forward TUI leaf | Installed and tested; CI on Python 3.12–3.14 | Not supported. Windows process ownership, detached controllers, TCP ownership checks and view tracking need replacements. |
 | Terminal Workspace, layer two | Installs Windows Terminal profiles, launchers and hotkeys | No installer or terminal adapter yet. Windows `settings.json` is not a cross-platform settings format. |
 | Private settings, layer three | Pins the public workspace and records owner preferences | Machine metadata can be shared; paths, terminal preferences and OS-specific setup need device overrides. |
 
 This assessment is from the source and Windows checks on September 9, 2026.
-Portable-looking code is not a Linux/macOS test result. The SSH picker still
-labels its local shell PowerShell in the UI even though its Unix command path
-can fall back to `$SHELL` or `/bin/sh`.
+The local Windows/WSL suites passed 83 discovered tests with the appropriate
+platform skips. The SSH picker now labels the actual local shell and uses
+`$SHELL` or `/bin/sh` on Unix. The whole workspace remains Windows-specific.
 
 ## Which layer owns shortcuts?
 
@@ -39,18 +39,20 @@ inside the SSH picker.
 
 ## Future work, in order
 
-1. **Qualify the SSH leaf on Linux and macOS.** Add CI, test a packaged install,
-   normal and custom SSH configs, Unicode paths and file locks. Verify a real
-   terminal handoff, Ctrl+C, resize, logout back to the picker and the correct
-   local shell. Add platform-specific installation instructions only after this
-   works. Keep ordinary picker use independent of global hotkeys.
-2. **Port the forwarding engine.** Isolate Windows jobs, locks, socket ownership
+1. **Finish SSH desktop qualification on Linux and macOS.** Version 0.5 covers
+   packaged installation, import/locks, Unicode paths and local-shell terminal
+   handoff, Ctrl+C, resize and return. Test real remote login in chosen terminal
+   applications separately. Keep ordinary picker use independent of global hotkeys.
+2. **Evaluate an existing forwarding engine before porting ours.** The
+   [alternatives survey](alternatives.md) identifies Portato as a close match.
+   If retaining our controller, isolate Windows jobs, locks, socket ownership
    probes and detached-process creation behind OS implementations. Verify that
    closing a tab leaves requested forwards running, reconnect works after a
    network outage, stop cancels retries, and unrelated processes are untouched.
    Define logout/reboot behavior separately from closing a terminal window.
-3. **Add terminal integrations.** Retain Windows Terminal; evaluate iTerm2 on
-   macOS and a specific Linux terminal after choosing supported targets. Share
+3. **Add terminal integrations.** Retain Windows Terminal; evaluate WezTerm's
+   direct tab-ID API before extending desktop automation, with iTerm2 as another
+   macOS candidate. Share
    the intent (open app, create tab, return to session), with terminal-specific
    implementations. Account for Linux desktop/Wayland differences. Report an
    unavailable return-to-tab feature without preventing basic app startup.

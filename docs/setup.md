@@ -9,16 +9,49 @@ Use a **PowerShell tab on Windows 10/11**. You need:
 | --- | --- |
 | Windows Terminal | The window that holds the tabs; available in Microsoft Store |
 | PowerShell 7 | Used by setup and session tracking; install with `winget install --id Microsoft.PowerShell -e` |
-| Git for Windows | Downloads this project and its included port app; [download](https://git-scm.com/downloads/win) |
-| Windows Python 3.12+ | Runs Ports; [download](https://www.python.org/downloads/windows/) or select an existing Conda Python |
+| Git for Windows (source checkout only) | Needed for submodule updates and optional catalog sync; [download](https://git-scm.com/downloads/win) |
+| Windows Python 3.12+ (source checkout only) | The bootstrap downloads its own runtime; manual installs can select an existing Python |
 | Windows OpenSSH Client | Connects to your remote computer; install through Windows Optional features |
 | Herdr (optional) | For remote or local Herdr sessions; follow [Herdr's installation guide](https://herdr.dev/) |
-| Your working SSH name | If you connect using `ssh workbox`, your name is `workbox` |
+| Your working SSH name (when connecting) | If you connect using `ssh workbox`, your name is `workbox`; setup does not ask for it |
 
 Before starting connections, run `ssh YOUR_SSH_NAME`, confirm you can log in, and type
 `exit`. If this is new to you, the port app's [first-connection walkthrough](https://github.com/brant92good/port-forward-tui#set-up)
 explains ports, SSH names and keys. Saved background connections need a working
 SSH key or key agent because they cannot ask for a password.
+
+## One-command setup
+
+```powershell
+irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex
+```
+
+The bootstrap gets the public workspace and both apps from GitHub source
+archives at their recorded commits. It downloads uv 0.10.10 and Python 3.12,
+then runs the normal installer. A fresh installation enables SSH Sessions for
+new tabs and Ctrl+Alt+N for local PowerShell, preserving appearance and menu.
+Updates keep the existing `.machine.json` preferences. No host is required.
+
+Files stay in `%LOCALAPPDATA%\TerminalWorkspace\install`. `current.json` records
+the last configured source directory; use its `install.ps1` for advanced
+options below. Old source directories are retained, so their paths remain
+available for rollback. This managed bundle is for running the app; use a Git
+checkout to edit/fork shared configuration. Bootstrap does not read or update
+a separately installed private parent checkout.
+
+To inspect the script or pass options, download [bootstrap.ps1](../bootstrap.ps1)
+and run `powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1`.
+`-InstallDir PATH` chooses an empty/installer-owned location; `-Revision COMMIT`
+pins a workspace commit; `-NoShortcuts` skips Start/desktop entries.
+`-NoConfigure` downloads and prepares dependencies/helpers only, without changing
+Terminal settings or shortcuts. It also skips the Windows Terminal/PowerShell 7
+prerequisite check, for headless CI. No app window is opened by setup.
+
+GitHub API rate-limit failures can be retried later. In CI, GH_TOKEN or
+GITHUB_TOKEN can authenticate metadata requests; tokens are sent only to the
+GitHub API, not archive or runtime download hosts.
+
+## Source checkout
 
 ```powershell
 git clone --recurse-submodules https://github.com/brant92good/terminal-workspace.git
@@ -70,9 +103,10 @@ beside Windows Terminal's settings.json in timestamped
 `settings.json.before-workspace-*.bak` files. Restore selectively if you have
 edited Terminal since that backup.
 
-The installer requires Git, a usable Windows Python, Windows Terminal,
-PowerShell 7 and OpenSSH Client. Herdr is optional. It does not install these prerequisites
-or provide a remote server. Background forwards need a working noninteractive
+The source installer requires Git and a usable Windows Python in addition to
+Windows Terminal, PowerShell 7 and OpenSSH Client. The bootstrap supplies source
+and Python automatically; Windows components and optional Herdr are installed
+separately. Background forwards need a working noninteractive
 SSH login. `doctor.ps1` checks local prerequisites; it does not test remote SSH.
 
 For scripts, add `-NonInteractive`; selecting a machine is a separate runtime step.

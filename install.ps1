@@ -10,6 +10,7 @@ param(
     [string]$SessionCatalog = '',
     [ValidateSet('', 'ctrl+n', 'ctrl+t', 'none')][string]$NewTabShortcut = '',
     [switch]$NoShortcuts,
+    [switch]$NoConfigure,
     [switch]$SkipDependencies,
     [switch]$NonInteractive,
     [switch]$IntegrationOnly,
@@ -23,13 +24,18 @@ if ($LocalHerdr -and $NoLocalHerdr) { throw 'Choose -LocalHerdr or -NoLocalHerdr
 if ($SessionPicker -and $NoSessionPicker) { throw 'Choose -SessionPicker or -NoSessionPicker, not both.' }
 $workspaceRoot = $PSScriptRoot
 $workspaceApp = Join-Path $workspaceRoot 'apps\port-forward-tui'
-$workspaceGitPrompt = $env:GIT_TERMINAL_PROMPT
-try {
-    if ($NonInteractive) { $env:GIT_TERMINAL_PROMPT = '0' }
-    & git -C $workspaceRoot submodule update --init apps/port-forward-tui apps/ssh-session-tui
-} finally { $env:GIT_TERMINAL_PROMPT = $workspaceGitPrompt }
-if ($LASTEXITCODE -ne 0) { throw 'Could not initialize the app submodules.' }
-foreach ($workspaceCommand in @('wt.exe', 'pwsh.exe', 'ssh.exe')) {
+if (Test-Path -LiteralPath (Join-Path $workspaceRoot '.git')) {
+    $workspaceGitPrompt = $env:GIT_TERMINAL_PROMPT
+    try {
+        if ($NonInteractive) { $env:GIT_TERMINAL_PROMPT = '0' }
+        & git -C $workspaceRoot submodule update --init apps/port-forward-tui apps/ssh-session-tui
+    } finally { $env:GIT_TERMINAL_PROMPT = $workspaceGitPrompt }
+    if ($LASTEXITCODE -ne 0) { throw 'Could not initialize the app submodules.' }
+} elseif (-not (Test-Path -LiteralPath (Join-Path $workspaceApp 'app.py')) -or
+          -not (Test-Path -LiteralPath (Join-Path $workspaceRoot 'apps\ssh-session-tui\app.py'))) {
+    throw 'The source bundle is incomplete. Run the README bootstrap command to download the pinned apps.'
+}
+foreach ($workspaceCommand in $(if ($NoConfigure) { @() } else { @('wt.exe', 'pwsh.exe', 'ssh.exe') })) {
     if (-not (Get-Command $workspaceCommand -ErrorAction SilentlyContinue)) {
         $workspaceFix = switch ($workspaceCommand) {
             'wt.exe' { 'Install Windows Terminal from Microsoft Store.' }
@@ -60,6 +66,10 @@ if (-not $SkipDependencies) {
 if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast return-shortcut helper.' }
 & $workspacePython -E -s (Join-Path $workspaceRoot 'scripts\build_icon.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }
+if ($NoConfigure) {
+    Write-Output 'App runtime and helpers are ready. Terminal settings and shortcuts were not applied.'
+    return
+}
 $workspaceArguments = @((Join-Path $workspaceRoot 'scripts\configure.py'))
 if ($SshHost) { $workspaceArguments += @('--ssh-host', $SshHost) }
 if ($HerdrPath) { $workspaceArguments += @('--herdr', $HerdrPath) }

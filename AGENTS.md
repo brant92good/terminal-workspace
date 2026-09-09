@@ -58,3 +58,10 @@ recorded child commits, not automatically advance every child to its main branch
 Screenshots use demonstration data; see README captions for what is simulated.
 Setup details and supported claims live in docs/setup.md and
 docs/verification.md. Keep README claims tied to those recorded checks.
+
+`bootstrap.ps1` is the public one-command entry point. It downloads source
+archives at the workspace's exact child pins and manages its own Python under
+an installer-owned directory. Git checkouts/private parents keep their existing
+install.ps1 flow. `-NoConfigure` prepares code/runtime/helpers without desktop
+changes; the network-enabled scripts/check_bootstrap.py uses it in isolation.
+Do not run a second configured bundle on the owner's desktop as a smoke test.
