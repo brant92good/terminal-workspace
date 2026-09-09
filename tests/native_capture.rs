@@ -4,6 +4,7 @@
 use port_forward_tui::{background, machines::Catalog};
 use serde_json::{Value, json};
 use std::{
+    ffi::OsString,
     io::{Read, Write},
     os::windows::process::CommandExt,
     path::Path,
@@ -13,8 +14,14 @@ use std::{
     time::{Duration, Instant},
 };
 
-fn capture(executable: &Path, directory: &Path, args: &[&str]) -> (bool, bool, bool, Value) {
+fn capture(
+    executable: &Path,
+    prefix: &[OsString],
+    directory: &Path,
+    args: &[&str],
+) -> (bool, bool, bool, Value) {
     let mut child = Command::new(executable)
+        .args(prefix)
         .arg("--data-dir")
         .arg(directory)
         .arg("--json")
@@ -83,9 +90,7 @@ impl Drop for ControllerCleanup {
     }
 }
 
-#[test]
-#[ignore = "Run this test executable directly: Cargo owns a non-breakaway Windows job"]
-fn released_bundle_first_save_and_restart_release_captured_stdio() {
+fn run_case(shell: Option<&str>) {
     let temporary = tempfile::tempdir().unwrap();
     let archive =
         std::env::var_os("WORKSPACE_TEST_BUNDLE").expect("WORKSPACE_TEST_BUNDLE is required");
@@ -105,7 +110,19 @@ fn released_bundle_first_save_and_restart_release_captured_stdio() {
         "{}",
         String::from_utf8_lossy(&extraction.stderr)
     );
-    let executable = install.join("bin/ports.exe");
+    let (executable, prefix) = match shell {
+        Some(name) => (
+            which::which(name).expect("Both PowerShell versions are required"),
+            vec![
+                OsString::from("-NoProfile"),
+                OsString::from("-ExecutionPolicy"),
+                OsString::from("Bypass"),
+                OsString::from("-File"),
+                install.join("ports.ps1").into_os_string(),
+            ],
+        ),
+        None => (install.join("bin/ports.exe"), Vec::new()),
+    };
     let catalog = Catalog::new(temporary.path()).unwrap();
     let machine = catalog
         .add("capture-fixture.invalid", "Capture fixture", None, None)
@@ -113,6 +130,7 @@ fn released_bundle_first_save_and_restart_release_captured_stdio() {
     let _cleanup = ControllerCleanup(machine.directory.clone());
     let first = capture(
         &executable,
+        &prefix,
         temporary.path(),
         &[
             "--machine",
@@ -133,6 +151,7 @@ fn released_bundle_first_save_and_restart_release_captured_stdio() {
     let restart = if first.0 && first.1 && first.2 {
         Some(capture(
             &executable,
+            &prefix,
             temporary.path(),
             &["--machine", &machine.id, "restart-manager"],
         ))
@@ -177,4 +196,20 @@ fn released_bundle_first_save_and_restart_release_captured_stdio() {
     );
     assert_eq!(restart.3["ok"], true);
     assert_ne!(first_live.unwrap()["pid"], final_live.unwrap()["pid"]);
+}
+
+#[test]
+#[ignore = "Run directly outside Cargo's non-breakaway Windows job"]
+fn released_binary_captured_save_and_restart() {
+    run_case(None);
+}
+#[test]
+#[ignore = "Run directly outside Cargo's non-breakaway Windows job"]
+fn packaged_powershell51_wrapper_captured_save_and_restart() {
+    run_case(Some("powershell.exe"));
+}
+#[test]
+#[ignore = "Run directly outside Cargo's non-breakaway Windows job"]
+fn packaged_powershell7_wrapper_captured_save_and_restart() {
+    run_case(Some("pwsh.exe"));
 }

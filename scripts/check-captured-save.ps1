@@ -12,6 +12,10 @@ try {
     $workspaceTest = @($workspaceBuild | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.reason -eq 'compiler-artifact' -and $_.target.name -eq 'native_capture' -and $_.executable })
     if ($workspaceTest.Count -ne 1) { throw 'Expected exactly one captured-CLI test executable.' }
     $env:WORKSPACE_TEST_BUNDLE = $workspaceBundle
-    & $workspaceTest[0].executable --ignored
-    if ($LASTEXITCODE -ne 0) { throw 'Captured first-save/restart bundle qualification failed.' }
+    if ($env:GITHUB_ACTIONS -eq 'true') {
+        & (Join-Path $workspaceRoot 'apps/port-forward-tui/scripts/run_windows_capture.ps1') -Executable $workspaceTest[0].executable -WorkingDirectory $workspaceRoot -Bundle $workspaceBundle
+    } else {
+        & $workspaceTest[0].executable --ignored
+        if ($LASTEXITCODE -ne 0) { throw 'Captured first-save/restart bundle qualification failed.' }
+    }
 } finally { $env:WORKSPACE_TEST_BUNDLE = $workspacePreviousBundle; Pop-Location }
