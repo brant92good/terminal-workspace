@@ -20,7 +20,7 @@ local-shell shortcut and restores PowerShell as the default. The installer
 backs up settings before writing.
 `-NewTabShortcut ctrl+n` optionally adds a simpler new-tab key; `ctrl+t` is also
 available and `none` removes it. The default public install claims neither key.
-This binding opens the default profile directly, without a temporary launcher
+This binding opens SSH Sessions directly when enabled, without a temporary launcher
 tab. It stays local in `.machine.json`; a private parent can record the preference.
 Terminal consumes that key before terminal programs see it. Ctrl+Alt+N continues
 to open local PowerShell, and Ctrl+L inside the picker opens its internal shell.

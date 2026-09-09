@@ -2,14 +2,14 @@
 
 [Back to the README](../README.md)
 
-Commands below run from your installed workspace directory. For a bootstrap install,
-[find that directory in current.json](setup.md#one-command-setup) first.
+Commands below run from your installed workspace directory, normally
+`%LOCALAPPDATA%\Programs\TerminalWorkspace`.
 
 ## Choose a server in every new tab
 
 
 ```powershell
-.\install.ps1 -IntegrationOnly -SessionPicker
+.\install.ps1 -SkipDependencies -IntegrationOnly -SessionPicker
 ```
 
 This explicitly makes **SSH Sessions** the default new-tab screen and adds
@@ -23,7 +23,7 @@ Favorite numbers are saved on this device and use its selected machine route.
 Press **I** to preview and import local SSH hosts, including static Include files.
 Imported hosts use their existing SSH aliases and settings.
 
-For a simpler new-tab shortcut, run `.\install.ps1 -NewTabShortcut ctrl+n`.
+For a simpler new-tab shortcut, run `.\install.ps1 -SkipDependencies -NewTabShortcut ctrl+n`.
 Ctrl+Shift+T remains available. This optional binding is kept on this computer;
 it intercepts Ctrl+N before shells or editors can use it. Use `ctrl+t` for the
 usual browser new-tab key, or `none` to remove the extra shortcut.
@@ -73,7 +73,7 @@ its local HTTP address. The remote app must already be running.
 | Ctrl+Alt+P | Return to a Ports tab for this window's machine; open one if needed |
 | Ctrl+Alt+L, when enabled | Return to local Herdr |
 | Ctrl+Alt+N, with SessionPicker enabled | Open local PowerShell |
-| Ctrl+N or Ctrl+T, when explicitly configured | Open the default new-tab profile |
+| Ctrl+N or Ctrl+T, when explicitly configured | Open SSH Sessions when the picker is enabled |
 | Add Shift | Open another view |
 | F2 inside Ports | Search this Terminal window or all Terminal windows |
 | Esc, then H inside Ports | Add/import machines or choose a server without stopping forwards |
@@ -101,7 +101,11 @@ the new controller. This briefly interrupts and restores its requested forwards;
 OFF favorites remain stopped. See the app's
 [network recovery and update guide](https://github.com/brant92good/port-forward-tui#when-a-laptop-loses-its-connection).
 
-## What has been checked
+## Historical checks
+
+The desktop and timing results below describe the earlier Python integration,
+not a repeated native-release measurement. Current native evidence is tracked
+in [verification](verification.md) and [migration status](native-migration.md).
 
 Real keyboard tests exercised duplicate tabs, both window scopes, content
 focus, and cancellation when another application took focus. A real SSH
@@ -122,7 +126,7 @@ Six keypresses per before/after batch, on one Windows 11 desktop. These are
 same-window returns to an already open tab, **not new-window or SSH startup
 times**. The [full report](before-after.md) includes raw samples, method,
 hardware, and remaining costs. These numbers are not a comparison with other tools.
-Those historical batches predate multiple-machine routing. On the current
+Those historical batches predate multiple-machine routing. In a later Python
 version, another six-press check measured Ports at **405 ms with one saved
 machine / 572 ms with two**, and remote Herdr at **411 / 606 ms** with tracing
 enabled. The report records the extra window lookup, conditions and raw samples.
@@ -140,9 +144,9 @@ research code, not the installed launcher or a rewrite of the TUI.
 .\sessions.ps1 doctor --json # Picker setup, when enabled
 ```
 
-Doctor does not install, change settings or contact SSH. It needs a usable
-Windows Python. If the included port app folder is empty, run
-`git submodule update --init --recursive` first.
+Doctor does not install, change settings or contact SSH. It calls the compiled
+workspace binary; no Python environment is involved. Run the installer if the
+binary is missing.
 
 Agents can install with `-IntegrationOnly -NonInteractive`, then use
 `ports.ps1 machines add YOUR_SSH_NAME --json` and the returned machine id.

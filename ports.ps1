@@ -1,2 +1,3 @@
-& (Join-Path $PSScriptRoot 'apps\port-forward-tui\ports.ps1') @args
+$ErrorActionPreference = 'Stop'
+& (Join-Path $PSScriptRoot 'bin\ports.exe') @args
 exit $LASTEXITCODE

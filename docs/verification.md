@@ -1,5 +1,19 @@
 # Verification
 
+## Native candidate — September 10, 2026
+
+Eleven native parent checks passed locally on Windows: nine settings/launch
+contract checks, JSON CLI errors and the read-only Explorer plan. Clippy passed with
+warnings denied. Precompiled Windows helpers built in an isolated artifact
+directory. One actual-release-bundle test is deliberately ignored until a
+release ZIP exists; run it with `WORKSPACE_TEST_BUNDLE` as documented in
+[reference](reference.md). It covers fresh/update/integrity/ownership behavior
+and writes Terminal settings only in a temporary fixture.
+
+No native desktop or shortcut latency claim follows from these checks. Historical
+sections below name earlier versions. Actual release-download, installation and
+desktop gates remain tracked in [native migration](native-migration.md).
+
 ## README and taskbar identity update — September 9, 2026
 
 The 35-test workspace suite passed locally, including a new native taskbar

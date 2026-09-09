@@ -2,129 +2,117 @@
 
 # Terminal Workspace
 
-**A Termius alternative for developers working with coding agents.**
+**Your servers, shells, and tunnels in one keyboard workflow.**
 
-Run the agent on your server. Open the dev app on `localhost`. Keep the SSH
-session and its saved port forwards together in Windows Terminal, and get back
-to either with a shortcut.
-
-Choose a machine when you open a workspace. New tabs give you a searchable SSH
-picker, with numbered favorites and a local shell.
+Give Windows Terminal a searchable SSH picker, saved port forwards, and shortcuts
+that bring you back to the right machine. Run a coding agent on a server, preview
+its app on localhost, and keep the shell and tunnels within reach across tabs
+and windows.
 
 [![Checks](https://github.com/brant92good/terminal-workspace/actions/workflows/test.yml/badge.svg)](https://github.com/brant92good/terminal-workspace/actions/workflows/test.yml)
-[![Windows](https://img.shields.io/badge/platform-Windows-65d6be)](docs/platforms.md)
-[![MIT license](https://img.shields.io/badge/license-MIT-65d6be)](LICENSE)
+[![Windows](https://img.shields.io/badge/integration-Windows-65d6be)](docs/platforms.md)
+[![MIT](https://img.shields.io/badge/license-MIT-65d6be)](LICENSE)
 
-[Install](#set-up-on-windows) · [Daily use](#use-it-every-day) · [Setup help](docs/setup.md) · [Report a problem](https://github.com/brant92good/terminal-workspace/issues)
+[Install](#install) · [Daily use](docs/daily-use.md) · [Standalone apps](#use-only-what-you-need) · [Setup help](docs/setup.md)
 
-![SSH Sessions: choose a server or a local terminal in a new tab](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
+![SSH Sessions: choose a server or local terminal](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
 
-*SSH Sessions, the new-tab picker included in the workspace. Example machines.*
+*The included SSH Sessions picker, using example machines.*
 
-## Set up on Windows
+> Native 0.7.0 release candidate: the branch is under integration review. The
+> installer below becomes the supported path after the release gate in
+> [native migration](docs/native-migration.md); do not treat candidate checks as
+> proof that the release assets already exist.
 
-You need **Windows 10/11, Windows Terminal, PowerShell 7 and OpenSSH Client**.
-The installer downloads the apps and their Python runtime; you don't need Git
-or a Python installation. [Help with prerequisites](docs/setup.md).
+## Install
 
-Paste into PowerShell:
+On **Windows 10/11 x64**, with Windows Terminal, PowerShell 7 and OpenSSH Client:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex"
 ```
 
-Open **Terminal Workspace** from Start or the desktop. Press **A** to add a
-machine, or **I** to import SSH names. Setup doesn't ask for a host.
-The selected machine opens with its **remote tab first and Ports second**,
-leaving the remote tab selected.
+Setup downloads compiled apps and checks their SHA256 hashes. It needs no Python,
+Rust toolchain or Git. No server address is required during installation.
 
-New tabs open **SSH Sessions**. **Ctrl+Alt+N** opens local PowerShell directly.
-Your Terminal appearance and menu are preserved. Run the same install command
-again to update. [What setup changes, custom options and source installs](docs/setup.md).
+Open **Terminal Workspace** from Start. Add a machine or import an SSH alias,
+then choose it. The remote tab opens first and **Ports** second, with the remote
+tab selected. Ordinary new tabs open the SSH picker; **Ctrl+Alt+N** opens local
+PowerShell. Appearance and menus stay as configured.
 
-This integration is **Windows only**. The standalone SSH picker also has
-**macOS/Linux beta** installers; Ports and the workspace hotkeys aren't ported
-yet. [Platform status](docs/platforms.md).
+[Prerequisites, options and updates](docs/setup.md) ·
+[What setup changes](docs/setup.md#what-changes)
 
-## Who is this for?
+## Keep the loop short
 
-- You develop on a remote machine and keep opening its web app, notebook or dashboard locally.
-- You lose track of shell and port-forward tabs across several Terminal windows.
-- You work with a coding agent on a server and want a quick way back to the shell and preview.
-- You want to carry your Terminal preferences to another Windows laptop.
-
-If you only need the server picker or saved forwards, the two apps also work
-independently: [SSH Sessions](https://github.com/brant92good/ssh-session-tui)
-and [Port Forward TUI](https://github.com/brant92good/port-forward-tui).
-
-## Use it every day
-
-Start your web app on the remote machine, then type its port, such as **8000**,
-in Ports and press **Enter**. When the connection is ON, **B** opens
-`http://localhost:8000`. Saved connections from several servers share one list.
-
-![Ports shows saved connections grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/main/docs/screenshots/connections.svg)
-
-*The included Ports app, with simulated connection states and example servers.*
-
-| While Windows Terminal has focus | Action |
+| You want to… | Do this |
 | --- | --- |
-| Ctrl+Alt+R | Return to the remote tab for this window's machine |
-| Ctrl+Alt+P | Return to its Ports view |
-| Add Shift to R or P shortcuts | Open another view |
-| Ctrl+Alt+N | Open local PowerShell |
-| F2 inside Ports | Choose return targets in this window or across all Terminal windows |
+| Open a server in a new tab | Use **+** or **Ctrl+Shift+T**, then search or choose a numbered favorite |
+| Return to this machine's shell | **Ctrl+Alt+R** |
+| Return to this machine's saved tunnels | **Ctrl+Alt+P** |
+| Open another view | Add **Shift** to the R/P shortcut |
+| Work locally | **Ctrl+Alt+N**, or the picker's Local terminal row |
+| Keep return shortcuts inside the current window | **F2** in Ports |
 
-Return shortcuts open a tab if there isn't one to return to. Multiple Ports
-views share the same background connections. Closing Terminal leaves forwards
-running; network interruptions retry, while authentication and port conflicts
-need attention. Reboot or sign-out ends active forwards.
+The shortcuts apply while Windows Terminal has focus. With several windows open,
+the invoking window's machine context determines the target; the most recently
+used matching view wins. The current-window setting keeps that search local.
 
-Prefer **Ctrl+N** or **Ctrl+T** for a new tab? Both are optional
-[setup choices](docs/daily-use.md#choose-a-server-in-every-new-tab).
-The picker includes numbered favorites, nested groups, SSH import and routes
-you can choose separately on each computer.
+![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/main/docs/screenshots/connections.svg)
 
-The picker and paired workspace tabs currently use separate machine catalogs.
-Choosing a server in the picker doesn't retarget an existing remote/Ports pair.
-[Daily-use guide](docs/daily-use.md) explains machine selection, window scopes and updates.
+*Ports with example servers and simulated connection states.*
 
-## Optional Herdr sessions
+For a dev server on remote port **8000**, type `8000` in Ports and press **Enter**.
+When it shows **ON**, press **B** to open `http://localhost:8000`. Several servers
+can forward at once. Closing the views or Terminal leaves requested forwards
+running; recoverable network failures retry. Stop them explicitly when finished.
+Reboot and sign-out end the connections.
 
-Ordinary SSH works by default. If you use [Herdr](https://herdr.dev/), enable it
-as the remote client and optionally add a third tab for local Herdr.
-**Ctrl+Alt+L** returns to the local Herdr tab.
-[Enable Herdr](docs/setup.md#source-checkout).
+Prefer **Ctrl+N** for a new tab? Set it once with
+`./install.ps1 -SkipDependencies -NewTabShortcut ctrl+n` in the installed directory.
+[Keyboard and machine-selection details](docs/daily-use.md).
 
-The Start/desktop button can be pinned to the taskbar. Its running windows use
-Windows Terminal; see the [taskbar behavior](docs/setup.md#taskbar-icon-and-closing-tips).
+## Use only what you need
 
-## Bring your settings to another laptop
+- **[SSH Sessions](https://github.com/brant92good/ssh-session-tui)** — searchable
+  machines, numbered favorites, groups, SSH import and routes chosen per device.
+- **[Ports](https://github.com/brant92good/port-forward-tui)** — saved SSH forwards,
+  several servers in one list, background connections and reconnect.
+- **Terminal Workspace** — the Windows profiles, paired tabs, return shortcuts and
+  optional local/remote [Herdr](https://herdr.dev/) integration around those apps.
 
-A fork can hold your shared appearance and shortcut preferences. Each computer
-keeps its paths and installation choices locally. An optional private parent
-repository can store your machine catalog and other personal setup.
+Both leaves have their own compiled installers for Windows, Linux and macOS
+(macOS **beta**). This repo's Terminal integration is **Windows only**.
+[Platform boundaries](docs/platforms.md).
 
-The workspace pins both apps to specific commits, so an update gets a known
-combination. [Settings sync and repository layout](docs/daily-use.md#use-the-same-settings-on-another-computer).
+The picker and paired workspace currently have separate machine catalogs.
+Selecting a picker machine does not retarget an existing shell/Ports pair.
 
-## What has been checked
+## Who might find this useful?
 
-Real Windows desktop checks cover return shortcuts across tabs and windows,
-remote SSH login, and a forward carrying traffic after its entire Terminal
-window closed. CI checks settings changes and fresh installation/update in an
-isolated directory. [Evidence and reproduction](docs/verification.md).
+Developers who work on remote machines, run agents away from their laptop, or
+regularly open remote web apps and notebooks locally. It is also useful when
+your shell is already familiar and you want better navigation around it.
 
-The [latency report](docs/before-after.md) shows measured shortcut timings and
-their conditions. The [Python/Rust experiment](docs/language-experiment.md)
-records what a native launcher changed; it isn't the installed launcher.
+A fork can share Terminal appearance and shortcut preferences. An optional
+private parent can hold your machine catalog and other personal setup. Public
+installs work independently; released bundles pin exact app versions and hashes.
+[Settings and repository layers](docs/daily-use.md#use-the-same-settings-on-another-computer).
 
-## Help and automation
+## Evidence and limits
 
-From the installed workspace directory, run **`./doctor.ps1`** for local checks
-and suggested fixes. Add **`--json`** for a script or coding agent.
-**`./ports.ps1 list --json`** lists saved forwards and available live state.
+Native checks cover settings backups, new-tab defaults, shortcut conflicts,
+argument handling and machine-specific tab composition. Release installation and
+desktop qualification are tracked separately in [verification](docs/verification.md).
+Historical focus/SSH/persistence checks and [timing measurements](docs/before-after.md)
+remain available with their versions and conditions; they are not a new Rust
+performance claim.
 
-[Agent commands](https://github.com/brant92good/port-forward-tui/blob/main/docs/automation.md) ·
-[Working on the code](AGENTS.md) · [Existing alternatives](docs/alternatives.md) ·
-[MIT license](LICENSE) · [Herdr artwork attribution](NOTICE)
+Separate taskbar grouping is **beta**. Explorer's optional **Open PowerShell here**
+entry opens the clicked directory locally without changing new tabs; on Windows
+11 it appears under **Show more options**. [Taskbar and Explorer details](docs/setup.md#explorer-and-taskbar).
+
+For a script or coding agent, run `./doctor.ps1 --json`,
+`./ports.ps1 list --json` or `./sessions.ps1 list --json` from the installation.
+
+[Contributing](AGENTS.md) · [Alternatives](docs/alternatives.md) · [MIT](LICENSE) · [Artwork attribution](NOTICE)

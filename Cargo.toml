@@ -1,0 +1,26 @@
+[package]
+name = "terminal-workspace"
+version = "0.7.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Remote shells and saved forwards in Windows Terminal"
+repository = "https://github.com/brant92good/terminal-workspace"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+uuid = { version = "1", features = ["v4"] }
+tempfile = "3"
+dirs = "6"
+which = "8"
+ctrlc = "3"
+port-forward-tui = { path = "apps/port-forward-tui" }
+
+[profile.release]
+lto = "thin"
+strip = true
+codegen-units = 1

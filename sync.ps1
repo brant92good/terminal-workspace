@@ -1,9 +1,9 @@
 param([switch]$Publish)
 $ErrorActionPreference = 'Stop'
 $workspaceRoot = $PSScriptRoot
-$workspacePython = Join-Path $workspaceRoot 'apps\port-forward-tui\.venv\Scripts\python.exe'
+$workspaceNative = Join-Path $workspaceRoot 'bin\terminal-workspace.exe'
 if ($Publish) {
-    & $workspacePython -E -s (Join-Path $workspaceRoot 'scripts\configure.py') --export
+    & $workspaceNative configure --root $workspaceRoot --export
     if ($LASTEXITCODE -ne 0) { throw 'Export failed.' }
     & git -C $workspaceRoot diff --quiet -- config/terminal.json
     if ($LASTEXITCODE -eq 1) {

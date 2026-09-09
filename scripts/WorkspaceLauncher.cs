@@ -31,13 +31,12 @@ public static class WorkspaceLauncher {
                 return 0;
             }
             var root = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\')).FullName;
-            var python = Path.Combine(root, "apps", "port-forward-tui", ".venv", "Scripts", "python.exe");
-            var script = Path.Combine(root, "scripts", "workspace.py");
+            var executable = Path.Combine(root, "bin", "terminal-workspace.exe");
             var window = "workspace-" + Guid.NewGuid().ToString("N");
             Process.Start(new ProcessStartInfo {
                 FileName = "wt.exe",
                 Arguments = "-w " + window + " new-tab -p \"{a9a0b421-7dd6-4425-9843-59b5f5d6c2d1}\" " +
-                    Quote(python) + " -E -s " + Quote(script) + " --taskbar-identity --window " + window + " " + String.Join(" ", args.Select(Quote)),
+                    Quote(executable) + " workspace --taskbar-identity --window " + window + " " + String.Join(" ", args.Select(Quote)),
                 UseShellExecute = true
             });
             return 0;

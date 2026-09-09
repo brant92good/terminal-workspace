@@ -1,72 +1,76 @@
 # Working on Terminal Workspace
 
-This Windows setup pairs remote SSH (optionally Herdr) with Port Forward TUI,
-which opens remote services on local ports. The Start/desktop button opens the
-remote session first and Ports second, leaving remote selected. This repo can be
-installed without anyone's private personal-setup repository. An optional third
-tab runs local Herdr independently of the remote machine.
+Read README.md and docs/native-migration.md before changing shipping paths.
+This is the Windows integration layer around two independent public leaf apps.
+An optional private parent can pin this repository; public installs never need it.
 
-Read README.md. Run `./doctor.ps1 --json` for local checks and
-`./ports.ps1 list --json` for connection state. These commands do not start SSH.
-For setup use `./install.ps1 -NonInteractive`; no SSH host or Herdr is required.
-Machines are added manually or explicitly imported at runtime. Respect prior
-authorization; do not invent additional approval steps.
+## Behavior contracts
 
-## Where changes belong
+- With SessionPicker enabled, **+**, ordinary **Ctrl+Shift+T**, and optional
+  **Ctrl+N/Ctrl+T** open SSH Sessions. **Ctrl+Alt+N** opens local PowerShell.
+  An Explorer local-shell entry must not change the global default profile.
+- The workspace button selects a machine first, opens remote then Ports then
+  optional local Herdr, and leaves the remote tab selected.
+- Return shortcuts resolve the invoking window's machine, then its most recently
+  focused matching view. Preserve all-window/current-window scopes. Never infer
+  identity from adjacency, duplicate titles or current foreground alone.
+- Only a verified separate Herdr view drops inherited Herdr pane identifiers.
+  Preserve the developer environment. Custom SSH config/port routes use OpenSSH.
+- Closing views must not stop saved background forwards. Controller ownership,
+  reconnect and cancellation belong to the Ports leaf.
+- Shared preferences exclude addresses, command lines and local paths. Preserve
+  original backups and reject concurrent settings edits and key conflicts.
 
-- App UI, favorites, CLI, diagnostics and SSH lifecycle: `apps/port-forward-tui`.
-  Read its AGENTS.md before changing it. It is a separate pinned repository.
-- SSH machine picker, route metadata and explicit catalog sync: `apps/ssh-session-tui`,
-  another independent pinned leaf. Read its AGENTS.md. It does not own SSH config
-  or key management. The two apps' machine catalogs are currently separate.
-- Terminal appearance and shortcuts: `config/terminal.json` (public preferences).
-- Machine paths and SSH name: ignored `.machine.json` (local values).
-- Installation and settings rendering: `install.ps1`, `scripts/configure.py`.
-  `-IntegrationOnly` adds the managed app profiles/shortcuts while preserving
-  appearance, default shell and menu. The mode is local to `.machine.json`
-  and reused on updates. `-ApplySharedSettings` explicitly opts into the full
-  preferences. Keep older installations' default behavior.
-  Explicit `-SessionPicker` changes the default profile even in integration-only
-  mode and adds Ctrl+Alt+N for local PowerShell. The catalog path stays local.
-  `-NewTabShortcut ctrl+n` (or ctrl+t/none) is an optional local preference; the
-  public installer does not claim either key by default.
-- Herdr tab identity and return behavior: `scripts/herdr_launcher.py` and the
-  port app's shared focus helper. Never use duplicate titles as Herdr identity.
-- The Start/taskbar launcher sets its own per-window AppID using
-  `scripts/TaskbarIdentity.cs`. Only an explicitly launched workspace's unique
-  marker identifies the window; never use foreground as a fallback. Shortcut
-  IDs must match. No window activation or persistent watcher belongs in this
-  path. Separate Explorer grouping is beta until a real pinned launch is checked.
-- `scripts/workspace.py` selects a machine before creating companion tabs;
-  the legacy-named `herdr_launcher.py` supports SSH, remote Herdr and local Herdr.
-  `remote_client` and `local_herdr` in ignored `.machine.json` are installation choices.
+## Ownership
 
-Preserve settings backups, unrelated profiles, both shortcut scopes, and the
-guard against stealing focus from another application. Document intended menu
-changes. Do not export shell commands or machine paths into public preferences.
-Herdr artwork retains its attribution in NOTICE.
+| Path | Responsibility |
+| --- | --- |
+| `src/settings.rs` | Settings renderer, JSONC, export and backups |
+| `src/launch.rs` | Machine selection, paired tabs and session launch |
+| `src/main.rs` | CLI and read-only diagnostics |
+| `scripts/install-native.ps1`, `bootstrap.ps1`, `install.ps1` | Binary distribution/setup |
+| `scripts/explorer.ps1` | Owned, removable classic Explorer menu entries |
+| `scripts/WorkspaceLauncher.cs`, `TaskbarIdentity.cs`, `WorkspaceShortcut.cs` | Explicit workspace/taskbar identity |
+| `apps/port-forward-tui` | Separate repo: tunnels, TUI, shared Windows view/focus API |
+| `apps/ssh-session-tui` | Separate repo: picker, routes, import and catalog sync |
+| `config/terminal.json` | Portable preferences |
+| ignored `.machine.json` | Device choices and paths |
 
-## Verification and publishing
+The two machine catalogs remain independent. The parent calls the documented
+`ports machines pick --json` interface with inherited stdin/stderr and captured
+stdout. Cancellation creates no companion tabs. Do not guess cross-catalog IDs.
 
-Run `.\apps\port-forward-tui\.venv\Scripts\python.exe -E -s -m unittest discover -s tests -v`.
-Opt-in `scripts/check_interactive.py --yes` moves real windows and uses SSH;
-`scripts/check_terminal_persistence.py --yes` opens an isolated real tunnel.
-Run them only within the user's authorized desktop-testing scope and preserve
-their sessions. Ordinary docs changes do not require disruptive desktop tests.
-`scripts/check_session_picker.py --yes` checks the real picker/SSH/local-shell
-handoff in one small owned window with foreground guards. Its marker commands
-require an authorized, working server; it preserves existing windows and tabs.
+Read each child's AGENTS.md before editing it. Publish reviewed child versions,
+then parent pins, then the optional private pin. Never reset dirty child worktrees
+or silently advance their source to main.
 
-Publish app changes first; then update the app submodule pin and publish this
-repository. A private parent can pin this resulting commit. Sync should follow
-recorded child commits, not automatically advance every child to its main branch.
-Screenshots use demonstration data; see README captions for what is simulated.
-Setup details and supported claims live in docs/setup.md and
-docs/verification.md. Keep README claims tied to those recorded checks.
+## Build and verify
 
-`bootstrap.ps1` is the public one-command entry point. It downloads source
-archives at the workspace's exact child pins and manages its own Python under
-an installer-owned directory. Git checkouts/private parents keep their existing
-install.ps1 flow. `-NoConfigure` prepares code/runtime/helpers without desktop
-changes; the network-enabled scripts/check_bootstrap.py uses it in isolation.
-Do not run a second configured bundle on the owner's desktop as a smoke test.
+Production uses Rust and precompiled C# Windows helpers. Normal installation
+needs no Python, Cargo or Git. Existing Python files are compatibility/reference
+material, not production entrypoints.
+
+```powershell
+cargo test --locked
+cargo clippy --locked --all-targets -- -D warnings
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build_native.ps1
+```
+
+Native builds go to `artifacts/native-build`, never the live checkout's build/bin
+directories. Only the explicit installer replaces production files. The actual
+release-bundle test is separately opt-in; see docs/reference.md. Review components,
+publish prerelease assets, test those exact HTTPS downloads, then promote the
+same bytes. Keep macOS leaf and taskbar beta labels until desktop use is qualified.
+
+Tests must not activate unrelated user windows. Prefer temporary files, owned
+pseudo terminals and hidden checks. Desktop testing uses small owned windows
+with identity and foreground guards. Independent README review must use final
+binaries/installers; historical desktop tests are not a new Rust benchmark.
+
+Taskbar identity uses the unique marker in an explicitly launched workspace
+window. Failed lookup keeps ordinary Terminal grouping; no persistent watcher
+or surprise activation belongs here. Explorer integration adds a classic entry;
+it does not replace Windows 11's modern built-in entry.
+
+Herdr artwork retains NOTICE attribution. Screenshots use demonstration metadata
+and must identify simulated connection states.

@@ -20,12 +20,13 @@ users do not need one.
 ## Add integration without replacing preferences
 
 Developers may already have a default shell, themes, fonts and a custom menu.
-The public quickstart uses `-IntegrationOnly` to add the managed Remote/Ports
-profiles, shortcuts and button while keeping those preferences. Conflicts
+The public quickstart uses `-IntegrationOnly -SessionPicker` to add the managed
+profiles, shortcuts and button, preserve appearance/menu, and deliberately set
+SSH Sessions as the ordinary new-tab default. Conflicts
 with unrelated shortcut bindings still stop installation.
 
-`-ApplySharedSettings` additionally applies `config/terminal.json`, sets
-PowerShell 7 as default, and applies the menu preference. The selected mode
+`-ApplySharedSettings` additionally applies `config/terminal.json`, restores
+the saved SSH-picker or PowerShell default, and applies the menu preference. The selected mode
 is stored in local `.machine.json`, so updates do not silently switch it.
 Existing installations without the field keep their original behavior.
 
@@ -38,7 +39,7 @@ See [setup details](setup.md).
 Machines are selected at runtime. The independent port app owns manual entry,
 opt-in SSH-config import, and separate data folders/controllers per machine.
 Old favorites and their running controller stay in place during upgrades.
-Installation creates the environment and Terminal integration without requiring
+Installation downloads compiled apps and creates Terminal integration without requiring
 a host. A fresh public installation does not require Herdr.
 
 The workspace picker opens a remote session and Ports for the same machine.

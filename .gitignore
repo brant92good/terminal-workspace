@@ -1,5 +1,10 @@
 .machine.json
 build/
+bin/
+target/
+.workspace-installer
+release.json
+*.previous-*
 artifacts/
 __pycache__/
 *.pyc
