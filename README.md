@@ -2,11 +2,14 @@
 
 # Terminal Workspace
 
-A remote shell and its web apps, ready in one window.
+**A Termius alternative for developers working with coding agents.**
 
-Open your workspace, choose a machine, and get a remote tab beside a **Ports**
-tab. Work in the shell, open your dev server in a local browser, and use a
-shortcut to return to either tab. New tabs can start with a searchable SSH picker.
+Run the agent on your server. Open the dev app on `localhost`. Keep the SSH
+session and its saved port forwards together in Windows Terminal, and get back
+to either with a shortcut.
+
+Choose a machine when you open a workspace. New tabs give you a searchable SSH
+picker, with numbered favorites and a local shell.
 
 [![Checks](https://github.com/brant92good/terminal-workspace/actions/workflows/test.yml/badge.svg)](https://github.com/brant92good/terminal-workspace/actions/workflows/test.yml)
 [![Windows](https://img.shields.io/badge/platform-Windows-65d6be)](docs/platforms.md)
