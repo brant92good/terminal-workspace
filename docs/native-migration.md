@@ -29,12 +29,19 @@ its own catalog. No cross-catalog machine-ID conversion is inferred.
 
 ## Development evidence
 
-Eleven native parent tests pass on Windows: new-tab behavior, idempotence, preserved
+Twelve native parent tests pass on Windows: new-tab behavior, idempotence, preserved
 integration-only settings, shortcut collisions, JSONC, backups/concurrent changes,
 safe export, argv quoting, JSON argument errors, Explorer plan and tab composition.
+Mixed-case profile GUIDs update in place; malformed personal preferences fail
+before settings are written.
 Clippy passes with warnings denied.
 The precompiled taskbar/tracker/focus helpers build without Python. Real release
 download/install and native desktop qualification remain release gates.
+
+An additional actual-ZIP installer test passes against a locally built candidate:
+fresh install, update, checksum rejection, destination ownership, saved preferences,
+paths containing spaces/Unicode/apostrophes, and a real Ports machine-selection JSON
+response. It does not qualify the future release download URLs.
 
 An initial helper build accidentally wrote the checkout's live taskbar executable.
 It was immediately rebuilt from the committed legacy launcher source before any

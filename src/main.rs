@@ -129,6 +129,9 @@ fn configure(root: &std::path::Path, options: Configure) -> Result<Value> {
     let machine_path = root.join(".machine.json");
     let machine_original = settings::read_bytes(&machine_path)?;
     let mut machine = settings::load(&machine_path)?;
+    // Validate the existing structure before indexing nested shortcut choices.
+    // An invalid personal file must produce a diagnostic, not a panic or reset.
+    Preferences::read(&machine)?;
     if options.integration_only {
         machine["integration_only"] = json!(true);
     }

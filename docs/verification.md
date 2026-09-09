@@ -2,13 +2,14 @@
 
 ## Native candidate — September 10, 2026
 
-Eleven native parent checks passed locally on Windows: nine settings/launch
+Twelve native parent checks passed locally on Windows: ten settings/launch
 contract checks, JSON CLI errors and the read-only Explorer plan. Clippy passed with
 warnings denied. Precompiled Windows helpers built in an isolated artifact
-directory. One actual-release-bundle test is deliberately ignored until a
-release ZIP exists; run it with `WORKSPACE_TEST_BUNDLE` as documented in
-[reference](reference.md). It covers fresh/update/integrity/ownership behavior
-and writes Terminal settings only in a temporary fixture.
+directory. An additional actual-ZIP installer test passed against a locally built
+candidate using `WORKSPACE_TEST_BUNDLE`, as documented in [reference](reference.md).
+It covers fresh/update/integrity/ownership behavior, saved settings and machine
+selection, and writes Terminal settings only in a temporary fixture. It stays
+ignored in ordinary test runs because the actual ZIP must be supplied explicitly.
 
 No native desktop or shortcut latency claim follows from these checks. Historical
 sections below name earlier versions. Actual release-download, installation and

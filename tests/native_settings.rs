@@ -200,3 +200,37 @@ fn disabling_optional_key_overrides_shared_preference() {
     );
     assert_eq!(rendered["defaultProfile"], settings::SESSIONS);
 }
+
+#[test]
+fn mixed_case_profile_ids_update_in_place_and_invalid_preferences_fail() {
+    let original = json!({"profiles":{"list":[
+        {"guid":settings::HERDR.to_uppercase(),"name":"Old name","custom":"keep"},
+        {"guid":settings::PWSH.to_uppercase(),"name":"PowerShell"}
+    ]}});
+    let rendered =
+        settings::render(&original, &shared(), Path::new("C:/root"), &preferences()).unwrap();
+    let entries = rendered["profiles"]["list"].as_array().unwrap();
+    assert_eq!(
+        entries
+            .iter()
+            .filter(|entry| entry["guid"]
+                .as_str()
+                .unwrap()
+                .eq_ignore_ascii_case(settings::HERDR))
+            .count(),
+        1
+    );
+    let remote = entries
+        .iter()
+        .find(|entry| entry["guid"] == settings::HERDR)
+        .unwrap();
+    assert_eq!(remote["custom"], "keep");
+    assert_eq!(remote["name"], "Remote Herdr");
+    for invalid in [
+        json!({"remote_client":true}),
+        json!({"herdr":123}),
+        json!({"shortcuts":"ctrl+n"}),
+    ] {
+        assert!(Preferences::read(&invalid).is_err());
+    }
+}

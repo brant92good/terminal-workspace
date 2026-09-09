@@ -41,8 +41,11 @@ jobs:
       - name: Format, compile and native contracts
         run: |
           cargo +1.94.0 fmt --package terminal-workspace --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo +1.94.0 test --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cargo +1.94.0 clippy --locked --all-targets -- -D warnings
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build without changing any desktop settings
         shell: powershell
         run: ./scripts/build_native.ps1
@@ -55,11 +58,13 @@ jobs:
           $ports = Join-Path $out 'ports-x86_64-pc-windows-msvc.zip'
           $ssh = Join-Path $out 'ssh-sessions-x86_64-pc-windows-msvc.exe'
           Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.0/ports-x86_64-pc-windows-msvc.zip' -OutFile $ports
-          $portSums = Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.0/SHA256SUMS'
-          $portHash = (($portSums.Content -split "`n" | Where-Object { $_ -match '  ports-x86_64-pc-windows-msvc.zip\s*$' }) -split '\s+')[0]
+          $portSums = Join-Path $out 'ports-SHA256SUMS'
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.0/SHA256SUMS' -OutFile $portSums
+          $portHash = (([IO.File]::ReadAllText($portSums) -split "`n" | Where-Object { $_ -match '  ports-x86_64-pc-windows-msvc.zip\s*$' }) -split '\s+')[0]
           Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.6.0/ssh-sessions-x86_64-pc-windows-msvc.exe' -OutFile $ssh
-          $sshSum = Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.6.0/ssh-sessions-x86_64-pc-windows-msvc.exe.sha256'
-          $sshHash = ($sshSum.Content.Trim() -split '\s+')[0]
+          $sshSum = Join-Path $out 'ssh-sessions.sha256'
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.6.0/ssh-sessions-x86_64-pc-windows-msvc.exe.sha256' -OutFile $sshSum
+          $sshHash = ([IO.File]::ReadAllText($sshSum).Trim() -split '\s+')[0]
           ./scripts/package-native.ps1 -PortsBundle $ports -PortsSha256 $portHash -SessionsBinary $ssh -SessionsSha256 $sshHash
       - name: Install the actual packaged ZIP twice in a temporary directory
         if: inputs.package

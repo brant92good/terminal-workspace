@@ -84,6 +84,16 @@ impl Preferences {
                     .with_context(|| format!("{key} must be true or false")),
             }
         };
+        let text = |key: &str| -> Result<Option<&str>> {
+            match data.get(key) {
+                None | Some(Value::Null) => Ok(None),
+                Some(value) => Ok(Some(
+                    value
+                        .as_str()
+                        .with_context(|| format!("{key} must be text"))?,
+                )),
+            }
+        };
         let mut shortcuts = BTreeMap::new();
         if let Some(value) = data.get("shortcuts") {
             for (key, value) in value.as_object().context("shortcuts must be an object")? {
@@ -100,17 +110,14 @@ impl Preferences {
                 );
             }
         }
-        let remote_client = data["remote_client"]
-            .as_str()
-            .unwrap_or(
-                if data["herdr"].as_str().is_some_and(|s| !s.is_empty())
-                    && data["ssh_host"].as_str().is_some_and(|s| !s.is_empty())
-                {
-                    "herdr"
-                } else {
-                    "ssh"
-                },
-            )
+        let herdr = text("herdr")?.unwrap_or("");
+        let ssh_host = text("ssh_host")?.unwrap_or("");
+        let remote_client = text("remote_client")?
+            .unwrap_or(if !herdr.is_empty() && !ssh_host.is_empty() {
+                "herdr"
+            } else {
+                "ssh"
+            })
             .to_string();
         if !matches!(remote_client.as_str(), "ssh" | "herdr") {
             bail!("remote_client must be ssh or herdr");
@@ -121,7 +128,7 @@ impl Preferences {
             apply_default: false,
             local_herdr: boolean("local_herdr", false)?,
             remote_client,
-            herdr: data["herdr"].as_str().unwrap_or("").into(),
+            herdr: herdr.into(),
             session_catalog: match data.get("session_catalog") {
                 None | Some(Value::Null) => None,
                 Some(value) => Some(
@@ -184,6 +191,16 @@ fn uses_chord(value: &Value, chord: &str) -> bool {
     }
 }
 
+fn guid_is(value: &Value, guid: &str) -> bool {
+    value
+        .as_str()
+        .is_some_and(|value| value.eq_ignore_ascii_case(guid))
+}
+
+fn guid_in(value: &Value, guids: &[&str]) -> bool {
+    guids.iter().any(|guid| guid_is(value, guid))
+}
+
 pub fn render(
     original: &Value,
     shared: &Value,
@@ -233,10 +250,9 @@ pub fn render(
     }
     if !preferences.integration_only && shared["compactMenu"].as_bool().unwrap_or(true) {
         for entry in &mut entries {
-            let guid = entry["guid"].as_str().unwrap_or("");
-            let visible = [PWSH, HERDR, PORTS].contains(&guid)
-                || guid == LOCAL && preferences.local_herdr
-                || guid == SESSIONS && preferences.session_picker
+            let visible = guid_in(&entry["guid"], &[PWSH, HERDR, PORTS])
+                || guid_is(&entry["guid"], LOCAL) && preferences.local_herdr
+                || guid_is(&entry["guid"], SESSIONS) && preferences.session_picker
                 || entry["source"] == "Microsoft.WSL";
             entry["hidden"] = json!(!visible);
         }
@@ -307,8 +323,8 @@ pub fn render(
         ));
     }
     for entry in &mut entries {
-        if entry["guid"] == SESSIONS && !preferences.session_picker
-            || entry["guid"] == LOCAL && !preferences.local_herdr
+        if guid_is(&entry["guid"], SESSIONS) && !preferences.session_picker
+            || guid_is(&entry["guid"], LOCAL) && !preferences.local_herdr
         {
             entry["hidden"] = json!(true);
         }
@@ -316,7 +332,7 @@ pub fn render(
     for desired in desired {
         let existing = entries
             .iter()
-            .position(|entry| entry["guid"] == desired["guid"]);
+            .position(|entry| guid_is(&entry["guid"], desired["guid"].as_str().unwrap()));
         if preferences.integration_only && desired["guid"] == PWSH {
             if existing.is_none() && (preferences.session_picker || preferences.apply_default) {
                 entries.push(json!({"guid":PWSH,"name":"PowerShell","commandline":"pwsh.exe -NoLogo","hidden":false}));
@@ -353,10 +369,10 @@ pub fn render(
         .clone();
     let mut managed: BTreeSet<String> = ACTIONS.iter().map(|(_, id)| id.to_string()).collect();
     for action in &actions {
-        if action["command"]["profile"]
-            .as_str()
-            .is_some_and(|guid| [HERDR, PORTS, LOCAL, SESSIONS].contains(&guid))
-            && let Some(id) = action["id"].as_str()
+        if guid_in(
+            &action["command"]["profile"],
+            &[HERDR, PORTS, LOCAL, SESSIONS],
+        ) && let Some(id) = action["id"].as_str()
         {
             managed.insert(id.into());
         }
@@ -388,7 +404,7 @@ pub fn render(
     for (key, id) in ACTIONS {
         if (["local", "newLocal"].contains(&key) && !preferences.local_herdr)
             || (key == "shell" && !preferences.session_picker)
-            || (key == "newTab" && !shortcuts.get(key).is_some_and(|value| !value.is_empty()))
+            || (key == "newTab" && shortcuts.get(key).is_none_or(|value| value.is_empty()))
         {
             continue;
         }
