@@ -28,13 +28,15 @@ class TaskbarIdentityTests(unittest.TestCase):
                 str(ROOT / 'scripts/TaskbarIdentity.cs'), str(ROOT / 'tests/taskbar_identity_harness.cs')],
                 check=True, capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW, timeout=30)
             script = folder / 'make-shortcut.ps1'
-            script.write_text("param([string]$Link, [string]$Target)\n"
+            script.write_text("param([string]$Link, [string]$Target)\n$ErrorActionPreference = 'Stop'\n"
                 "$shell = New-Object -ComObject WScript.Shell\n"
                 "$shortcut = $shell.CreateShortcut($Link)\n"
                 "$shortcut.TargetPath = $Target\n$shortcut.Save()\n", encoding='utf-8-sig')
-            subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(script),
-                '-Link', str(shortcut), '-Target', str(executable)], check=True, capture_output=True,
+            fixture = subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(script),
+                '-Link', str(shortcut), '-Target', str(executable)], capture_output=True, text=True, errors='replace',
                 creationflags=subprocess.CREATE_NO_WINDOW, timeout=15)
+            self.assertEqual(fixture.returncode, 0, fixture.stdout + '\n' + fixture.stderr)
+            self.assertTrue(shortcut.is_file(), fixture.stdout + '\n' + fixture.stderr)
             result = subprocess.run([str(executable), str(executable), str(shortcut)],
                 capture_output=True, text=True, errors='replace', creationflags=subprocess.CREATE_NO_WINDOW, timeout=20)
             self.assertEqual(result.returncode, 0, result.stdout + '\n' + result.stderr)
