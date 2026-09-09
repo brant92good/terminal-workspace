@@ -341,10 +341,14 @@ fn main() {
         Err(error) => error.exit(),
     };
     let json = cli.json;
-    // The child session handles Ctrl+C; the parent must stay alive to remove its
-    // own view record when that session returns.
-    let _ = ctrlc::set_handler(|| {});
-    let code = match run(cli) {
+    let result = port_forward_tui::process::protect_incoming_stdio().and_then(|()| {
+        // Protect inherited capture handles before starting threads or helpers.
+        // Explicit child console streams are duplicated normally by Command.
+        // The child session handles Ctrl+C; retain ownership until it returns.
+        let _ = ctrlc::set_handler(|| {});
+        run(cli)
+    });
+    let code = match result {
         Ok(code) => code,
         Err(error) => {
             if json {

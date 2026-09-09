@@ -1,5 +1,5 @@
 param(
-    [string]$InstallDir = '', [string]$Version = '0.7.0',
+    [string]$InstallDir = '', [string]$Version = '0.7.1',
     [string]$Bundle = '', [string]$Sha256 = '', [string]$LegacyInstallDir = '',
     [switch]$NoConfigure, [switch]$NoShortcuts, [switch]$SourceCheckout,
     [switch]$ExplorerPowerShell
@@ -83,7 +83,7 @@ try {
         if ($workspaceName -notmatch '^(bin/[A-Za-z0-9._-]+|build/[A-Za-z0-9._-]+|scripts/[A-Za-z0-9._-]+|config/terminal\.json|doctor\.ps1|ports\.ps1|sessions\.ps1|sync\.ps1|open\.ps1|install\.ps1|bootstrap\.ps1|LICENSE|NOTICE)$') { throw "Unexpected bundle file $workspaceName." }
         if ($workspaceProperty.Value -notmatch '^[a-f0-9]{64}$' -or (Get-WorkspaceHash (Join-Path $workspaceExtract $workspaceName)) -ne $workspaceProperty.Value) { throw "Invalid bundled file: $workspaceName." }
     }
-    foreach ($workspaceApp in @(@('terminal-workspace',$Version),@('ssh-sessions','0.6.0'),@('ports','0.7.1'))) {
+    foreach ($workspaceApp in @(@('terminal-workspace',$Version),@('ssh-sessions','0.6.0'),@('ports','0.7.2'))) {
         $workspaceResult = & (Join-Path $workspaceExtract ('bin\' + $workspaceApp[0] + '.exe')) --version
         if ($LASTEXITCODE -ne 0 -or ($workspaceResult -join "`n") -notmatch ('(^|\s)' + [regex]::Escape($workspaceApp[1]) + '(\s|$)')) { throw "The bundled $($workspaceApp[0]) executable did not pass its version check." }
     }
