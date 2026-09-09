@@ -40,11 +40,17 @@ pub fn output(
     interactive: bool,
 ) -> Result<std::process::Output> {
     use std::io::Read;
-    command.stdout(Stdio::piped()).stderr(if interactive {
-        Stdio::inherit()
-    } else {
-        Stdio::null()
-    });
+    command
+        .stdout(if interactive {
+            Stdio::piped()
+        } else {
+            Stdio::null()
+        })
+        .stderr(if interactive {
+            Stdio::inherit()
+        } else {
+            Stdio::null()
+        });
     command.stdin(if interactive {
         Stdio::inherit()
     } else {
@@ -54,6 +60,16 @@ pub fn output(
         hidden(command);
     }
     let mut child = command.spawn()?;
+    if !interactive {
+        // These callers dispatch work or check status; they do not consume
+        // output. In particular, wt.exe may leave long-lived tabs inheriting
+        // its handles. Do not wait for those tabs to close an unused pipe.
+        return Ok(std::process::Output {
+            status: wait_status(&mut child, timeout)?,
+            stdout: vec![],
+            stderr: vec![],
+        });
+    }
     let mut pipe = child.stdout.take().context("Missing child output")?;
     let reader = std::thread::spawn(move || {
         let mut bytes = Vec::new();
@@ -62,18 +78,7 @@ pub fn output(
             .read_to_end(&mut bytes)
             .map(|_| bytes)
     });
-    let started = Instant::now();
-    let status = loop {
-        if let Some(status) = child.try_wait()? {
-            break status;
-        }
-        if timeout.is_some_and(|timeout| started.elapsed() > timeout) {
-            let _ = child.kill();
-            let _ = child.wait();
-            bail!("Command timed out");
-        }
-        std::thread::sleep(Duration::from_millis(10));
-    };
+    let status = wait_status(&mut child, timeout)?;
     let stdout = reader
         .join()
         .map_err(|_| anyhow::anyhow!("Child output reader failed"))??;
@@ -85,4 +90,22 @@ pub fn output(
         stdout,
         stderr: vec![],
     })
+}
+
+fn wait_status(
+    child: &mut std::process::Child,
+    timeout: Option<Duration>,
+) -> Result<std::process::ExitStatus> {
+    let started = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            return Ok(status);
+        }
+        if timeout.is_some_and(|timeout| started.elapsed() > timeout) {
+            let _ = child.kill();
+            let _ = child.wait();
+            bail!("Command timed out");
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
 }
