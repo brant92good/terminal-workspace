@@ -11,5 +11,5 @@ $workspaceReferences = @('System.Windows.Forms.dll', 'System.Core.dll') + @(
 $workspaceOptions = @('/nologo', '/target:winexe', '/platform:x64', "/out:$OutputPath",
     "/win32icon:$(Join-Path $workspaceRoot 'build\herdr.ico')")
 $workspaceOptions += $workspaceReferences | ForEach-Object { "/reference:$_" }
-& (Join-Path $workspaceFramework 'csc.exe') @workspaceOptions (Join-Path $PSScriptRoot 'WorkspaceLauncher.cs') (Join-Path $PSScriptRoot 'TaskbarIdentity.cs')
+& (Join-Path $workspaceFramework 'csc.exe') @workspaceOptions (Join-Path $PSScriptRoot 'WorkspaceLauncher.cs') (Join-Path $PSScriptRoot 'TaskbarIdentity.cs') (Join-Path $PSScriptRoot 'WorkspaceShortcut.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Could not build the workspace launcher.' }

@@ -19,8 +19,7 @@ class TaskbarIdentityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='workspace-taskbar-') as name:
             folder = Path(name) / 'space 測試'
             folder.mkdir()
-            # Hosted Windows TEMP uses RUNNER~1. Pass the resolved long path to
-            # WScript.Shell, as the source installer's PSScriptRoot does.
+            # Keep comparisons independent of the runner's RUNNER~1 TEMP alias.
             folder = folder.resolve()
             executable = folder / 'taskbar-check.exe'
             shortcut = folder / 'Workspace.lnk'
@@ -28,18 +27,9 @@ class TaskbarIdentityTests(unittest.TestCase):
                 *[str(framework / 'WPF' / dll) for dll in ('UIAutomationClient.dll', 'UIAutomationTypes.dll', 'WindowsBase.dll')]]
             subprocess.run([str(framework / 'csc.exe'), '/nologo', '/target:exe', '/platform:x64',
                 '/out:' + str(executable), *['/reference:' + r for r in references],
-                str(ROOT / 'scripts/TaskbarIdentity.cs'), str(ROOT / 'tests/taskbar_identity_harness.cs')],
+                str(ROOT / 'scripts/TaskbarIdentity.cs'), str(ROOT / 'scripts/WorkspaceShortcut.cs'),
+                str(ROOT / 'tests/taskbar_identity_harness.cs')],
                 check=True, capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW, timeout=30)
-            script = folder / 'make-shortcut.ps1'
-            script.write_text("param([string]$Link, [string]$Target)\n$ErrorActionPreference = 'Stop'\n"
-                "$shell = New-Object -ComObject WScript.Shell\n"
-                "$shortcut = $shell.CreateShortcut($Link)\n"
-                "$shortcut.TargetPath = $Target\n$shortcut.Save()\n", encoding='utf-8-sig')
-            fixture = subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(script),
-                '-Link', str(shortcut), '-Target', str(executable)], capture_output=True, text=True, errors='replace',
-                creationflags=subprocess.CREATE_NO_WINDOW, timeout=15)
-            self.assertEqual(fixture.returncode, 0, fixture.stdout + '\n' + fixture.stderr)
-            self.assertTrue(shortcut.is_file(), fixture.stdout + '\n' + fixture.stderr)
             result = subprocess.run([str(executable), str(executable), str(shortcut)],
                 capture_output=True, text=True, errors='replace', creationflags=subprocess.CREATE_NO_WINDOW, timeout=20)
             self.assertEqual(result.returncode, 0, result.stdout + '\n' + result.stderr)

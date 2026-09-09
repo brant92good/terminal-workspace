@@ -87,29 +87,15 @@ if ($ApplySharedSettings) { $workspaceArguments += '--apply-shared-settings' }
 & $workspacePython -E -s -X utf8 @workspaceArguments
 if ($LASTEXITCODE -ne 0) { throw 'Terminal settings were not applied.' }
 if (-not $NoShortcuts) {
-    $workspaceShell = New-Object -ComObject WScript.Shell
     foreach ($workspaceLocation in @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'))) {
-        $workspaceShortcut = $workspaceShell.CreateShortcut((Join-Path $workspaceLocation 'Terminal Workspace.lnk'))
-        $workspaceShortcut.TargetPath = $workspaceLauncher
-        $workspaceShortcut.WorkingDirectory = $workspaceRoot
-        $workspaceShortcut.IconLocation = "$workspaceLauncher,0"
-        $workspaceShortcut.Description = 'Open the configured remote workspace and Ports, with the remote tab selected'
-        $workspaceShortcut.Save()
-        $workspaceRegistration = Start-Process -FilePath $workspaceLauncher -ArgumentList @('--register-shortcut', ('"' + (Join-Path $workspaceLocation 'Terminal Workspace.lnk') + '"')) -WindowStyle Hidden -Wait -PassThru
+        $workspaceRegistration = Start-Process -FilePath $workspaceLauncher -ArgumentList @('--create-shortcut', ('"' + (Join-Path $workspaceLocation 'Terminal Workspace.lnk') + '"')) -WindowStyle Hidden -Wait -PassThru
         if ($workspaceRegistration.ExitCode -ne 0) { throw 'Could not register the workspace shortcut identity.' }
     }
     # An already-pinned copy keeps its own properties. Update only pins that
     # point exactly to this installation; never relabel ordinary Terminal pins.
     $workspacePins = Join-Path $env:APPDATA 'Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar'
-    if (Test-Path -LiteralPath $workspacePins) {
-        Get-ChildItem -LiteralPath $workspacePins -Filter '*.lnk' | ForEach-Object {
-            $workspacePin = $workspaceShell.CreateShortcut($_.FullName)
-            if ($workspacePin.TargetPath -eq $workspaceLauncher) {
-                $workspaceRegistration = Start-Process -FilePath $workspaceLauncher -ArgumentList @('--register-shortcut', ('"' + $_.FullName + '"')) -WindowStyle Hidden -Wait -PassThru
-                if ($workspaceRegistration.ExitCode -ne 0) { Write-Warning 'Could not update the pinned workspace identity. Unpin and re-pin its Start entry.' }
-            }
-        }
-    }
+    $workspaceRegistration = Start-Process -FilePath $workspaceLauncher -ArgumentList @('--register-pins', ('"' + $workspacePins + '"')) -WindowStyle Hidden -Wait -PassThru
+    if ($workspaceRegistration.ExitCode -ne 0) { Write-Warning 'Could not update a pinned workspace identity. Unpin and re-pin its Start entry.' }
 }
 Write-Output 'Ready. Open Terminal Workspace from Start: choose a machine, then use its remote and Ports tabs.'
 Write-Output 'H in Ports changes machines. Installation does not require choosing a host.'

@@ -9,6 +9,12 @@ shortcut/window AppIDs, quoted relaunch command, icon path, repeat registration,
 missing/invalid origin refusal, and preservation of the other window and foreground.
 It does not launch Windows Terminal or log into a server.
 
+Hosted checks exposed WScript.Shell rejecting the fixture's Unicode executable
+path before identity registration; expanding the runner's short TEMP path did
+not fix it. Shortcut creation now uses Windows' Unicode `IShellLinkW` interface
+directly, in both installation and tests. Tests read the saved target back and
+check that matching-pin updates preserve unrelated and malformed shortcuts.
+
 The installed workspace executable was rebuilt and its existing Start, desktop
 and taskbar shortcuts registered with the same ID. An earlier icon experiment
 restored its window properties after the test and was never part of that launcher.

@@ -13,6 +13,15 @@ public static class WorkspaceLauncher {
     [STAThread]
     public static int Main(string[] args) {
         try {
+            if (args.Length == 2 && args[0] == "--create-shortcut") {
+                WorkspaceShortcut.Create(args[1], System.Reflection.Assembly.GetExecutingAssembly().Location);
+                TaskbarIdentity.RegisterShortcut(args[1]);
+                return 0;
+            }
+            if (args.Length == 2 && args[0] == "--register-pins") {
+                WorkspaceShortcut.RegisterMatchingPins(args[1], System.Reflection.Assembly.GetExecutingAssembly().Location);
+                return 0;
+            }
             if (args.Length == 2 && args[0] == "--register-shortcut") {
                 TaskbarIdentity.RegisterShortcut(args[1]);
                 return 0;
@@ -34,7 +43,7 @@ public static class WorkspaceLauncher {
             return 0;
         } catch (Exception error) {
             // Helpers must not create a surprise dialog or activate a window.
-            if (args.Length > 0 && (args[0] == "--register-shortcut" || args[0] == "--identify-origin")) {
+            if (args.Length > 0 && new[] { "--register-shortcut", "--identify-origin", "--create-shortcut", "--register-pins" }.Contains(args[0])) {
                 var log = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TerminalWorkspace");
                 try {
                     Directory.CreateDirectory(log);
