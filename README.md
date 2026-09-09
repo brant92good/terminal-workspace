@@ -8,6 +8,11 @@ and notebooks, and shortcuts to return to the tab you were using.
 [Herdr](https://herdr.dev/) is an optional alternative for remote sessions;
 you can also add a third tab for local Herdr.
 
+Want to choose a server whenever you open a new tab? The optional
+[SSH Sessions](https://github.com/brant92good/ssh-session-tui) picker supports
+named routes for each machine, with a separate route choice on each device.
+Your existing SSH client handles login; keys stay on your computer.
+
 ```text
 Terminal Workspace button
   └─ Windows Terminal
@@ -74,6 +79,40 @@ Add `-LocalHerdr` for a third, local Herdr tab and **Ctrl+Alt+L** to return to i
 These choices survive updates. Custom SSH config files and login-port overrides
 use ordinary SSH because Herdr's remote command accepts an SSH target only.
 
+## Choose a server in every new tab
+
+```powershell
+.\install.ps1 -IntegrationOnly -SessionPicker
+```
+
+This explicitly makes **SSH Sessions** the default new-tab screen and adds
+**Ctrl+Alt+N** for a normal local PowerShell tab. Your appearance and menu remain
+unchanged in integration-only mode. Press **A** to add a machine, **Enter** to
+connect, or **R** to add and select a route such as LAN or Tailscale. Logging out
+returns to the picker. Installation does not require a host.
+
+![SSH Sessions with example machines](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
+
+*Actual picker using example metadata; no private hosts or live connections.*
+
+To share machine names, addresses and usernames, point it at a catalog in your
+own private Git checkout:
+
+```powershell
+.\install.ps1 -IntegrationOnly -SessionPicker -SessionCatalog C:\MyPrivateSetup\connections\catalog.json
+```
+
+Device route choices remain local. **S** opens explicit Pull/Publish options;
+authentication uses your existing Git sign-in. A failed SSH connection offers
+alternative routes and waits for your choice. It never tries a fallback silently.
+See the [picker setup and sync guide](https://github.com/brant92good/ssh-session-tui).
+
+The workspace button still opens its paired remote/Ports tabs and optional
+local Herdr tab. The picker currently has its own machine catalog; selecting a
+picker machine does not retarget those paired tabs. SSH-config ownership and
+future agent session policy are [deferred design work](https://github.com/brant92good/ssh-session-tui/blob/main/docs/backlog.md).
+Use `-NoSessionPicker` to disable its profile and restore PowerShell as the default.
+
 ## Use it every day
 
 Work in your remote shell as usual. Ports now shows all saved servers together;
@@ -91,6 +130,7 @@ its local HTTP address. The remote app must already be running.
 | Ctrl+Alt+R | Return to a remote tab for this window's machine; open one if needed |
 | Ctrl+Alt+P | Return to a Ports tab for this window's machine; open one if needed |
 | Ctrl+Alt+L, when enabled | Return to local Herdr |
+| Ctrl+Alt+N, with SessionPicker enabled | Open local PowerShell |
 | Add Shift | Open another view |
 | F2 inside Ports | Search this Terminal window or all Terminal windows |
 | Esc, then H inside Ports | Add/import machines or choose a server without stopping forwards |
@@ -124,6 +164,9 @@ Real keyboard tests exercised duplicate tabs, both window scopes, content
 focus, and cancellation when another application took focus. A real SSH
 forward also carried traffic after its entire test Terminal window closed.
 See [test details and reproduction](docs/verification.md).
+The optional picker also passed real SSH login, logout back to the list and
+the local PowerShell shortcut in one small test-owned window. See the
+[picker test and installation details](docs/session-picker.md).
 
 Existing-tab return was measured before and after replacing the old launcher:
 
@@ -151,6 +194,7 @@ research code, not the installed launcher or a rewrite of the TUI.
 .\doctor.ps1                  # Local checks and next steps
 .\doctor.ps1 --json           # The same checks for a script or agent
 .\ports.ps1 list --json       # Saved connections and available live state
+.\sessions.ps1 doctor --json # Picker setup, when enabled
 ```
 
 Doctor does not install, change settings or contact SSH. It needs a usable
@@ -168,6 +212,9 @@ In your own fork, `config/terminal.json` stores appearance and shortcut
 preferences. Each computer keeps paths, client choice and install mode in
 ignored `.machine.json`; the port app keeps machines in private local app data.
 The included port app is pinned to a specific version.
+SSH Sessions is a second independent public app, also pinned as a submodule.
+An optional private parent stores personal values and pins this repository;
+neither public app requires that private parent.
 
 ```powershell
 .\sync.ps1             # Download the saved version and apply it here

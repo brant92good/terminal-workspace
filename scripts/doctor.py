@@ -35,6 +35,10 @@ def workspace_checks(root=ROOT):
     checks.append(check('workspace_installed', (root / 'build/TerminalWorkspace.exe').is_file(),
                         'This checkout has its workspace launcher.',
                         'Run .\\install.ps1; add machines when opening the app.'))
+    if machine.get('session_picker'):
+        checks.append(check('session_picker', (root / 'apps/ssh-session-tui/app.py').is_file(),
+                            'The SSH session picker source is downloaded.',
+                            'Run git submodule update --init --recursive, then reinstall.'))
     return checks
 
 

@@ -5,6 +5,9 @@ param(
     [ValidateSet('', 'ssh', 'herdr')][string]$RemoteClient = '',
     [switch]$LocalHerdr,
     [switch]$NoLocalHerdr,
+    [switch]$SessionPicker,
+    [switch]$NoSessionPicker,
+    [string]$SessionCatalog = '',
     [switch]$NoShortcuts,
     [switch]$SkipDependencies,
     [switch]$NonInteractive,
@@ -16,14 +19,15 @@ if ($IntegrationOnly -and $ApplySharedSettings) {
     throw 'Choose -IntegrationOnly or -ApplySharedSettings, not both.'
 }
 if ($LocalHerdr -and $NoLocalHerdr) { throw 'Choose -LocalHerdr or -NoLocalHerdr, not both.' }
+if ($SessionPicker -and $NoSessionPicker) { throw 'Choose -SessionPicker or -NoSessionPicker, not both.' }
 $workspaceRoot = $PSScriptRoot
 $workspaceApp = Join-Path $workspaceRoot 'apps\port-forward-tui'
 $workspaceGitPrompt = $env:GIT_TERMINAL_PROMPT
 try {
     if ($NonInteractive) { $env:GIT_TERMINAL_PROMPT = '0' }
-    & git -C $workspaceRoot submodule update --init apps/port-forward-tui
+    & git -C $workspaceRoot submodule update --init apps/port-forward-tui apps/ssh-session-tui
 } finally { $env:GIT_TERMINAL_PROMPT = $workspaceGitPrompt }
-if ($LASTEXITCODE -ne 0) { throw 'Could not initialize the port app submodule.' }
+if ($LASTEXITCODE -ne 0) { throw 'Could not initialize the app submodules.' }
 foreach ($workspaceCommand in @('wt.exe', 'pwsh.exe', 'ssh.exe')) {
     if (-not (Get-Command $workspaceCommand -ErrorAction SilentlyContinue)) {
         $workspaceFix = switch ($workspaceCommand) {
@@ -48,7 +52,7 @@ if (-not $HerdrPath -and -not $workspaceSavedHerdr) {
 Write-Host 'Preparing the app environment and workspace launcher...'
 $workspacePython = Initialize-AppPython -Root $workspaceApp -Python $Python
 if (-not $SkipDependencies) {
-    & $workspacePython -E -s -m pip install --no-input -r (Join-Path $workspaceApp 'requirements.txt')
+    & $workspacePython -E -s -m pip install --no-input -r (Join-Path $workspaceApp 'requirements.txt') -r (Join-Path $workspaceRoot 'apps\ssh-session-tui\requirements.txt')
     if ($LASTEXITCODE -ne 0) { throw 'Could not install the port app dependencies.' }
 }
 & $workspacePython -E -s (Join-Path $workspaceApp 'port_forward_tui\build_focus_helper.py')
@@ -61,6 +65,9 @@ if ($HerdrPath) { $workspaceArguments += @('--herdr', $HerdrPath) }
 if ($RemoteClient) { $workspaceArguments += @('--remote-client', $RemoteClient) }
 if ($LocalHerdr) { $workspaceArguments += '--local-herdr' }
 if ($NoLocalHerdr) { $workspaceArguments += '--no-local-herdr' }
+if ($SessionPicker) { $workspaceArguments += '--session-picker' }
+if ($NoSessionPicker) { $workspaceArguments += '--no-session-picker' }
+if ($SessionCatalog) { $workspaceArguments += @('--session-catalog', $SessionCatalog) }
 if ($IntegrationOnly) { $workspaceArguments += '--integration-only' }
 if ($ApplySharedSettings) { $workspaceArguments += '--apply-shared-settings' }
 & $workspacePython -E -s @workspaceArguments

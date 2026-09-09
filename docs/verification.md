@@ -127,3 +127,8 @@ server. The [port app's verification notes](https://github.com/brant92good/port-
 describe its Python matrix, process restrictions, SSH check and screenshot data.
 Passing tests on these configurations is evidence for those cases, not a
 guarantee across Windows releases or proof of broad external use.
+
+## SSH picker integration
+
+The optional new-tab picker passed a real remote/local handoff test in a small
+owned window. [Steps, scope and limits](session-picker.md#verification-on-september-9-2026).

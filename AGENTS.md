@@ -16,6 +16,9 @@ authorization; do not invent additional approval steps.
 
 - App UI, favorites, CLI, diagnostics and SSH lifecycle: `apps/port-forward-tui`.
   Read its AGENTS.md before changing it. It is a separate pinned repository.
+- SSH machine picker, route metadata and explicit catalog sync: `apps/ssh-session-tui`,
+  another independent pinned leaf. Read its AGENTS.md. It does not own SSH config
+  or key management. The two apps' machine catalogs are currently separate.
 - Terminal appearance and shortcuts: `config/terminal.json` (public preferences).
 - Machine paths and SSH name: ignored `.machine.json` (local values).
 - Installation and settings rendering: `install.ps1`, `scripts/configure.py`.
@@ -23,6 +26,8 @@ authorization; do not invent additional approval steps.
   appearance, default shell and menu. The mode is local to `.machine.json`
   and reused on updates. `-ApplySharedSettings` explicitly opts into the full
   preferences. Keep older installations' default behavior.
+  Explicit `-SessionPicker` changes the default profile even in integration-only
+  mode and adds Ctrl+Alt+N for local PowerShell. The catalog path stays local.
 - Herdr tab identity and return behavior: `scripts/herdr_launcher.py` and the
   port app's shared focus helper. Never use duplicate titles as Herdr identity.
 - `scripts/workspace.py` selects a machine before creating companion tabs;
@@ -41,6 +46,9 @@ Opt-in `scripts/check_interactive.py --yes` moves real windows and uses SSH;
 `scripts/check_terminal_persistence.py --yes` opens an isolated real tunnel.
 Run them only within the user's authorized desktop-testing scope and preserve
 their sessions. Ordinary docs changes do not require disruptive desktop tests.
+`scripts/check_session_picker.py --yes` checks the real picker/SSH/local-shell
+handoff in one small owned window with foreground guards. Its marker commands
+require an authorized, working server; it preserves existing windows and tabs.
 
 Publish app changes first; then update the app submodule pin and publish this
 repository. A private parent can pin this resulting commit. Sync should follow
