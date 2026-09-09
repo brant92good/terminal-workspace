@@ -90,6 +90,9 @@ This explicitly makes **SSH Sessions** the default new-tab screen and adds
 unchanged in integration-only mode. Press **A** to add a machine, **Enter** to
 connect, or **R** to add and select a route such as LAN or Tailscale. Logging out
 returns to the picker. Installation does not require a host.
+**Local terminal** is also a visible picker row. Highlight a machine or the local
+terminal and press **F** to assign a favorite number; **1–9, then Enter** opens it.
+Favorite numbers are saved on this device and use its selected machine route.
 Press **I** to preview and import local SSH hosts, including static Include files.
 Import retains local aliases for existing key/proxy settings; no keys or commands
 are copied into the shared catalog.
