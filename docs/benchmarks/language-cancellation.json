@@ -1,0 +1,33 @@
+{
+  "checks": [
+    {
+      "variant": "thin_python",
+      "mode": "ports",
+      "result": "PASS: mini app kept focus, target stayed unselected, both benchmark drivers refused external focus"
+    },
+    {
+      "variant": "thin_python",
+      "mode": "records",
+      "result": "PASS: mini app kept focus, target stayed unselected, both benchmark drivers refused external focus"
+    },
+    {
+      "variant": "rust",
+      "mode": "ports",
+      "result": "PASS: mini app kept focus, target stayed unselected, both benchmark drivers refused external focus"
+    },
+    {
+      "variant": "rust",
+      "mode": "records",
+      "result": "PASS: mini app kept focus, target stayed unselected, both benchmark drivers refused external focus"
+    }
+  ],
+  "environment": {
+    "os": "Windows 11 Pro build 26200",
+    "cpu": "Intel Core i5-13600K",
+    "terminal": "1.24.11911.0",
+    "powershell": "7.6.5",
+    "python": "3.12.11 (Miniforge base)",
+    "rust": "1.94.0"
+  },
+  "date": "2026-09-09"
+}

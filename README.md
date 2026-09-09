@@ -141,6 +141,10 @@ version, another six-press check measured Ports at **405 ms with one saved
 machine / 572 ms with two**, and remote Herdr at **411 / 606 ms** with tracing
 enabled. The report records the extra window lookup, conditions and raw samples.
 
+A separate [Python/Rust launcher experiment](docs/language-experiment.md) measured
+about 22% lower return latency with Rust in a one-machine setup. It is optional
+research code, not the installed launcher or a rewrite of the TUI.
+
 ## Check setup or use a coding agent
 
 ```powershell

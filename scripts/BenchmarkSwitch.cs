@@ -8,16 +8,23 @@ using System.Windows.Automation;
 
 public static class BenchmarkSwitch {
     [DllImport("user32.dll")] static extern void keybd_event(byte key, byte scan, uint flags, UIntPtr extra);
+    [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
 
-    public static string Run(string targetId, string sourceId, int count, byte shortcut) {
-        var target = TerminalViews.Tabs().First(t => t.runtime_id == targetId);
+    public static string Run(string targetId, string sourceId, int count, byte shortcut, long expectedWindow) {
+        var tabs = TerminalViews.Tabs();
+        var target = tabs.Single(t => t.runtime_id == targetId && t.window == expectedWindow);
+        if (!tabs.Any(t => t.runtime_id == sourceId && t.window == expectedWindow))
+            throw new Exception("Source must belong to the owned test window");
+        EnsureForeground(expectedWindow);
+        SetWindowPos(new IntPtr(expectedWindow), IntPtr.Zero, 12, 160, 700, 400, 0x0014);
         var selection = (SelectionItemPattern)target.element.GetCurrentPattern(SelectionItemPattern.Pattern);
         var samples = new object[count];
         for (int i = 0; i < count; i++) {
-            Prime(targetId);
+            Prime(targetId, expectedWindow);
             Thread.Sleep(120);
-            Prime(sourceId);
+            Prime(sourceId, expectedWindow);
             Thread.Sleep(120);
+            EnsureForeground(expectedWindow);
             double started = Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
             var clock = Stopwatch.StartNew();
             try {
@@ -31,6 +38,7 @@ public static class BenchmarkSwitch {
                 keybd_event(0x11, 0, 2, UIntPtr.Zero);
             }
             while (true) {
+                EnsureForeground(expectedWindow);
                 var focused = AutomationElement.FocusedElement;
                 if (TerminalViews.GetForegroundWindow().ToInt64() == target.window && selection.Current.IsSelected
                     && focused != null && focused.Current.ControlType == ControlType.Text) break;
@@ -45,12 +53,13 @@ public static class BenchmarkSwitch {
         }
         return new JavaScriptSerializer().Serialize(samples);
     }
-    static void Prime(string runtimeId) {
-        var deadline = DateTime.UtcNow.AddSeconds(8);
-        while (DateTime.UtcNow < deadline) {
-            if (TerminalViews.Activate(runtimeId)) return;
-            Thread.Sleep(100);
-        }
-        throw new Exception("Could not prepare tab content for measurement: " + runtimeId);
+    static void EnsureForeground(long window) {
+        if (TerminalViews.GetForegroundWindow().ToInt64() != window)
+            throw new Exception("Test stopped: another app has focus; no activation attempted");
+    }
+    static void Prime(string runtimeId, long window) {
+        EnsureForeground(window);
+        if (!TerminalViews.Activate(runtimeId, window))
+            throw new Exception("Test stopped: target unavailable or another app has focus");
     }
 }

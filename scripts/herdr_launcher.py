@@ -23,6 +23,18 @@ from port_forward_tui.views import mark_origin, process_alive, delayed_focus, fo
 POWERSHELL = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
 
 
+def herdr_view_environment(environment=None):
+    """A verified separate Terminal tab must not inherit its caller's pane identity.
+
+    Keep user configuration and ordinary developer environment variables. Herdr
+    sets fresh runtime identifiers for panes created in the attached session.
+    """
+    result = dict(os.environ if environment is None else environment)
+    context_keys = {'HERDR_ENV', 'HERDR_PANE_ID', 'HERDR_TAB_ID', 'HERDR_WORKSPACE_ID',
+                    'HERDR_SOCKET_PATH', 'HERDR_STARTUP_CWD', 'HERDR_BIN_PATH'}
+    return {key: value for key, value in result.items() if key.upper() not in context_keys}
+
+
 class LaunchTrace:
     """Opt-in profiling only; no files are written during ordinary shortcuts."""
     def __init__(self, directory):
@@ -168,6 +180,8 @@ def main():
         if not record.exists():
             print("Herdr will open, but this tab could not register for the return shortcut.", file=sys.stderr)
         # Inherit the console unchanged; Herdr owns its input, output and SSH session.
+        if record.exists() and (options.local or client == 'herdr'):
+            return subprocess.call(session_command, env=herdr_view_environment())
         return subprocess.call(session_command)
     finally:
         if tracker:

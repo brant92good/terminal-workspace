@@ -1,0 +1,236 @@
+{
+  "app": "herdr",
+  "saved_machine_count": 1,
+  "remote_client": "herdr",
+  "blocks": [
+    {
+      "block": 0,
+      "variant": "rust",
+      "samples_ms": [
+        288.9062,
+        269.4055
+      ]
+    },
+    {
+      "block": 0,
+      "variant": "installed_python",
+      "samples_ms": [
+        370.05530000000005,
+        351.18260000000004
+      ]
+    },
+    {
+      "block": 0,
+      "variant": "thin_python",
+      "samples_ms": [
+        314.797,
+        316.9852
+      ]
+    },
+    {
+      "block": 1,
+      "variant": "installed_python",
+      "samples_ms": [
+        347.5171,
+        350.3618
+      ]
+    },
+    {
+      "block": 1,
+      "variant": "thin_python",
+      "samples_ms": [
+        332.06350000000003,
+        330.8056
+      ]
+    },
+    {
+      "block": 1,
+      "variant": "rust",
+      "samples_ms": [
+        271.7824,
+        273.2108
+      ]
+    },
+    {
+      "block": 2,
+      "variant": "rust",
+      "samples_ms": [
+        288.3338,
+        270.6737
+      ]
+    },
+    {
+      "block": 2,
+      "variant": "thin_python",
+      "samples_ms": [
+        332.0697,
+        335.858
+      ]
+    },
+    {
+      "block": 2,
+      "variant": "installed_python",
+      "samples_ms": [
+        348.2551,
+        364.7696
+      ]
+    },
+    {
+      "block": 3,
+      "variant": "thin_python",
+      "samples_ms": [
+        331.1227,
+        319.697
+      ]
+    },
+    {
+      "block": 3,
+      "variant": "installed_python",
+      "samples_ms": [
+        364.4109,
+        347.32070000000004
+      ]
+    },
+    {
+      "block": 3,
+      "variant": "rust",
+      "samples_ms": [
+        267.9239,
+        271.423
+      ]
+    },
+    {
+      "block": 4,
+      "variant": "installed_python",
+      "samples_ms": [
+        351.497,
+        348.7923
+      ]
+    },
+    {
+      "block": 4,
+      "variant": "rust",
+      "samples_ms": [
+        272.6721,
+        274.9842
+      ]
+    },
+    {
+      "block": 4,
+      "variant": "thin_python",
+      "samples_ms": [
+        331.5159,
+        326.8118
+      ]
+    },
+    {
+      "block": 5,
+      "variant": "thin_python",
+      "samples_ms": [
+        332.8886,
+        333.5221
+      ]
+    },
+    {
+      "block": 5,
+      "variant": "rust",
+      "samples_ms": [
+        269.4137,
+        271.3578
+      ]
+    },
+    {
+      "block": 5,
+      "variant": "installed_python",
+      "samples_ms": [
+        349.1478,
+        350.27520000000004
+      ]
+    }
+  ],
+  "focus_scope": "window",
+  "isolated_data": true,
+  "test_window_pixels": [
+    700,
+    400
+  ],
+  "terminal_windows": 2,
+  "terminal_tabs": 5,
+  "results": {
+    "installed_python": {
+      "n": 12,
+      "median_ms": 350.319,
+      "mean_ms": 353.632,
+      "min_ms": 347.321,
+      "max_ms": 370.055,
+      "samples_ms": [
+        370.055,
+        351.183,
+        347.517,
+        350.362,
+        348.255,
+        364.77,
+        364.411,
+        347.321,
+        351.497,
+        348.792,
+        349.148,
+        350.275
+      ]
+    },
+    "thin_python": {
+      "n": 12,
+      "median_ms": 331.319,
+      "mean_ms": 328.178,
+      "min_ms": 314.797,
+      "max_ms": 335.858,
+      "samples_ms": [
+        314.797,
+        316.985,
+        332.064,
+        330.806,
+        332.07,
+        335.858,
+        331.123,
+        319.697,
+        331.516,
+        326.812,
+        332.889,
+        333.522
+      ]
+    },
+    "rust": {
+      "n": 12,
+      "median_ms": 271.603,
+      "mean_ms": 274.174,
+      "min_ms": 267.924,
+      "max_ms": 288.906,
+      "samples_ms": [
+        288.906,
+        269.406,
+        271.782,
+        273.211,
+        288.334,
+        270.674,
+        267.924,
+        271.423,
+        272.672,
+        274.984,
+        269.414,
+        271.358
+      ]
+    }
+  },
+  "python": "3.12.11",
+  "rust": "rustc 1.94.0 (4a4ef493e 2026-03-02)",
+  "date": "2026-09-09",
+  "environment": {
+    "os": "Windows 11 Pro build 26200",
+    "cpu": "Intel Core i5-13600K",
+    "terminal": "1.24.11911.0",
+    "powershell": "7.6.5",
+    "python": "3.12.11 (Miniforge base)",
+    "rust": "1.94.0"
+  },
+  "native_tracing": false
+}

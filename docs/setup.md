@@ -78,3 +78,32 @@ SSH login. `doctor.ps1` checks local prerequisites; it does not test remote SSH.
 For scripts, add `-NonInteractive`; selecting a machine is a separate runtime step.
 Pass `-NoShortcuts` to skip Start/desktop shortcuts. The full settings and
 verification options are in [REFERENCE.md](reference.md).
+
+## Taskbar icon and closing tips
+
+The Terminal Workspace button uses the Herdr artwork and launches the saved
+tabs. The running window still belongs to Windows Terminal, so Windows groups
+it under Terminal's taskbar icon. A shortcut icon does not change the identity
+of the application that owns the window. Terminal's request for configurable
+taskbar groups remains [open upstream](https://github.com/microsoft/terminal/issues/8216).
+
+Windows supports [per-window application IDs](https://learn.microsoft.com/en-us/windows/win32/shell/appids), but attaching one from an external
+launcher would need matching shortcut/relaunch metadata and window-lifecycle
+management. A local probe accepted and read back an ID; that did not establish
+reliable pinned-icon grouping. This project does not install that workaround.
+The practical tradeoff is a branded launch button with ordinary Terminal
+grouping for running windows.
+
+For the message about configuring termination behavior in advanced settings,
+choose **Don't show again** (**不要再顯示** in Traditional Chinese) on the bar.
+This dismisses that informational tip; it does not hide process error output.
+The X merely closes the current bar. Terminal remembers the choice on that
+computer, outside this repository's shared settings.
+The dismissal is implemented by [Terminal's information-bar handler](https://github.com/microsoft/terminal/blob/main/src/cascadia/TerminalApp/TerminalPage.cpp).
+
+Keep `closeOnExit` at `"automatic"` for these profiles: directly launched
+sessions close after success and stay open after an error. An empty value is
+not a supported suppression setting, and `"always"` can close the tab before
+you read an error. This is the Windows Terminal default and a useful development
+setting; it is not a claim that every developer chooses the same behavior.
+See [Microsoft's termination settings](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/profile-advanced#profile-termination-behavior).

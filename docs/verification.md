@@ -5,6 +5,26 @@ Pro build 26200, Terminal 1.24.11911.0, PowerShell 7.6.5, Python 3.12.11 from
 Miniforge, and an existing SSH destination. Another physical laptop remains
 untested.
 
+## Launcher language experiment and focus isolation — September 9, 2026
+
+The [Python/Rust report](language-experiment.md) records 12 real keypresses per
+variant per app: 72 successful returns, eight preparation-contract checks and
+four mini-application cancellation checks. Both timing drivers also refused to
+activate or send keys when the mini app had focus. The final window-ownership
+changes passed separate two-keypress smoke checks for the language harness
+and the older benchmark. These smoke samples are not part of the headline table.
+
+The new-view Herdr launcher now discards inherited pane identity only after
+registering a separate Terminal tab. Twenty-six Terminal tests passed, including
+preservation of developer environment settings. Existing-tab return remains on
+the installed Python path; Rust is optional research code with incomplete
+machine-selection/fallback behavior.
+
+The [setup guide](setup.md#taskbar-icon-and-closing-tips) records the verified
+taskbar grouping limitation and the built-in way to dismiss the termination
+tip while retaining useful error output. Test windows were closed and temporary
+benchmark bindings removed. No native return launcher was installed by this work.
+
 ## Combined server list and automatic reconnect — September 9, 2026
 
 The pinned port app is v0.6.0 / **42b32cf**, with 88 local tests and passing

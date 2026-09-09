@@ -5,6 +5,10 @@ Measured on September 8, 2026. Returning to an existing Herdr tab fell from
 These are real keyboard-to-content-focus measurements. They do not measure
 opening a fresh TUI, establishing SSH, or switching across windows.
 
+The subsequent [Python/Rust experiment](language-experiment.md) compares three
+launchers in matched September 9 batches. Its numbers use different conditions
+and should not be subtracted from this historical comparison.
+
 ## End-to-end results
 
 Each Herdr batch contains six actual Ctrl+Alt+H presses, with tracing disabled
@@ -208,6 +212,12 @@ Existing windows remain present and can affect discovery cost. Six samples on
 one desktop do not establish a distribution across users or a cold-start bound.
 
 Run against an installed setup with a reachable Herdr target:
+
+The current harness uses a small, explicitly identified test window and
+temporarily selects window-only scope to prevent fallback to another window.
+It stops when another application takes focus. These safety changes postdate
+the historical batches above. The language experiment also isolates its catalog
+and view records; use that harness for the three-way language comparison.
 
 ```powershell
 .\apps\port-forward-tui\.venv\Scripts\python.exe -E -s scripts/benchmark_switch.py --yes --app herdr --samples 6 --output artifacts/herdr.json

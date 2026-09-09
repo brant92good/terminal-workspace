@@ -1,17 +1,17 @@
 """Measure actual Herdr/Ports keypress-to-content-focus latency in temporary tabs."""
 import argparse
-from contextlib import nullcontext
+from contextlib import nullcontext, ExitStack
 import json
 from pathlib import Path
 import statistics
 import subprocess
 import sys
 
-from check_interactive import ROOT, state, wait_for
+from check_interactive import ROOT, small_test_window, wait_for
 from port_forward_tui.focus_settings import save_scope
 from port_forward_tui.forwarding import DATA_DIR
 from port_forward_tui.machines import Catalog
-from herdr_launcher import helper, live_records, view_directory
+from herdr_launcher import live_records, view_directory
 from configure import HERDR, PORTS
 
 
@@ -37,12 +37,14 @@ def main():
     machine = catalog.get(options.machine) if options.machine else machines[0]
     settings = json.loads((ROOT / ".machine.json").read_text(encoding="utf-8-sig"))
     client = "ssh" if machine.ssh_port or machine.ssh_config else settings.get("remote_client", "ssh")
-    before = {t["window"] for t in state()["tabs"]}
     preferences = machine.directory / "ui-settings.json"
     original = preferences.read_bytes() if preferences.exists() else None
     created = set()
+    windows = ExitStack()
     try:
-        save_scope(machine.directory, "all")
+        # Never allow a failed test view to redirect the shortcut to a user's
+        # matching tab in a different Terminal window.
+        save_scope(machine.directory, "window")
         # Put the target before the source, so closing the temporary launcher
         # cannot accidentally focus the target just because it is adjacent.
         profiles = (PORTS, HERDR) if options.app == "ports" else (HERDR, PORTS)
@@ -55,11 +57,7 @@ def main():
             commands[HERDR].extend(["--herdr", settings["herdr"]])
         # Explicit selection only initializes the views. Actual return keypresses
         # use the installed shortcut, including its window/machine lookup.
-        subprocess.Popen(["wt.exe", "-w", "new", "new-tab", "-p", profiles[0], *commands[profiles[0]],
-                          ";", "new-tab", "-p", profiles[1], *commands[profiles[1]]])
-        current = wait_for(lambda s: len([t for t in s["tabs"] if t["window"] not in before]) == 2,
-                           "benchmark window opened")
-        created = {t["window"] for t in current["tabs"]} - before
+        created = {windows.enter_context(small_test_window([(profile, commands[profile]) for profile in profiles]))}
         current = wait_for(lambda s: any(t["window"] in created and t["title"].startswith("Ports | ") for t in s["tabs"]),
                            "Ports benchmark view ready")
         if options.app == "herdr":
@@ -74,7 +72,7 @@ def main():
         source = next(t for t in current["tabs"] if t["window"] in created and t != target)
         # Compile once before the stopwatch starts. Poll cached UIA handles so
         # helper startup and whole-tree scans aren't counted as measurement lag.
-        command = """param([string]$Root,[string]$Target,[string]$Source,[int]$Count,[byte]$Shortcut)
+        command = """param([string]$Root,[string]$Target,[string]$Source,[int]$Count,[byte]$Shortcut,[long]$Window)
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
 Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes,WindowsBase,System.Web.Extensions
@@ -82,7 +80,7 @@ $refs = @('System.dll','System.Core.dll',[System.Windows.Automation.AutomationEl
  [System.Windows.Automation.ControlType].Assembly.Location,[System.Windows.Threading.Dispatcher].Assembly.Location,
  [System.Web.Script.Serialization.JavaScriptSerializer].Assembly.Location)
 Add-Type -Path @((Join-Path $Root 'scripts/TerminalViews.cs'),(Join-Path $Root 'scripts/BenchmarkSwitch.cs')) -ReferencedAssemblies $refs
-[BenchmarkSwitch]::Run($Target,$Source,$Count,$Shortcut)
+[BenchmarkSwitch]::Run($Target,$Source,$Count,$Shortcut,$Window)
 """
         import tempfile
         with tempfile.TemporaryDirectory(prefix="terminal-benchmark-") as folder:
@@ -93,14 +91,14 @@ Add-Type -Path @((Join-Path $Root 'scripts/TerminalViews.cs'),(Join-Path $Root '
             with trace_herdr(trace_dir) if options.trace else nullcontext():
                 result = subprocess.run(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script),
                     "-Root", str(ROOT), "-Target", target["runtime_id"], "-Source", source["runtime_id"], "-Count", str(options.samples),
-                    "-Shortcut", str(ord("P" if options.app == "ports" else "R"))],
+                    "-Shortcut", str(ord("P" if options.app == "ports" else "R")), "-Window", str(target['window'])],
                     capture_output=True, encoding="utf-8", errors="replace", creationflags=subprocess.CREATE_NO_WINDOW, timeout=90)
                 if result.returncode:
                     raise RuntimeError(result.stderr)
             measurements = json.loads(result.stdout)
             stages, verification_tail = collect(trace_dir, measurements) if options.trace else (None, None)
         samples = [m["milliseconds"] for m in measurements]
-        report = {"app": options.app, "saved_machine_count": len(machines), "remote_client": client,
+        report = {"app": options.app, "saved_machine_count": len(machines), "remote_client": client, "focus_scope": "window",
                   "samples_ms": [round(x, 1) for x in samples], "median_ms": round(statistics.median(samples), 1),
                   "min_ms": round(min(samples), 1), "max_ms": round(max(samples), 1)}
         if stages:
@@ -111,13 +109,13 @@ Add-Type -Path @((Join-Path $Root 'scripts/TerminalViews.cs'),(Join-Path $Root '
             options.output.write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps(report))
     finally:
-        if original is None:
-            preferences.unlink(missing_ok=True)
-        else:
-            preferences.write_bytes(original)
-        for window in created:
-            subprocess.run(helper("CloseTestWindow", "-WindowHandle", window), timeout=12,
-                           creationflags=subprocess.CREATE_NO_WINDOW)
+        try:
+            if original is None:
+                preferences.unlink(missing_ok=True)
+            else:
+                preferences.write_bytes(original)
+        finally:
+            windows.close()
 
 
 if __name__ == "__main__":

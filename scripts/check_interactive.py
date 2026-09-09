@@ -1,12 +1,15 @@
 """Opt-in desktop test: opens temporary Terminal windows and sends real shortcuts."""
 import argparse
+from contextlib import contextmanager
 import ctypes
 from ctypes import wintypes
 import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import time
+import uuid
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "apps/port-forward-tui"))
@@ -51,6 +54,51 @@ def wait_for(predicate, message, timeout=22):
             return current
         time.sleep(.3)
     raise AssertionError(message + "\n" + json.dumps(current))
+
+
+@contextmanager
+def small_test_window(commands):
+    """Own one window by a unique bootstrap title, even if other windows open.
+
+    Commands are (profile GUID, argv) pairs. The bootstrap holds the initial
+    title until ownership is recorded; the real app may then rename its tab.
+    """
+    window = None
+    nonce = 'Terminal benchmark ' + uuid.uuid4().hex
+    with tempfile.TemporaryDirectory(prefix='terminal-test-window-') as name:
+        folder = Path(name)
+        gate = folder / 'start'
+        bootstrap = folder / 'wait.py'
+        bootstrap.write_text('''import subprocess,sys,time
+from pathlib import Path
+gate=Path(sys.argv[1])
+deadline=time.monotonic()+20
+while not gate.exists() and time.monotonic()<deadline: time.sleep(.02)
+if gate.exists() and gate.read_text() == 'go':
+    raise SystemExit(subprocess.call(sys.argv[2:]))
+''', encoding='utf-8')
+        try:
+            profile, command = commands[0]
+            subprocess.run(['wt.exe', '-w', nonce, '--size', '70,18', '--pos', '12,160',
+                'new-tab', '-p', profile, '--title', nonce, sys.executable, '-E', '-s',
+                str(bootstrap), str(gate), *command], check=True, timeout=5)
+            current = wait_for(lambda s: any(t['title'] == nonce for t in s['tabs']), 'owned small test window opened')
+            matches = [t for t in current['tabs'] if t['title'] == nonce]
+            if len(matches) != 1:
+                raise AssertionError('Test bootstrap title must identify exactly one tab')
+            window = matches[0]['window']
+            for profile, command in commands[1:]:
+                if state()['foreground'] != window:
+                    raise AssertionError('Test stopped: another app has focus; no activation attempted')
+                subprocess.run(['wt.exe', '-w', nonce, 'new-tab', '-p', profile, *command], check=True, timeout=5)
+            gate.write_text('go')
+            yield window
+        finally:
+            if not gate.exists():
+                gate.write_text('cancel')
+            if window is not None and any(t['window'] == window for t in state()['tabs']):
+                subprocess.run(helper('CloseTestWindow', '-WindowHandle', window), timeout=12,
+                               creationflags=subprocess.CREATE_NO_WINDOW)
 
 
 def is_active(current, tab):
