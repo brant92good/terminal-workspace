@@ -29,12 +29,17 @@ its own catalog. No cross-catalog machine-ID conversion is inferred.
 
 ## Development evidence
 
-Twelve native parent tests pass on Windows: new-tab behavior, idempotence, preserved
+Thirteen native parent tests pass on Windows: new-tab behavior, idempotence, preserved
 integration-only settings, shortcut collisions, JSONC, backups/concurrent changes,
 safe export, argv quoting, JSON argument errors, Explorer plan and tab composition.
 Mixed-case profile GUIDs update in place; malformed personal preferences fail
-before settings are written.
+before settings are written. The dispatch regression starts an owned child with a
+longer-lived descendant: status-only calls return when the child exits, without
+waiting for an unused inherited output pipe. A separate timeout assertion verifies
+the bounded wait. Interactive machine selection still captures its JSON output.
 Clippy passes with warnings denied.
+The [hosted candidate run](https://github.com/brant92good/terminal-workspace/actions/runs/34383513494)
+passes with the development leaf refs; it does not package released leaf assets.
 The precompiled taskbar/tracker/focus helpers build without Python. Real release
 download/install and native desktop qualification remain release gates.
 
@@ -50,8 +55,11 @@ An initial helper build accidentally wrote the checkout's live taskbar executabl
 It was immediately rebuilt from the committed legacy launcher source before any
 desktop launch. The restored binary contains the legacy Python/workspace.py paths,
 not the new native command. Native build output now defaults to
-`artifacts/native-build`; using the checkout root as output is rejected. Packaging
-uses a unique artifact directory. Live installation remains a separate gate.
+`artifacts/native-build`; using the checkout root as output is rejected. The
+standalone launcher builder defaults to `artifacts/native-launcher` and rejects
+the live launcher path. Both its default build and refusal were checked while
+verifying that the installed launcher's SHA256 stayed unchanged. Packaging uses
+a unique artifact directory. Live installation remains a separate gate.
 
 ## Release barrier
 

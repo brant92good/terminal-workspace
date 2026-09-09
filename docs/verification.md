@@ -2,8 +2,11 @@
 
 ## Native candidate — September 10, 2026
 
-Twelve native parent checks passed locally on Windows: ten settings/launch
-contract checks, JSON CLI errors and the read-only Explorer plan. Clippy passed with
+Thirteen native parent checks passed locally on Windows: ten settings/launch
+contract checks, JSON CLI errors, the read-only Explorer plan and bounded child
+dispatch. The dispatch test leaves an owned descendant alive after its parent
+exits and verifies that unused inherited output handles do not hold up the
+launcher; it also checks timeout behavior. Clippy passed with
 warnings denied. Precompiled Windows helpers built in an isolated artifact
 directory. Two additional actual-ZIP installer tests passed against a locally built
 candidate using `WORKSPACE_TEST_BUNDLE`, as documented in [reference](reference.md).
@@ -11,6 +14,11 @@ They cover fresh/update/integrity/ownership behavior, saved settings, machine
 selection and validated legacy bootstrap migration. They write Terminal settings
 only in a temporary fixture and stay ignored in ordinary test runs because the
 actual ZIP must be supplied explicitly.
+
+The [68b484b hosted candidate run](https://github.com/brant92good/terminal-workspace/actions/runs/34383513494)
+passes with development leaf overrides. The local ZIP was rebuilt with the new
+parent dispatch code and passed both installer tests again; its local leaf bytes
+are still candidate inputs, not evidence of a released download.
 
 No native desktop or shortcut latency claim follows from these checks. Historical
 sections below name earlier versions. Actual release-download, installation and
