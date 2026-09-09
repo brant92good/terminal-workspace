@@ -1,257 +1,127 @@
+<img src="docs/brand/mark.svg" width="112" align="right" alt="Terminal Workspace logo">
+
 # Terminal Workspace
 
-Open a remote shell and its SSH port forwards in one Windows Terminal window.
+A remote shell and its web apps, ready in one window.
 
-Choose a machine, then open an **SSH** tab for your shell, a
-[Ports](https://github.com/brant92good/port-forward-tui) tab for its web apps
-and notebooks, and shortcuts to return to the tab you were using.
-[Herdr](https://herdr.dev/) is an optional alternative for remote sessions;
-you can also add a third tab for local Herdr.
+Open your workspace, choose a machine, and get a remote tab beside a **Ports**
+tab. Work in the shell, open your dev server in a local browser, and use a
+shortcut to return to either tab. New tabs can start with a searchable SSH picker.
 
-Want to choose a server whenever you open a new tab? The optional
-[SSH Sessions](https://github.com/brant92good/ssh-session-tui) picker supports
-named routes for each machine, with a separate route choice on each device.
-Your existing SSH client handles login.
+[![Checks](https://github.com/brant92good/terminal-workspace/actions/workflows/test.yml/badge.svg)](https://github.com/brant92good/terminal-workspace/actions/workflows/test.yml)
+[![Windows](https://img.shields.io/badge/platform-Windows-65d6be)](docs/platforms.md)
+[![MIT license](https://img.shields.io/badge/license-MIT-65d6be)](LICENSE)
 
-```text
-Terminal Workspace button
-  └─ Windows Terminal
-       ├─ Remote  ← selected; ordinary SSH or optional Herdr
-       └─ Ports   ← saved connections to remote apps
+[Install](#set-up-on-windows) · [Daily use](#use-it-every-day) · [Setup help](docs/setup.md) · [Report a problem](https://github.com/brant92good/terminal-workspace/issues)
 
-Ctrl+Alt+R → return to remote     Ctrl+Alt+P → return to Ports
-```
+![SSH Sessions: choose a server or a local terminal in a new tab](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
 
-[Install](#set-up-on-windows) · [Daily use](#use-it-every-day) · [Test results](#what-has-been-checked) · [Setup help](docs/setup.md)
-
-Windows is supported today. See the [macOS/Linux assessment and plan](docs/platforms.md)
-for the current limits of each app and the terminal integration.
-
-## When this is useful
-
-If you regularly use both a remote shell and remote web apps, this gives them
-one Start/desktop button and consistent return shortcuts. Ports tabs share
-background connections; adding Shift opens another view. Ordinary SSH tabs
-are separate shell sessions; Herdr manages its own persistent sessions.
-
-The installer can keep your current Terminal appearance, default shell and
-menu. If you want the same appearance and shortcuts on another computer, it
-also supports sharing those preferences through your own fork.
-
-Only need saved port forwards? Install
-[Port Forward TUI](https://github.com/brant92good/port-forward-tui) on its own.
-This repository adds machine-aware Terminal windows and optional Herdr integration.
-Each machine keeps separate favorites and running forwards.
-
-[Existing tools and design alternatives](docs/alternatives.md) compares this
-workflow with SSHM, SSHub, Portato, sshroute, WezTerm and chezmoi.
+*SSH Sessions, the new-tab picker included in the workspace. Example machines.*
 
 ## Set up on Windows
 
 You need **Windows 10/11, Windows Terminal, PowerShell 7 and OpenSSH Client**.
-The bootstrap downloads the apps and a private Python runtime automatically.
-Git and a preinstalled Python are not required. The [setup guide](docs/setup.md)
-explains missing Windows components and advanced options.
+The installer downloads the apps and their Python runtime; you don't need Git
+or a Python installation. [Help with prerequisites](docs/setup.md).
 
-You do not need to choose a host during installation. Background port connections
-will need an SSH key or agent when you start them. Run in PowerShell on Windows:
+Paste into PowerShell:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex"
 ```
 
-On first launch, **A** adds a machine or **I** imports names from your SSH config.
-Choose one: its **remote shell opens first and Ports second**, with the remote
-tab selected. The installer also creates **Terminal Workspace** in Start and
-on the desktop. Pin its Start entry to the taskbar if you want a taskbar button.
-New tabs open **SSH Sessions**; **Ctrl+Alt+N** opens local PowerShell. Your
-appearance and menu are preserved. Rerun the same bootstrap command to update;
-it retains local preferences and downloads the exact app versions pinned by
-the workspace. Its files live under `%LOCALAPPDATA%\TerminalWorkspace\install`.
+Open **Terminal Workspace** from Start or the desktop. Press **A** to add a
+machine, or **I** to import SSH names. Setup doesn't ask for a host.
+The selected machine opens with its **remote tab first and Ports second**,
+leaving the remote tab selected.
 
-For a source checkout or private parent that already manages Python, keep using
-`.\install.ps1 -IntegrationOnly`; the existing submodule workflow is unchanged.
+New tabs open **SSH Sessions**. **Ctrl+Alt+N** opens local PowerShell directly.
+Your Terminal appearance and menu are preserved. Run the same install command
+again to update. [What setup changes, custom options and source installs](docs/setup.md).
 
-`-IntegrationOnly` adds the two profiles, four keyboard shortcuts and the
-button, while preserving your appearance, default shell and menu. Settings
-are backed up before changes. The mode is remembered when you reinstall or
-sync. For a custom menu listing specific profiles, add Remote/Ports to that menu
-manually if desired; the button and keyboard shortcuts work independently.
+This integration is **Windows only**. The standalone SSH picker also has
+**macOS/Linux beta** installers; Ports and the workspace hotkeys aren't ported
+yet. [Platform status](docs/platforms.md).
 
-The bootstrap also enables `-SessionPicker` on a fresh installation, so its
-new-tab default changes explicitly. Source installs enable that option separately.
+## Who is this for?
 
-To also apply this repository's appearance, PowerShell default and compact
-menu, run `.\install.ps1 -ApplySharedSettings`. Existing installations keep
-their saved mode; older installs without a saved mode retain the original
-shared-settings behavior. See [setup options](docs/setup.md).
+- You develop on a remote machine and keep opening its web app, notebook or dashboard locally.
+- You lose track of shell and port-forward tabs across several Terminal windows.
+- You work with a coding agent on a server and want a quick way back to the shell and preview.
+- You want to carry your Terminal preferences to another Windows laptop.
 
-To use Herdr, install it separately and run `.\install.ps1 -RemoteClient herdr`.
-Add `-LocalHerdr` for a third, local Herdr tab and **Ctrl+Alt+L** to return to it.
-These choices survive updates. Custom SSH config files and login-port overrides
-use ordinary SSH because Herdr's remote command accepts an SSH target only.
-
-## Choose a server in every new tab
-
-```powershell
-.\install.ps1 -IntegrationOnly -SessionPicker
-```
-
-This explicitly makes **SSH Sessions** the default new-tab screen and adds
-**Ctrl+Alt+N** for a normal local PowerShell tab. Your appearance and menu remain
-unchanged in integration-only mode. Press **A** to add a machine, **Enter** to
-connect, or **R** to add and select a route such as LAN or Tailscale. Logging out
-returns to the picker. Installation does not require a host.
-**Local terminal** is also a visible picker row. Highlight a machine or the local
-terminal and press **F** to assign a favorite number; **1–9, then Enter** opens it.
-Favorite numbers are saved on this device and use its selected machine route.
-Press **I** to preview and import local SSH hosts, including static Include files.
-Imported hosts use their existing SSH aliases and settings.
-
-For a simpler new-tab shortcut, run `.\install.ps1 -NewTabShortcut ctrl+n`.
-Ctrl+Shift+T remains available. This optional binding is kept on this computer;
-it intercepts Ctrl+N before shells or editors can use it. Use `ctrl+t` for the
-usual browser new-tab key, or `none` to remove the extra shortcut.
-
-![SSH Sessions with example machines](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
-
-*Example machines in the picker.*
-
-Use **G** to browse nested groups, **Space** to select machines, **M** to move
-them and **T** to add or remove tags. Numbered favorites work across groups.
-Search accepts names, addresses, group paths and tags such as `tag:gpu`.
-
-To share machine names, addresses and usernames, point it at a catalog in your
-own private Git checkout:
-
-```powershell
-.\install.ps1 -IntegrationOnly -SessionPicker -SessionCatalog C:\MyPrivateSetup\connections\catalog.json
-```
-
-Device route choices remain local. **S** opens explicit Pull/Publish options;
-authentication uses your existing Git sign-in. A failed SSH connection offers
-alternative routes and waits for your choice. It never tries a fallback silently.
-Groups and tags sync with the catalog and require SSH Sessions 0.4+ on each device.
-See the [picker setup and sync guide](https://github.com/brant92good/ssh-session-tui).
-
-The workspace button still opens its paired remote/Ports tabs and optional
-local Herdr tab. The picker currently has its own machine catalog; selecting a
-picker machine does not retarget those paired tabs. SSH-config ownership and
-future agent session policy are [deferred design work](https://github.com/brant92good/ssh-session-tui/blob/main/docs/backlog.md).
-Use `-NoSessionPicker` to disable its profile and restore PowerShell as the default.
+If you only need the server picker or saved forwards, the two apps also work
+independently: [SSH Sessions](https://github.com/brant92good/ssh-session-tui)
+and [Port Forward TUI](https://github.com/brant92good/port-forward-tui).
 
 ## Use it every day
 
-Work in your remote shell as usual. Ports now shows all saved servers together;
-the chosen workspace's server is selected initially. To open a remote web app,
-select a row for its server, press **A**,
-enter its port (for example `8000`), then Enter. When it shows ON, **B** opens
-its local HTTP address. The remote app must already be running.
+Start your web app on the remote machine, then type its port, such as **8000**,
+in Ports and press **Enter**. When the connection is ON, **B** opens
+`http://localhost:8000`. Saved connections from several servers share one list.
 
-![The Ports tab with saved example web apps and notebooks](https://raw.githubusercontent.com/brant92good/port-forward-tui/main/docs/screenshots/connections.svg)
+![Ports shows saved connections grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/main/docs/screenshots/connections.svg)
 
-*Example connections in the Ports tab.*
+*The included Ports app, with simulated connection states and example servers.*
 
-| Key inside Windows Terminal | Action |
+| While Windows Terminal has focus | Action |
 | --- | --- |
-| Ctrl+Alt+R | Return to a remote tab for this window's machine; open one if needed |
-| Ctrl+Alt+P | Return to a Ports tab for this window's machine; open one if needed |
-| Ctrl+Alt+L, when enabled | Return to local Herdr |
-| Ctrl+Alt+N, with SessionPicker enabled | Open local PowerShell |
-| Ctrl+N or Ctrl+T, when explicitly configured | Open the default new-tab profile |
-| Add Shift | Open another view |
-| F2 inside Ports | Search this Terminal window or all Terminal windows |
-| Esc, then H inside Ports | Add/import machines or choose a server without stopping forwards |
+| Ctrl+Alt+R | Return to the remote tab for this window's machine |
+| Ctrl+Alt+P | Return to its Ports view |
+| Add Shift to R or P shortcuts | Open another view |
+| Ctrl+Alt+N | Open local PowerShell |
+| F2 inside Ports | Choose return targets in this window or across all Terminal windows |
 
-These shortcuts apply while Terminal has focus. In the default all-windows
-mode, a return shortcut may bring another Terminal window for the **same machine**
-forward. The last-focused machine view in the invoking window supplies the
-machine context. Selecting a different server's row in Ports updates that tab's
-context, so Ctrl+Alt+R follows the selected server. A new workspace window with
-several saved machines shows a picker.
-Use F2 for the current-window setting. A temporary launcher tab may appear during
-the handoff. Moved Herdr tabs may need reopening; split panes are not tracked
-as separate tabs.
+Return shortcuts open a tab if there isn't one to return to. Multiple Ports
+views share the same background connections. Closing Terminal leaves forwards
+running; network interruptions retry, while authentication and port conflicts
+need attention. Reboot or sign-out ends active forwards.
 
-Closing the terminal leaves background port forwards running. **S** in Ports
-stops all listed servers and their pending retries. Interrupted network
-connections retry automatically after SSH detects the drop; Enter cancels a
-retry and R tries again now. Authentication, host-key and local-port errors need
-attention. Reboot or sign-out ends tunnels. Herdr owns
-its workspace on the remote server; use its detach command to leave a client.
+Prefer **Ctrl+N** or **Ctrl+T** for a new tab? Both are optional
+[setup choices](docs/daily-use.md#choose-a-server-in-every-new-tab).
+The picker includes numbered favorites, nested groups, SSH import and routes
+you can choose separately on each computer.
 
-After updating, close old Ports views and run
-`ports.ps1 restart-manager --machine MACHINE_ID` for each running server to load
-the new controller. This briefly interrupts and restores its requested forwards;
-OFF favorites remain stopped. See the app's
-[network recovery and update guide](https://github.com/brant92good/port-forward-tui#when-a-laptop-loses-its-connection).
+The picker and paired workspace tabs currently use separate machine catalogs.
+Choosing a server in the picker doesn't retarget an existing remote/Ports pair.
+[Daily-use guide](docs/daily-use.md) explains machine selection, window scopes and updates.
+
+## Optional Herdr sessions
+
+Ordinary SSH works by default. If you use [Herdr](https://herdr.dev/), enable it
+as the remote client and optionally add a third tab for local Herdr.
+**Ctrl+Alt+L** returns to the local Herdr tab.
+[Enable Herdr](docs/setup.md#source-checkout).
+
+The Start/desktop button can be pinned to the taskbar. Its running windows use
+Windows Terminal; see the [taskbar behavior](docs/setup.md#taskbar-icon-and-closing-tips).
+
+## Bring your settings to another laptop
+
+A fork can hold your shared appearance and shortcut preferences. Each computer
+keeps its paths and installation choices locally. An optional private parent
+repository can store your machine catalog and other personal setup.
+
+The workspace pins both apps to specific commits, so an update gets a known
+combination. [Settings sync and repository layout](docs/daily-use.md#use-the-same-settings-on-another-computer).
 
 ## What has been checked
 
-Real keyboard tests exercised duplicate tabs, both window scopes, content
-focus, and cancellation when another application took focus. A real SSH
-forward also carried traffic after its entire test Terminal window closed.
-See [test details and reproduction](docs/verification.md).
-The optional picker also passed real SSH login, logout back to the list and
-the local PowerShell shortcut in one small test-owned window. See the
-[picker test and installation details](docs/session-picker.md).
+Real Windows desktop checks cover return shortcuts across tabs and windows,
+remote SSH login, and a forward carrying traffic after its entire Terminal
+window closed. CI checks settings changes and fresh installation/update in an
+isolated directory. [Evidence and reproduction](docs/verification.md).
 
-Existing-tab return was measured before and after replacing the old launcher:
+The [latency report](docs/before-after.md) shows measured shortcut timings and
+their conditions. The [Python/Rust experiment](docs/language-experiment.md)
+records what a native launcher changed; it isn't the installed launcher.
 
-| Return shortcut | Old median | New median |
-| --- | ---: | ---: |
-| Herdr | 1,292 ms | 363 ms |
-| Ports | 1,360 ms | 370 ms |
+## Help and automation
 
-Six keypresses per before/after batch, on one Windows 11 desktop. These are
-same-window returns to an already open tab, **not new-window or SSH startup
-times**. The [full report](docs/before-after.md) includes raw samples, method,
-hardware, and remaining costs. These numbers are not a comparison with other tools.
-Those historical batches predate multiple-machine routing. On the current
-version, another six-press check measured Ports at **405 ms with one saved
-machine / 572 ms with two**, and remote Herdr at **411 / 606 ms** with tracing
-enabled. The report records the extra window lookup, conditions and raw samples.
+From the installed workspace directory, run **`./doctor.ps1`** for local checks
+and suggested fixes. Add **`--json`** for a script or coding agent.
+**`./ports.ps1 list --json`** lists saved forwards and available live state.
 
-A separate [Python/Rust launcher experiment](docs/language-experiment.md) measured
-about 22% lower return latency with Rust in a one-machine setup. It is optional
-research code, not the installed launcher or a rewrite of the TUI.
-
-## Check setup or use a coding agent
-
-```powershell
-.\doctor.ps1                  # Local checks and next steps
-.\doctor.ps1 --json           # The same checks for a script or agent
-.\ports.ps1 list --json       # Saved connections and available live state
-.\sessions.ps1 doctor --json # Picker setup, when enabled
-```
-
-Doctor does not install, change settings or contact SSH. It needs a usable
-Windows Python. If the included port app folder is empty, run
-`git submodule update --init --recursive` first.
-
-Agents can install with `-IntegrationOnly -NonInteractive`, then use
-`ports.ps1 machines add YOUR_SSH_NAME --json` and the returned machine id.
-See the port app's [command guide](https://github.com/brant92good/port-forward-tui/blob/main/docs/automation.md).
-For repository work, read [AGENTS.md](AGENTS.md).
-
-## Use the same settings on another computer
-
-In your own fork, `config/terminal.json` stores appearance and shortcut
-preferences. Each computer keeps paths, client choice and install mode in
-ignored `.machine.json`; the port app keeps machines in private local app data.
-The included port app is pinned to a specific version.
-SSH Sessions is a second independent public app, also pinned as a submodule.
-An optional private parent stores personal values and pins this repository;
-neither public app requires that private parent.
-
-```powershell
-.\sync.ps1             # Download the saved version and apply it here
-.\sync.ps1 -Publish    # Export and push portable preferences to your fork
-```
-
-Integration-only installs continue to keep local appearance and menu settings
-when syncing. Choose `-ApplySharedSettings` on computers where you want the
-shared appearance too. Save local Git changes before syncing. Keys and tokens
-belong outside Git; a private parent for personal values is optional.
-
-[Technical reference](docs/reference.md) · [Design and scope](docs/design.md) · [MIT license](LICENSE) · [Herdr artwork attribution](NOTICE)
+[Agent commands](https://github.com/brant92good/port-forward-tui/blob/main/docs/automation.md) ·
+[Working on the code](AGENTS.md) · [Existing alternatives](docs/alternatives.md) ·
+[MIT license](LICENSE) · [Herdr artwork attribution](NOTICE)

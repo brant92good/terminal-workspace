@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Terminal Workspace logo</title>
+  <rect x="2" y="2" width="124" height="124" rx="28" fill="#152b39" stroke="#65d6be" stroke-width="2"/>
+  <g fill="none" stroke="#f2f5ee" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M28 46V32h45l10 14M28 46h72v48H28Z"/><path d="M39 61 51 71 39 81M60 81h15" stroke="#65d6be"/><path d="M85 32h15v14" stroke="#65d6be"/></g>
+</svg>

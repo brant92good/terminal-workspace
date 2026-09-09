@@ -1,6 +1,7 @@
 # Platform support and portability plan
 
-The shipped workspace supports Windows. macOS and Linux support is future work;
+The shipped workspace supports Windows. The standalone SSH picker has macOS/Linux
+**beta** support. Port Forward TUI and the workspace integration still need porting;
 installing a different terminal emulator alone does not make the whole stack portable.
 
 macOS includes [Terminal, with tabs and profiles](https://support.apple.com/guide/terminal/trmlb20c7888/mac).
@@ -13,7 +14,7 @@ existing window-return code works there.
 
 | Component | Windows | Linux and macOS |
 | --- | --- | --- |
-| SSH Sessions leaf | Installed and tested; CI on Python 3.12/3.13 | Version 0.5 adds one-command installers, Linux/macOS CI and a Unix pseudo-terminal local-shell test. Live remote login in Linux/macOS terminal apps remains unqualified. See the leaf's verification record. |
+| SSH Sessions leaf | Installed and tested; CI on Python 3.12/3.13 | **Beta.** Version 0.5 passes one-command install/update and local-shell checks in Ubuntu/macOS 14 CI. Live remote login in Linux/macOS terminal apps remains unqualified. See the leaf's verification record. |
 | Port Forward TUI leaf | Installed and tested; CI on Python 3.12–3.14 | Not supported. Windows process ownership, detached controllers, TCP ownership checks and view tracking need replacements. |
 | Terminal Workspace, layer two | Installs Windows Terminal profiles, launchers and hotkeys | No installer or terminal adapter yet. Windows `settings.json` is not a cross-platform settings format. |
 | Private settings, layer three | Pins the public workspace and records owner preferences | Machine metadata can be shared; paths, terminal preferences and OS-specific setup need device overrides. |

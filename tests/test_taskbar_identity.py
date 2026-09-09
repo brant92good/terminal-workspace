@@ -1,0 +1,47 @@
+"""Exercise native taskbar properties without showing or activating a window."""
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'scripts'))
+import workspace
+
+
+@unittest.skipUnless(sys.platform == 'win32', 'Windows taskbar integration')
+class TaskbarIdentityTests(unittest.TestCase):
+    def test_native_shortcut_and_hidden_window_share_identity(self):
+        framework = Path(os.environ['SystemRoot']) / 'Microsoft.NET/Framework64/v4.0.30319'
+        with tempfile.TemporaryDirectory(prefix='workspace-taskbar-') as name:
+            folder = Path(name) / 'space 測試'
+            folder.mkdir()
+            executable = folder / 'taskbar-check.exe'
+            shortcut = folder / 'Workspace.lnk'
+            references = ['System.Windows.Forms.dll', 'System.Core.dll',
+                *[str(framework / 'WPF' / dll) for dll in ('UIAutomationClient.dll', 'UIAutomationTypes.dll', 'WindowsBase.dll')]]
+            subprocess.run([str(framework / 'csc.exe'), '/nologo', '/target:exe', '/platform:x64',
+                '/out:' + str(executable), *['/reference:' + r for r in references],
+                str(ROOT / 'scripts/TaskbarIdentity.cs'), str(ROOT / 'tests/taskbar_identity_harness.cs')],
+                check=True, capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW, timeout=30)
+            script = folder / 'make-shortcut.ps1'
+            script.write_text("param([string]$Link, [string]$Target)\n"
+                "$shell = New-Object -ComObject WScript.Shell\n"
+                "$shortcut = $shell.CreateShortcut($Link)\n"
+                "$shortcut.TargetPath = $Target\n$shortcut.Save()\n", encoding='utf-8-sig')
+            subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(script),
+                '-Link', str(shortcut), '-Target', str(executable)], check=True, capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW, timeout=15)
+            result = subprocess.run([str(executable), str(executable), str(shortcut)], check=True,
+                capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW, timeout=20)
+            self.assertIn('foreground preserved', result.stdout)
+
+    def test_grouping_failure_keeps_startup_available(self):
+        with patch('port_forward_tui.views.mark_origin', return_value='Shortcut | ' + 'a' * 32), \
+                patch.object(workspace.subprocess, 'run', side_effect=subprocess.TimeoutExpired('helper', 7)):
+            self.assertFalse(workspace.identify_taskbar())
+        with patch('port_forward_tui.views.mark_origin', side_effect=OSError('no terminal')):
+            self.assertFalse(workspace.identify_taskbar())

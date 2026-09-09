@@ -116,17 +116,28 @@ verification options are in [REFERENCE.md](reference.md).
 ## Taskbar icon and closing tips
 
 The Terminal Workspace button uses the Herdr artwork and launches the saved
-tabs. The running window still belongs to Windows Terminal, so Windows groups
-it under Terminal's taskbar icon. A shortcut icon does not change the identity
-of the application that owns the window. Terminal's request for configurable
-taskbar groups remains [open upstream](https://github.com/microsoft/terminal/issues/8216).
+tabs. Newly launched workspace windows now receive the button's own taskbar
+identity, so Windows can group them under that pinned icon. This uses
+[Windows per-window application IDs](https://learn.microsoft.com/en-us/windows/win32/shell/appids);
+Windows Terminal still renders the tabs. It is not a separate terminal emulator.
 
-Windows supports [per-window application IDs](https://learn.microsoft.com/en-us/windows/win32/shell/appids), but attaching one from an external
-launcher would need matching shortcut/relaunch metadata and window-lifecycle
-management. A local probe accepted and read back an ID; that did not establish
-reliable pinned-icon grouping. This project does not install that workaround.
-The practical tradeoff is a branded launch button with ordinary Terminal
-grouping for running windows.
+**Separate taskbar grouping is beta.** The launcher assigns the same ID to its
+Start/desktop shortcuts and each window it explicitly opens. Installation also
+updates existing pins that point to that exact launcher. Ordinary Terminal
+windows and previously open workspace windows are left alone. If Explorer
+retains a cached pin, unpin it and pin **Terminal Workspace** from Start again.
+Tabs dragged into another window take that destination window's grouping.
+
+Hidden-window tests verify matching shortcut/window IDs, relaunch command and
+icon, repeated registration, and refusal to guess a window when its unique
+marker is missing. Explorer grouping after a real pinned launch still needs
+desktop qualification. No persistent window watcher or focus operation is
+added; a failed identity lookup leaves ordinary Terminal grouping available.
+Diagnostics go to `%LOCALAPPDATA%\TerminalWorkspace\taskbar.log`.
+
+The earlier icon experiment temporarily changed one test window, then restored
+it; it was not installed in the launcher. Native configurable grouping remains
+[requested upstream](https://github.com/microsoft/terminal/issues/8216).
 
 For the message about configuring termination behavior in advanced settings,
 choose **Don't show again** (**不要再顯示** in Traditional Chinese) on the bar.

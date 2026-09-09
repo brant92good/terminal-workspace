@@ -21,6 +21,7 @@ def main():
     workspace = root / 'downloads' / ('terminal-workspace-' + options.revision)
     python = workspace / 'apps/port-forward-tui/.venv/Scripts/python.exe'
     assert python.is_file()
+    assert (workspace / 'build/TerminalWorkspace.exe').is_file()
     assert not (root / 'current.json').exists()
     assert not (workspace / '.machine.json').exists()
     data = root / 'test-catalog.json'

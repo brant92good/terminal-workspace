@@ -1,5 +1,26 @@
 # Verification
 
+## README and taskbar identity update — September 9, 2026
+
+The 35-test workspace suite passed locally, including a new native taskbar
+property test. That test creates two hidden window handles and a temporary
+shortcut in a path containing spaces and Chinese characters. It verifies matching
+shortcut/window AppIDs, quoted relaunch command, icon path, repeat registration,
+missing/invalid origin refusal, and preservation of the other window and foreground.
+It does not launch Windows Terminal or log into a server.
+
+The installed workspace executable was rebuilt and its existing Start, desktop
+and taskbar shortcuts registered with the same ID. An earlier icon experiment
+restored its window properties after the test and was never part of that launcher.
+The new implementation applies the ID at explicit workspace startup and leaves
+it for the window's lifetime. Explorer grouping, pin activation, cached pins and
+dragged-tab behavior still need a real desktop check; the feature is labeled beta.
+
+All three public READMEs were rendered in light/dark desktop layouts and a narrow
+layout using a headless browser. Relative documentation links and anchors were
+checked, and the screenshots use example metadata. The SSH picker screenshot
+was regenerated through its actual UI to show the current local shell label.
+
 Results recorded on September 8, 2026. The desktop checks used Windows 11
 Pro build 26200, Terminal 1.24.11911.0, PowerShell 7.6.5, Python 3.12.11 from
 Miniforge, and an existing SSH destination. Another physical laptop remains
@@ -20,8 +41,8 @@ preservation of developer environment settings. Existing-tab return remains on
 the installed Python path; Rust is optional research code with incomplete
 machine-selection/fallback behavior.
 
-The [setup guide](setup.md#taskbar-icon-and-closing-tips) records the verified
-taskbar grouping limitation and the built-in way to dismiss the termination
+The [setup guide](setup.md#taskbar-icon-and-closing-tips) records taskbar grouping
+status and the built-in way to dismiss the termination
 tip while retaining useful error output. Test windows were closed and temporary
 benchmark bindings removed. No native return launcher was installed by this work.
 

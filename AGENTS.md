@@ -32,6 +32,11 @@ authorization; do not invent additional approval steps.
   public installer does not claim either key by default.
 - Herdr tab identity and return behavior: `scripts/herdr_launcher.py` and the
   port app's shared focus helper. Never use duplicate titles as Herdr identity.
+- The Start/taskbar launcher sets its own per-window AppID using
+  `scripts/TaskbarIdentity.cs`. Only an explicitly launched workspace's unique
+  marker identifies the window; never use foreground as a fallback. Shortcut
+  IDs must match. No window activation or persistent watcher belongs in this
+  path. Separate Explorer grouping is beta until a real pinned launch is checked.
 - `scripts/workspace.py` selects a machine before creating companion tabs;
   the legacy-named `herdr_launcher.py` supports SSH, remote Herdr and local Herdr.
   `remote_client` and `local_herdr` in ignored `.machine.json` are installation choices.

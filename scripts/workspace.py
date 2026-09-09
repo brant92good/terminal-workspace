@@ -14,6 +14,18 @@ from port_forward_tui.window_context import choose_machine
 from configure import HERDR, PORTS, LOCAL
 
 
+def identify_taskbar(root=ROOT):
+    """Apply the pinned button's identity only to this explicitly launched window."""
+    from port_forward_tui.views import mark_origin
+    try:
+        title = mark_origin()
+        result = subprocess.run([str(root / 'build/TerminalWorkspace.exe'), '--identify-origin', title],
+                                creationflags=subprocess.CREATE_NO_WINDOW, timeout=7)
+        return result.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False  # A grouping failure must not prevent connecting.
+
+
 def tab_command(window, machine, python, *, root=ROOT, data_dir=DATA_DIR, local_herdr=False, herdr=''):
     command = ['wt.exe', '-w', window, 'new-tab', '-p', PORTS, str(python), '-E', '-s',
                str(root / 'apps/port-forward-tui/app.py'), '--data-dir', str(data_dir), '--machine', machine]
@@ -27,11 +39,14 @@ def tab_command(window, machine, python, *, root=ROOT, data_dir=DATA_DIR, local_
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--window', required=True)
+    parser.add_argument('--taskbar-identity', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--machine')
     parser.add_argument('--machines', action='store_true')
     parser.add_argument('--data-dir', type=Path, default=DATA_DIR)
     options = parser.parse_args()
     settings = json.loads((ROOT / '.machine.json').read_text(encoding='utf-8-sig'))
+    if options.taskbar_identity:
+        identify_taskbar()
     catalog = Catalog(options.data_dir)
     machine = choose_machine(catalog, options.machine, picker=options.machines,
                              use_window=False, purpose='Choose a machine for this Terminal workspace')

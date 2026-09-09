@@ -11,8 +11,16 @@ public static class WorkspaceLauncher {
             new string('\\', value.Reverse().TakeWhile(c => c == '\\').Count()) + "\"";
     }
     [STAThread]
-    public static void Main(string[] args) {
+    public static int Main(string[] args) {
         try {
+            if (args.Length == 2 && args[0] == "--register-shortcut") {
+                TaskbarIdentity.RegisterShortcut(args[1]);
+                return 0;
+            }
+            if (args.Length == 2 && args[0] == "--identify-origin") {
+                TaskbarIdentity.IdentifyOrigin(args[1], System.Reflection.Assembly.GetExecutingAssembly().Location);
+                return 0;
+            }
             var root = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\')).FullName;
             var python = Path.Combine(root, "apps", "port-forward-tui", ".venv", "Scripts", "python.exe");
             var script = Path.Combine(root, "scripts", "workspace.py");
@@ -20,11 +28,22 @@ public static class WorkspaceLauncher {
             Process.Start(new ProcessStartInfo {
                 FileName = "wt.exe",
                 Arguments = "-w " + window + " new-tab -p \"{a9a0b421-7dd6-4425-9843-59b5f5d6c2d1}\" " +
-                    Quote(python) + " -E -s " + Quote(script) + " --window " + window + " " + String.Join(" ", args.Select(Quote)),
+                    Quote(python) + " -E -s " + Quote(script) + " --taskbar-identity --window " + window + " " + String.Join(" ", args.Select(Quote)),
                 UseShellExecute = true
             });
+            return 0;
         } catch (Exception error) {
+            // Helpers must not create a surprise dialog or activate a window.
+            if (args.Length > 0 && (args[0] == "--register-shortcut" || args[0] == "--identify-origin")) {
+                var log = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TerminalWorkspace");
+                try {
+                    Directory.CreateDirectory(log);
+                    File.AppendAllText(Path.Combine(log, "taskbar.log"), DateTime.UtcNow.ToString("o") + " " + error.Message + Environment.NewLine);
+                } catch { }
+                return 1;
+            }
             MessageBox.Show(error.Message, "Terminal Workspace", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return 1;
         }
     }
 }

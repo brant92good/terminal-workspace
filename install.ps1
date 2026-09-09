@@ -66,6 +66,8 @@ if (-not $SkipDependencies) {
 if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast return-shortcut helper.' }
 & $workspacePython -E -s -X utf8 (Join-Path $workspaceRoot 'scripts\build_icon.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }
+& (Join-Path $workspaceRoot 'scripts\build_workspace_launcher.ps1')
+$workspaceLauncher = Join-Path $workspaceRoot 'build\TerminalWorkspace.exe'
 if ($NoConfigure) {
     Write-Output 'App runtime and helpers are ready. Terminal settings and shortcuts were not applied.'
     return
@@ -84,10 +86,6 @@ if ($IntegrationOnly) { $workspaceArguments += '--integration-only' }
 if ($ApplySharedSettings) { $workspaceArguments += '--apply-shared-settings' }
 & $workspacePython -E -s -X utf8 @workspaceArguments
 if ($LASTEXITCODE -ne 0) { throw 'Terminal settings were not applied.' }
-$workspaceCompiler = Join-Path $env:SystemRoot 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
-$workspaceLauncher = Join-Path $workspaceRoot 'build\TerminalWorkspace.exe'
-& $workspaceCompiler /nologo /target:winexe /reference:System.Windows.Forms.dll "/out:$workspaceLauncher" "/win32icon:$(Join-Path $workspaceRoot 'build\herdr.ico')" (Join-Path $workspaceRoot 'scripts\WorkspaceLauncher.cs')
-if ($LASTEXITCODE -ne 0) { throw 'Could not build the taskbar launcher.' }
 if (-not $NoShortcuts) {
     $workspaceShell = New-Object -ComObject WScript.Shell
     foreach ($workspaceLocation in @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'))) {
@@ -97,6 +95,20 @@ if (-not $NoShortcuts) {
         $workspaceShortcut.IconLocation = "$workspaceLauncher,0"
         $workspaceShortcut.Description = 'Open the configured remote workspace and Ports, with the remote tab selected'
         $workspaceShortcut.Save()
+        $workspaceRegistration = Start-Process -FilePath $workspaceLauncher -ArgumentList @('--register-shortcut', ('"' + (Join-Path $workspaceLocation 'Terminal Workspace.lnk') + '"')) -WindowStyle Hidden -Wait -PassThru
+        if ($workspaceRegistration.ExitCode -ne 0) { throw 'Could not register the workspace shortcut identity.' }
+    }
+    # An already-pinned copy keeps its own properties. Update only pins that
+    # point exactly to this installation; never relabel ordinary Terminal pins.
+    $workspacePins = Join-Path $env:APPDATA 'Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar'
+    if (Test-Path -LiteralPath $workspacePins) {
+        Get-ChildItem -LiteralPath $workspacePins -Filter '*.lnk' | ForEach-Object {
+            $workspacePin = $workspaceShell.CreateShortcut($_.FullName)
+            if ($workspacePin.TargetPath -eq $workspaceLauncher) {
+                $workspaceRegistration = Start-Process -FilePath $workspaceLauncher -ArgumentList @('--register-shortcut', ('"' + $_.FullName + '"')) -WindowStyle Hidden -Wait -PassThru
+                if ($workspaceRegistration.ExitCode -ne 0) { Write-Warning 'Could not update the pinned workspace identity. Unpin and re-pin its Start entry.' }
+            }
+        }
     }
 }
 Write-Output 'Ready. Open Terminal Workspace from Start: choose a machine, then use its remote and Ports tabs.'
