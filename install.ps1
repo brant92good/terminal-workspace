@@ -59,12 +59,12 @@ if (-not $HerdrPath -and -not $workspaceSavedHerdr) {
 Write-Host 'Preparing the app environment and workspace launcher...'
 $workspacePython = Initialize-AppPython -Root $workspaceApp -Python $Python
 if (-not $SkipDependencies) {
-    & $workspacePython -E -s -m pip install --no-input -r (Join-Path $workspaceApp 'requirements.txt') -r (Join-Path $workspaceRoot 'apps\ssh-session-tui\requirements.txt')
+    & $workspacePython -E -s -X utf8 -m pip install --no-input --disable-pip-version-check -q -r (Join-Path $workspaceApp 'requirements.txt') -r (Join-Path $workspaceRoot 'apps\ssh-session-tui\requirements.txt')
     if ($LASTEXITCODE -ne 0) { throw 'Could not install the port app dependencies.' }
 }
-& $workspacePython -E -s (Join-Path $workspaceApp 'port_forward_tui\build_focus_helper.py')
+& $workspacePython -E -s -X utf8 (Join-Path $workspaceApp 'port_forward_tui\build_focus_helper.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not build the fast return-shortcut helper.' }
-& $workspacePython -E -s (Join-Path $workspaceRoot 'scripts\build_icon.py')
+& $workspacePython -E -s -X utf8 (Join-Path $workspaceRoot 'scripts\build_icon.py')
 if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Herdr icon.' }
 if ($NoConfigure) {
     Write-Output 'App runtime and helpers are ready. Terminal settings and shortcuts were not applied.'
@@ -82,7 +82,7 @@ if ($SessionCatalog) { $workspaceArguments += @('--session-catalog', $SessionCat
 if ($NewTabShortcut) { $workspaceArguments += @('--new-tab-shortcut', $NewTabShortcut) }
 if ($IntegrationOnly) { $workspaceArguments += '--integration-only' }
 if ($ApplySharedSettings) { $workspaceArguments += '--apply-shared-settings' }
-& $workspacePython -E -s @workspaceArguments
+& $workspacePython -E -s -X utf8 @workspaceArguments
 if ($LASTEXITCODE -ne 0) { throw 'Terminal settings were not applied.' }
 $workspaceCompiler = Join-Path $env:SystemRoot 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $workspaceLauncher = Join-Path $workspaceRoot 'build\TerminalWorkspace.exe'

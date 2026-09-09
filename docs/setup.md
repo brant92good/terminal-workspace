@@ -23,7 +23,7 @@ SSH key or key agent because they cannot ask for a password.
 ## One-command setup
 
 ```powershell
-irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex"
 ```
 
 The bootstrap gets the public workspace and both apps from GitHub source

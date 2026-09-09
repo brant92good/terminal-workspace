@@ -57,7 +57,7 @@ You do not need to choose a host during installation. Background port connection
 will need an SSH key or agent when you start them. Run in PowerShell on Windows:
 
 ```powershell
-irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex"
 ```
 
 On first launch, **A** adds a machine or **I** imports names from your SSH config.

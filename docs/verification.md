@@ -148,3 +148,31 @@ The pinned SSH release passed its [Python 3.12/3.13 CI](https://github.com/brant
 The pinned Ports release passed its [Python 3.12–3.14 CI](https://github.com/brant92good/port-forward-tui/actions/runs/34344953326)
 after rerunning a hosted native accessibility-probe timeout. No native focus
 code changed in this release.
+# Automatic installation and portable SSH leaf (2026-09-09)
+
+SSH Sessions 0.5.0 passed its 83-test suite on Windows, Ubuntu and macOS with
+Python 3.12/3.13 ([six-job run](https://github.com/brant92good/ssh-session-tui/actions/runs/34352141990)).
+Windows runs 80 tests with three platform skips; Unix runs 82 with one skip.
+Each OS also passed fresh installation, PATH setup and repeat installation,
+including space/Chinese paths, inherited Python settings and catalog/favorite
+preservation. The Unix pseudo-terminal test uses `/bin/sh`: command input,
+Ctrl+C, resize, exit and returning to the picker. Remote SSH login in macOS/Linux
+terminal applications remains unqualified; the full workspace remains Windows-only.
+
+The test work found inherited PowerShell module/shell markers, Windows short
+path aliases and code-page assumptions, and a macOS PTY shutdown wait. These
+were corrected rather than treating the first Windows/WSL pass as proof for
+other environments. The final PTY harness drains output while waiting for exit,
+closes the master before cleanup, and bounds reads and child cleanup.
+The published 0.5.0 ZIP and tar.gz archives also passed the isolated installer
+and update check from Windows and WSL after release publication.
+
+The workspace bootstrap was run headlessly on Windows in an isolated directory
+containing spaces and Chinese characters. It downloaded the workspace and exact
+child commits, downloaded Python 3.12, installed dependencies, built the native
+helper/icon and launched the SSH CLI. Repeating it preserved a fixture's local
+preferences. `-NoConfigure` kept these checks from applying a second desktop
+setup. The 33 existing settings/launcher tests passed separately. The owner's
+four tab identities, active controller, HTTP forward, favorites and SSH config
+were checked without activation. No alternative project from the survey was
+installed or substituted into the running setup.
