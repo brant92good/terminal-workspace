@@ -2,9 +2,8 @@
 
 [README](../README.md) · [Daily use](daily-use.md)
 
-The native release candidate and outstanding gates are recorded in
-[native migration](native-migration.md). The instructions here describe the
-compiled 0.7.0 distribution, not the older Python source bundle.
+These instructions describe the compiled distribution. Check the
+[candidate status and remaining release gates](native-migration.md) before installing.
 
 ## Prerequisites
 
@@ -30,7 +29,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubus
 
 The installer downloads a versioned ZIP, verifies its SHA256 checksum and its
 file manifest, then checks the packaged executable versions. The bundle includes
-SSH Sessions 0.6.0, Ports 0.7.0, the Rust workspace launcher, and precompiled
+SSH Sessions, Ports, the Rust workspace launcher, and precompiled
 Windows focus/taskbar helpers. Git is optional for later settings/catalog sync.
 
 The default directory is `%LOCALAPPDATA%\Programs\TerminalWorkspace`. Run the

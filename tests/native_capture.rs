@@ -13,6 +13,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+static CAPTURE_PROCESS: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 fn capture(
     executable: &Path,
@@ -91,6 +92,11 @@ impl Drop for ControllerCleanup {
 }
 
 fn run_case(shell: Option<&str>) {
+    // Keep one captured process chain active so unrelated sibling fixtures
+    // cannot change the observed Windows handle lifetime under load.
+    let _serial = CAPTURE_PROCESS
+        .lock()
+        .unwrap_or_else(|error| error.into_inner());
     let temporary = tempfile::tempdir().unwrap();
     let archive =
         std::env::var_os("WORKSPACE_TEST_BUNDLE").expect("WORKSPACE_TEST_BUNDLE is required");

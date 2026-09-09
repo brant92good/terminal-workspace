@@ -49,15 +49,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build_native.ps1
 ```
 
 Build output defaults to `artifacts/native-build`. The actual-bundle tests are
-opt-in and writes only an owned temporary directory:
+opt-in and write only owned temporary directories; PowerShell 5.1 and 7 must be available:
 
 ```powershell
 $env:WORKSPACE_TEST_BUNDLE = 'C:\Downloads\terminal-workspace-x86_64-pc-windows-msvc.zip'
 cargo test --locked --test native_install -- --ignored
+./scripts/check-captured-save.ps1 -Bundle $env:WORKSPACE_TEST_BUNDLE
 ```
 
-These cover fresh/update integrity plus migration from the exact legacy public
-bootstrap layout. After publishing a prerelease, check the real versioned HTTPS
+These three checks cover fresh/update integrity, exact legacy bootstrap migration,
+quoted/Unicode JSON pipelines and normal/interactive-picker console input. The
+separate captured-save runner checks direct and PowerShell-wrapped first mutations
+and controller restarts outside Cargo's process job. Hosted Windows runs use the
+CI-only verified WMI harness. After publishing a prerelease, check the real versioned HTTPS
 bootstrap, installer and release downloads without touching the desktop:
 
 ```powershell

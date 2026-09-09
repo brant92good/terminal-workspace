@@ -1,28 +1,66 @@
 # Verification
 
-## Native candidate — September 10, 2026
+## Native 0.7.1 candidate - September 10, 2026
 
-Thirteen native parent checks passed locally on Windows: ten settings/launch
-contract checks, JSON CLI errors, the read-only Explorer plan and bounded child
-dispatch. The dispatch test leaves an owned descendant alive after its parent
-exits and verifies that unused inherited output handles do not hold up the
-launcher; it also checks timeout behavior. Clippy passed with
-warnings denied. Precompiled Windows helpers built in an isolated artifact
-directory. Two additional actual-ZIP installer tests passed against a locally built
-candidate using `WORKSPACE_TEST_BUNDLE`, as documented in [reference](reference.md).
-They cover fresh/update/integrity/ownership behavior, saved settings, machine
-selection and validated legacy bootstrap migration. They write Terminal settings
-only in a temporary fixture and stay ignored in ordinary test runs because the
-actual ZIP must be supplied explicitly.
+Fourteen ordinary parent tests and Clippy pass locally. Status-only helper dispatch
+now uses a shared Windows creator with an explicit inherited-handle list. A
+bounded regression reproduces the old leak with an unrelated caller pipe, then
+passes after the fix without opening a desktop window. Its owned descendant is
+released before assertions and has a separate eight-second self-expiry.
 
-The [68b484b hosted candidate run](https://github.com/brant92good/terminal-workspace/actions/runs/34383513494)
-passes with development leaf overrides. The local ZIP was rebuilt with the new
-parent dispatch code and passed both installer tests again; its local leaf bytes
-are still candidate inputs, not evidence of a released download.
+A local candidate bundle with the Ports controller fix passes three direct/public
+wrapper first-save and restart cases, and the same three cases through copied
+private wrappers. Both PowerShell 5.1 and 7 release outer stdout/stderr and stdin
+while the controller remains alive. Each test checks the restarted controller's
+new PID and shuts down only its authenticated fixture controller. The older
+candidate failed both wrapper variants before the fix. The actual-ZIP install,
+migration, quoted/Unicode JSON pipelines and real ConPTY checks also pass locally.
+These are local candidate checks, not qualification of new published assets.
 
-No native desktop or shortcut latency claim follows from these checks. Historical
-sections below name earlier versions. Actual release-download, installation and
-desktop gates remain tracked in [native migration](native-migration.md).
+Hosted job isolation is a separate test requirement: GitHub's Windows runner
+blocks process breakaway. The CI-only WMI harness requests breakaway, verifies
+worker/test job membership, uses a bounded result channel, and cleans only exact
+fixture processes. Its source has independent review; hosted execution remains
+required. Stable publication is held until those checks, corrected leaf assets,
+actual HTTPS installation and final independent review pass.
+
+## Native 0.7.0 prerelease - September 10, 2026
+
+[Prerelease 0.7.0](https://github.com/brant92good/terminal-workspace/releases/tag/v0.7.0)
+was built from `cbceb19`, with recorded source pins and the official Ports 0.7.1
+and SSH Sessions 0.6.0 Windows binaries. The
+[hosted package run](https://github.com/brant92good/terminal-workspace/actions/runs/34388272293)
+passed thirteen ordinary native checks, Clippy, helper builds and three tests of
+the actual packaged ZIP. The archive's SHA256 is
+`2448c463ed8703001990c0974e6e49c6a34bae320a47b4d5438cd571af9b24ab`.
+
+The native checks cover settings backups, explicit new-tab behavior, shortcut
+conflicts, preserved preferences, JSON errors, machine-specific tab composition,
+Explorer's read-only plan and bounded child dispatch. The ZIP tests cover fresh
+install/update/checksums/ownership, exact legacy metadata migration, and preserved
+settings. Malformed or redirected legacy records fail before destination writes.
+
+PowerShell 5.1 and 7 wrappers were tested with embedded quotes, empty arguments,
+trailing backslashes, Chinese text and emoji. JSON remains available to assignment
+and `ConvertFrom-Json`. Real ConPTY checks exercise normal TUI input and an
+interactive machine picker with its JSON captured through the PowerShell pipeline.
+These checks create no desktop windows or live SSH connection.
+
+After publication, the versioned public HTTPS bootstrap downloaded its installer
+and that exact release ZIP in disposable Windows directories under both PowerShell
+versions. Fresh install, repeat update, saved preferences and fixture-only settings
+configuration passed. No local bundle override was used. Independent review also
+passed the local actual-ZIP/wrapper gates.
+
+Stable promotion was held after a live check found a captured-output defect. A
+first saved rule could start a background controller that inherited the caller's
+output handles, delaying EOF after the CLI exited. The initial direct-binary fix
+did not cover opaque handles inherited through PowerShell wrappers. Earlier
+quoting, pipeline, installation and ConPTY results had not tested that combination.
+The candidate fix is recorded above; 0.7.0's published bytes remain unchanged.
+Native desktop focus and shortcut latency are separate qualifications. Historical
+sections below name earlier versions; their timings are not new Rust measurements.
+Separate taskbar grouping remains beta. See [native migration](native-migration.md).
 
 ## README and taskbar identity update — September 9, 2026
 

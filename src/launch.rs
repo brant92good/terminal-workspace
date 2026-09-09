@@ -1,5 +1,5 @@
 use crate::{
-    binary, hidden, output,
+    binary, dispatch, output,
     settings::{self, Preferences},
 };
 use anyhow::{Context, Result, bail};
@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::{
+    ffi::OsString,
     path::{Path, PathBuf},
     process::Command,
     time::Duration,
@@ -43,7 +44,7 @@ pub fn select(
         command.arg("--no-window-context");
     }
     // The selector renders to inherited stderr; stdout contains one JSON result.
-    let result = output(&mut command, None, true)?;
+    let result = output(&mut command, None)?;
     let data: Value =
         serde_json::from_slice(&result.stdout).context("Ports selector returned invalid JSON")?;
     if !result.status.success() || data["ok"] != true {
@@ -234,27 +235,23 @@ pub fn workspace(
     }
     let preferences = Preferences::read(&settings::load(&root.join(".machine.json"))?)?;
     if taskbar && let Ok(origin) = port_forward_tui::views::mark_origin() {
-        let _ = output(
-            Command::new(root.join("build/TerminalWorkspace.exe"))
-                .args(["--identify-origin", &origin]),
-            Some(Duration::from_secs(7)),
-            false,
+        let _ = dispatch(
+            &root.join("build/TerminalWorkspace.exe"),
+            &[OsString::from("--identify-origin"), origin.into()],
+            Duration::from_secs(7),
         );
     }
     let Some(machine) = select(root, directory, machine, picker, false)? else {
         return Ok(0);
     };
-    let mut terminal = Command::new("wt.exe");
-    terminal.args(tab_arguments(
-        root,
-        window,
-        &machine.id,
-        directory,
-        &preferences,
-    ));
-    hidden(&mut terminal);
-    let result = output(&mut terminal, Some(Duration::from_secs(10)), false)?;
-    if !result.status.success() {
+    let terminal = which::which("wt.exe").context("Windows Terminal was not found")?;
+    let arguments: Vec<OsString> =
+        tab_arguments(root, window, &machine.id, directory, &preferences)
+            .into_iter()
+            .map(OsString::from)
+            .collect();
+    let result = dispatch(&terminal, &arguments, Duration::from_secs(10))?;
+    if !result.success() {
         bail!("Windows Terminal could not create the companion tabs");
     }
     remote(root, directory, Some(machine), &preferences, false)

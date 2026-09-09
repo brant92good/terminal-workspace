@@ -19,10 +19,9 @@ and windows.
 
 *The included SSH Sessions picker, using example machines.*
 
-> Native 0.7.0 release candidate: the branch is under integration review. The
-> installer below becomes the supported path after the release gate in
-> [native migration](docs/native-migration.md); do not treat candidate checks as
-> proof that the release assets already exist.
+> Version 0.7.1 is a development candidate. Windows captured-output fixes pass
+> locally; hosted checks and the corrected release bundles are still pending.
+> [Verification](docs/verification.md).
 
 ## Install
 
@@ -101,9 +100,10 @@ installs work independently; released bundles pin exact app versions and hashes.
 
 ## Evidence and limits
 
-Native checks cover settings backups, new-tab defaults, shortcut conflicts,
-argument handling and machine-specific tab composition. Release installation and
-desktop qualification are tracked separately in [verification](docs/verification.md).
+The compiled prerelease passes native settings and launch checks, actual-ZIP
+install/update tests, and the public HTTPS bootstrap on PowerShell 5.1 and 7.
+Wrapper JSON pipelines and interactive input are tested through real pseudo
+terminals. [Verification and remaining gates](docs/verification.md).
 Historical focus/SSH/persistence checks and [timing measurements](docs/before-after.md)
 remain available with their versions and conditions; they are not a new Rust
 performance claim.

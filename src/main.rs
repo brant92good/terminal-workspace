@@ -1,9 +1,9 @@
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
 use serde_json::{Value, json};
-use std::{path::PathBuf, process::Command, time::Duration};
+use std::{path::PathBuf, time::Duration};
 use terminal_workspace::{
-    binary, launch, output, root,
+    binary, launch, root,
     settings::{self, Preferences},
 };
 
@@ -193,12 +193,17 @@ fn configure(root: &std::path::Path, options: Configure) -> Result<Value> {
     settings::write(&path, &updated, original.as_deref(), true)?;
     settings::write(&machine_path, &machine, machine_original.as_deref(), true)?;
     if let Some(host) = options.ssh_host {
-        let result = output(
-            Command::new(binary(root, "ports")).args(["machines", "add", &host, "--json"]),
-            Some(Duration::from_secs(10)),
-            false,
+        let result = terminal_workspace::dispatch(
+            &binary(root, "ports"),
+            &[
+                "machines".into(),
+                "add".into(),
+                host.into(),
+                "--json".into(),
+            ],
+            Duration::from_secs(10),
         )?;
-        if !result.status.success() {
+        if !result.success() {
             eprintln!(
                 "Profiles are ready; import the requested host inside Ports (automatic add did not finish)."
             );

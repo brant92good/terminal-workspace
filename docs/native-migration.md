@@ -1,7 +1,10 @@
 # Native integration candidate
 
-The `native-integration` branch prepares Terminal Workspace 0.7.0. It is not a
-stable release or a completed upgrade of the owner's installation yet.
+Terminal Workspace 0.7.1 is a development candidate. The earlier 0.7.0 prerelease
+remains immutable. Windows captured-output fixes now pass locally for the direct
+Ports CLI, both public/private PowerShell wrappers and parent helper dispatch.
+Hosted checks and corrected published leaf bundles are still required before
+stable promotion.
 
 ## Production paths
 
@@ -11,7 +14,7 @@ composition and remote/local Herdr or SSH launch. Profiles call the installed
 helpers remain compiled C# programs using the Windows .NET Framework; no Python
 process or compiler runs during ordinary use.
 
-The parent uses the Ports 0.7.1 `machines pick --json` interface. Its TUI uses
+The parent uses the Ports `machines pick --json` interface. Its TUI uses
 stderr and console input while the parent captures stdout. The SSH picker keeps
 its own catalog. No cross-catalog machine-ID conversion is inferred.
 
@@ -29,19 +32,25 @@ its own catalog. No cross-catalog machine-ID conversion is inferred.
 
 ## Development evidence
 
-Thirteen native parent tests pass on Windows: new-tab behavior, idempotence, preserved
+Fourteen native parent tests pass on Windows: new-tab behavior, idempotence, preserved
 integration-only settings, shortcut collisions, JSONC, backups/concurrent changes,
 safe export, argv quoting, JSON argument errors, Explorer plan and tab composition.
 Mixed-case profile GUIDs update in place; malformed personal preferences fail
 before settings are written. The dispatch regression starts an owned child with a
 longer-lived descendant: status-only calls return when the child exits, without
 waiting for an unused inherited output pipe. A separate timeout assertion verifies
-the bounded wait. Interactive machine selection still captures its JSON output.
-Clippy passes with warnings denied.
-The [hosted candidate run](https://github.com/brant92good/terminal-workspace/actions/runs/34383513494)
-passes with the development leaf refs; it does not package released leaf assets.
-The precompiled taskbar/tracker/focus helpers build without Python. Real release
-download/install and native desktop qualification remain release gates.
+the bounded wait. A second regression supplies an unrelated inheritable pipe;
+status-only dispatch excludes it, so the caller sees EOF while the owned fixture
+descendant remains alive. The three status-only call sites use explicit arguments
+and a shared Windows handle-list creator, inheriting the developer's environment
+and working directory. Interactive machine selection still captures its JSON
+output with console input/stderr. Clippy passes with warnings denied.
+The [hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34388272293)
+passes with the recorded leaf source pins and packages the exact released Windows
+binaries and helpers. The versioned public HTTPS bootstrap, fresh installation
+and update also passed in isolated fixtures on PowerShell 5.1 and 7.
+See [verification](verification.md) for the tested archive and unresolved gate.
+Native desktop focus and shortcut timings remain separate qualifications.
 
 Three additional actual-ZIP tests pass against a locally built candidate:
 fresh install, update, checksum rejection, destination ownership, saved preferences,
@@ -49,7 +58,7 @@ paths containing spaces/Unicode/apostrophes, and a real Ports machine-selection 
 response. Legacy migration also preserves exact preference/current.json bytes,
 copies customized shared settings, prefers newer native settings and rejects
 redirected or malformed legacy metadata before changing the destination. These
-tests do not qualify the future release download URLs.
+tests were followed by the separate public HTTPS bootstrap checks described above.
 
 Packaged PowerShell wrappers preserve embedded quotes, empty arguments, trailing
 backslashes, Chinese text and emoji. Explicit `--json` output reaches PowerShell
