@@ -35,8 +35,9 @@ class TaskbarIdentityTests(unittest.TestCase):
             subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(script),
                 '-Link', str(shortcut), '-Target', str(executable)], check=True, capture_output=True,
                 creationflags=subprocess.CREATE_NO_WINDOW, timeout=15)
-            result = subprocess.run([str(executable), str(executable), str(shortcut)], check=True,
-                capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW, timeout=20)
+            result = subprocess.run([str(executable), str(executable), str(shortcut)],
+                capture_output=True, text=True, errors='replace', creationflags=subprocess.CREATE_NO_WINDOW, timeout=20)
+            self.assertEqual(result.returncode, 0, result.stdout + '\n' + result.stderr)
             self.assertIn('foreground preserved', result.stdout)
 
     def test_grouping_failure_keeps_startup_available(self):
