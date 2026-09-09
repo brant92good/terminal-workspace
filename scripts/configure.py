@@ -215,7 +215,7 @@ def main():
     picker_mode = parser.add_mutually_exclusive_group()
     picker_mode.add_argument('--session-picker', action='store_const', const=True, default=None, dest='session_picker', help='Make new tabs show the SSH machine picker; Ctrl+Alt+N opens PowerShell')
     picker_mode.add_argument('--no-session-picker', action='store_const', const=False, dest='session_picker')
-    parser.add_argument('--session-catalog', type=Path, help='Metadata file in a private repo; keys stay with the existing SSH client')
+    parser.add_argument('--session-catalog', type=Path, help='Path to the SSH Sessions machine catalog')
     parser.add_argument('--new-tab-shortcut', choices=('ctrl+n', 'ctrl+t', 'none'), help='Optional simpler new-tab key; intercepts the key before shell programs')
     local_mode = parser.add_mutually_exclusive_group()
     local_mode.add_argument('--local-herdr', action='store_const', const=True, default=None, dest='local_herdr')

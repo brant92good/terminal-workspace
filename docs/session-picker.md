@@ -32,12 +32,18 @@ If integration-only setup has no PowerShell profile, enabling the picker adds
 a direct `pwsh.exe` profile for the local shortcut. This also works when the
 automatic PowerShell profile source is disabled; existing profiles are preserved.
 
+Press G to browse nested groups, Space to select machines, M to move them and T
+to edit their tags. Search accepts names, addresses, groups and tags. Numbered
+favorites work across groups. Group/tag metadata syncs with the catalog and
+requires SSH Sessions 0.4+ on each device.
+
 The existing workspace button and R/P/L shortcuts remain independent. The two
-leaf apps currently use separate machine catalogs. The new picker does not
-write SSH config, install keys, import credentials, or claim to know which
-servers authorize a device's key. Existing local SSH configuration is used by
-the normal SSH client. See the leaf's [README](../apps/ssh-session-tui/README.md)
+leaf apps currently use separate machine catalogs. Existing local SSH
+configuration is used by the normal SSH client. See the leaf's [README](../apps/ssh-session-tui/README.md)
 and [backlog](../apps/ssh-session-tui/docs/backlog.md).
+
+For macOS/Linux support and where platform-specific shortcuts belong, see
+[Platform support](platforms.md).
 
 ## Verification on September 9, 2026
 

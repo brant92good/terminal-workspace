@@ -11,7 +11,7 @@ you can also add a third tab for local Herdr.
 Want to choose a server whenever you open a new tab? The optional
 [SSH Sessions](https://github.com/brant92good/ssh-session-tui) picker supports
 named routes for each machine, with a separate route choice on each device.
-Your existing SSH client handles login; keys stay on your computer.
+Your existing SSH client handles login.
 
 ```text
 Terminal Workspace button
@@ -23,6 +23,9 @@ Ctrl+Alt+R → return to remote     Ctrl+Alt+P → return to Ports
 ```
 
 [Install](#set-up-on-windows) · [Daily use](#use-it-every-day) · [Test results](#what-has-been-checked) · [Setup help](docs/setup.md)
+
+Windows is supported today. See the [macOS/Linux assessment and plan](docs/platforms.md)
+for the current limits of each app and the terminal integration.
 
 ## When this is useful
 
@@ -94,8 +97,7 @@ returns to the picker. Installation does not require a host.
 terminal and press **F** to assign a favorite number; **1–9, then Enter** opens it.
 Favorite numbers are saved on this device and use its selected machine route.
 Press **I** to preview and import local SSH hosts, including static Include files.
-Import retains local aliases for existing key/proxy settings; no keys or commands
-are copied into the shared catalog.
+Imported hosts use their existing SSH aliases and settings.
 
 For a simpler new-tab shortcut, run `.\install.ps1 -NewTabShortcut ctrl+n`.
 Ctrl+Shift+T remains available. This optional binding is kept on this computer;
@@ -104,7 +106,11 @@ usual browser new-tab key, or `none` to remove the extra shortcut.
 
 ![SSH Sessions with example machines](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
 
-*Actual picker using example metadata; no private hosts or live connections.*
+*Example machines in the picker.*
+
+Use **G** to browse nested groups, **Space** to select machines, **M** to move
+them and **T** to add or remove tags. Numbered favorites work across groups.
+Search accepts names, addresses, group paths and tags such as `tag:gpu`.
 
 To share machine names, addresses and usernames, point it at a catalog in your
 own private Git checkout:
@@ -116,6 +122,7 @@ own private Git checkout:
 Device route choices remain local. **S** opens explicit Pull/Publish options;
 authentication uses your existing Git sign-in. A failed SSH connection offers
 alternative routes and waits for your choice. It never tries a fallback silently.
+Groups and tags sync with the catalog and require SSH Sessions 0.4+ on each device.
 See the [picker setup and sync guide](https://github.com/brant92good/ssh-session-tui).
 
 The workspace button still opens its paired remote/Ports tabs and optional
@@ -134,7 +141,7 @@ its local HTTP address. The remote app must already be running.
 
 ![The Ports tab with saved example web apps and notebooks](https://raw.githubusercontent.com/brant92good/port-forward-tui/main/docs/screenshots/connections.svg)
 
-*Actual Ports interface with simulated data; this image shows the Ports tab only.*
+*Example connections in the Ports tab.*
 
 | Key inside Windows Terminal | Action |
 | --- | --- |
