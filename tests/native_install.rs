@@ -9,9 +9,12 @@ use std::{
 };
 
 fn run(script: &Path, args: &[String]) -> Output {
-    use std::os::windows::process::CommandExt;
     let powershell = PathBuf::from(std::env::var_os("SystemRoot").unwrap())
         .join("System32/WindowsPowerShell/v1.0/powershell.exe");
+    run_shell(&powershell, script, args)
+}
+fn run_shell(powershell: &Path, script: &Path, args: &[String]) -> Output {
+    use std::os::windows::process::CommandExt;
     let local_data = tempfile::tempdir().unwrap();
     Command::new(powershell)
         .args([
@@ -165,6 +168,112 @@ fn actual_bundle_fresh_update_integrity_ownership_and_settings() {
     let after: Value =
         serde_json::from_slice(&fs::read(destination.join(".machine.json")).unwrap()).unwrap();
     assert_eq!(after, preferences);
+    assert!(destination.join("scripts/invoke-native.ps1").is_file());
+    let wrapper_data = sandbox.path().join("wrapper catalog space");
+    for (index, name) in [
+        "\u{958b}\u{767c}\u{1f680}",
+        "He said \"hello\"",
+        "space and trailing slash\\",
+        "",
+    ]
+    .iter()
+    .enumerate()
+    {
+        let target = format!("wrapper-{index}.invalid");
+        let output = run(
+            &destination.join("ports.ps1"),
+            &[
+                "--data-dir".into(),
+                format!("{}\\", wrapper_data.display()),
+                "machines".into(),
+                "add".into(),
+                target.clone(),
+                "--name".into(),
+                (*name).into(),
+                "--json".into(),
+            ],
+        );
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let result: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(
+            result["machine"]["name"],
+            if name.is_empty() {
+                target.as_str()
+            } else {
+                *name
+            }
+        );
+    }
+    let session_catalog = sandbox.path().join("session catalog.json");
+    fs::write(
+        &session_catalog,
+        serde_json::to_vec(&json!({"version":2,"machines":[{
+            "id":"wrapper","name":"Fixture","user":"u","group":"Old",
+            "routes":[{"id":"direct","name":"Direct","host":"fixture.invalid","port":22}]
+        }]}))
+        .unwrap(),
+    )
+    .unwrap();
+    let group = "He said \"hello\"";
+    check(run(
+        &destination.join("sessions.ps1"),
+        &[
+            "--catalog".into(),
+            session_catalog.to_string_lossy().into_owned(),
+            "groups".into(),
+            "rename".into(),
+            "Old".into(),
+            group.into(),
+            "--json".into(),
+        ],
+    ));
+    let catalog: Value = serde_json::from_slice(&fs::read(session_catalog).unwrap()).unwrap();
+    assert_eq!(catalog["machines"][0]["group"], group);
+    let pipeline_script = destination.join("pipeline-check.ps1");
+    fs::write(&pipeline_script, br#"param([string]$Data,[string]$Catalog)
+$ErrorActionPreference = 'Stop'
+$ports = & (Join-Path $PSScriptRoot 'ports.ps1') --data-dir $Data machines list --json | ConvertFrom-Json
+$sessions = & (Join-Path $PSScriptRoot 'sessions.ps1') --catalog $Catalog list --json | ConvertFrom-Json
+if (-not $ports.ok -or -not $sessions.ok) { throw 'Native JSON bypassed the PowerShell pipeline.' }
+$unicode = [string][char]0x958b + [char]0x767c + [char]::ConvertFromUtf32(0x1f680)
+if (@($ports.machines | Where-Object { $_.name -ceq $unicode }).Count -ne 1) { throw 'Unicode was lost in the PowerShell pipeline.' }
+[PSCustomObject]@{ok=$true;ports=@($ports.machines).Count;sessions=@($sessions.machines).Count} | ConvertTo-Json
+"#).unwrap();
+    let pipeline_args = [
+        "-Data".into(),
+        wrapper_data.to_string_lossy().into_owned(),
+        "-Catalog".into(),
+        sandbox
+            .path()
+            .join("session catalog.json")
+            .to_string_lossy()
+            .into_owned(),
+    ];
+    for shell in [
+        PathBuf::from(std::env::var_os("SystemRoot").unwrap())
+            .join("System32/WindowsPowerShell/v1.0/powershell.exe"),
+        std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
+            .map(|p| p.join("pwsh.exe"))
+            .find(|p| p.is_file())
+            .expect("PowerShell 7 is required for the opt-in wrapper gate"),
+    ] {
+        if !shell.is_file() {
+            continue;
+        }
+        let pipeline = run_shell(&shell, &pipeline_script, &pipeline_args);
+        assert!(
+            pipeline.status.success(),
+            "{}",
+            String::from_utf8_lossy(&pipeline.stderr)
+        );
+        let pipeline: Value = serde_json::from_slice(&pipeline.stdout).unwrap();
+        assert_eq!(pipeline["ports"], 4);
+        assert_eq!(pipeline["sessions"], 1);
+    }
     let before = fs::read(&executable).unwrap();
     let data = sandbox.path().join("ports-data");
     check(
@@ -275,3 +384,6 @@ fn invalid_native_arguments_have_json_error() {
     let data: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(data["error"]["code"], "invalid_arguments");
 }
+
+#[path = "support/wrapper.rs"]
+mod wrapper;

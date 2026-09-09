@@ -24,3 +24,7 @@ port-forward-tui = { path = "apps/port-forward-tui" }
 lto = "thin"
 strip = true
 codegen-units = 1
+
+[dev-dependencies]
+portable-pty = "0.9"
+vt100 = "0.16"

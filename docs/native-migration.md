@@ -11,7 +11,7 @@ composition and remote/local Herdr or SSH launch. Profiles call the installed
 helpers remain compiled C# programs using the Windows .NET Framework; no Python
 process or compiler runs during ordinary use.
 
-The parent uses the Ports 0.7.0 `machines pick --json` interface. Its TUI uses
+The parent uses the Ports 0.7.1 `machines pick --json` interface. Its TUI uses
 stderr and console input while the parent captures stdout. The SSH picker keeps
 its own catalog. No cross-catalog machine-ID conversion is inferred.
 
@@ -43,13 +43,22 @@ passes with the development leaf refs; it does not package released leaf assets.
 The precompiled taskbar/tracker/focus helpers build without Python. Real release
 download/install and native desktop qualification remain release gates.
 
-Two additional actual-ZIP installer tests pass against a locally built candidate:
+Three additional actual-ZIP tests pass against a locally built candidate:
 fresh install, update, checksum rejection, destination ownership, saved preferences,
 paths containing spaces/Unicode/apostrophes, and a real Ports machine-selection JSON
 response. Legacy migration also preserves exact preference/current.json bytes,
 copies customized shared settings, prefers newer native settings and rejects
 redirected or malformed legacy metadata before changing the destination. These
 tests do not qualify the future release download URLs.
+
+Packaged PowerShell wrappers preserve embedded quotes, empty arguments, trailing
+backslashes, Chinese text and emoji. Explicit `--json` output reaches PowerShell
+assignment and `ConvertFrom-Json`; externally redirected wrapper JSON is UTF-8.
+Help/version output is captured too. Other textual commands retain console output;
+use the compiled CLI directly when piping those commands. Normal TUI views inherit
+the console. A real ConPTY test checks both PowerShell 5.1 and 7, including an
+interactive `machines pick --json` call whose UI uses stderr while its result goes
+through the PowerShell pipeline. These tests open no desktop windows.
 
 An initial helper build accidentally wrote the checkout's live taskbar executable.
 It was immediately rebuilt from the committed legacy launcher source before any

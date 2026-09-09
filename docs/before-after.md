@@ -5,6 +5,10 @@ Measured on September 8, 2026. Returning to an existing Herdr tab fell from
 These are real keyboard-to-content-focus measurements. They do not measure
 opening a fresh TUI, establishing SSH, or switching across windows.
 
+This is a historical report of the September 8 Python-based installation and
+its compiled focus helper. It does not measure the later native 0.7.0 candidate;
+see [native migration](native-migration.md) for that candidate's separate checks.
+
 The subsequent [Python/Rust experiment](language-experiment.md) compares three
 launchers in matched September 9 batches. Its numbers use different conditions
 and should not be subtracted from this historical comparison.
@@ -31,14 +35,14 @@ shared by both apps measured **365.3 ms median**; see
 [shared-helper check](benchmarks/ports-shared-helper-check.json). The detailed stage
 comparison below is for Herdr only.
 
-## Current version: cost of multiple-machine routing
+## September 8 follow-up: cost of multiple-machine routing
 
 After adding machine selection and R/P/L shortcuts, another six-keypress batch
-per condition measured the current launcher. These results supersede the older
-numbers for describing today's installed behavior; the old/new optimization
-comparison above remains a record of that earlier change.
+per condition measured the launcher installed at that time. These results
+superseded the earlier one-machine figures for that Python-based version; they
+do not describe the later native candidate's focus latency.
 
-| Current return path | One saved machine: median (range), ms | Two saved machines: median (range), ms | Median difference, ms |
+| Follow-up return path | One saved machine: median (range), ms | Two saved machines: median (range), ms | Median difference, ms |
 | --- | ---: | ---: | ---: |
 | Ports, normal shortcut | 404.8 (395.6–427.4) | 571.6 (566.9–598.9) | +166.8 |
 | Remote Herdr, tracing enabled | 410.6 (406.3–415.9) | 606.2 (582.5–627.0) | +195.6 |
@@ -58,7 +62,7 @@ lookup into the existing helper might remove a process startup and duplicate
 window discovery, but would need fresh routing and focus-stealing tests. It
 has not been implemented, and its possible savings are not measured.
 
-Other current two-machine Herdr means: Terminal/Python startup and imports
+Other two-machine Herdr means from that batch: Terminal/Python startup and imports
 144.48 ms, return-helper startup and initialization 90.52 ms, initial tab
 enumeration 80.27 ms, and waiting for launcher-tab closure 60.92 ms. Those remain
 possible optimization targets, subject to the compatibility tradeoffs below.
@@ -84,7 +88,7 @@ PowerShell probe, load libraries and compile its C# helper, find the saved tab,
 start a second PowerShell process, load and compile again, wait for launcher
 exit, sleep for 300 ms, discover the destination again, then focus its content.
 
-The new sequence creates the same temporary tab and Python launcher, starts
+The optimized sequence in that version created the same temporary tab and Python launcher, started
 one prebuilt helper, finds the destination, signals Python to exit, waits for
 actual tab disappearance, then focuses the destination. The same helper stays
 alive through the handoff. No resident keyboard hook or additional focus service
@@ -169,10 +173,10 @@ and cache lookup were slower than later samples; the cause was not isolated.
 
 ## What changes on another developer's computer
 
-The measured desktop runs Windows 11 Pro build 26200, an Intel Core i5-13600K,
+The measured desktop ran Windows 11 Pro build 26200, an Intel Core i5-13600K,
 Windows Terminal 1.24.11911.0, PowerShell 7.6.5 and Python 3.12.11. The private
-venv's base interpreter is **Miniforge**. The return shortcut calls that venv
-directly; it does **not** run `conda activate` or the user's PowerShell profile.
+venv's base interpreter was **Miniforge**. That return shortcut called the venv
+directly; it did **not** run `conda activate` or the user's PowerShell profile.
 
 | Environment difference | Expected effect or compatibility concern |
 | --- | --- |
@@ -213,7 +217,7 @@ one desktop do not establish a distribution across users or a cold-start bound.
 
 Run against an installed setup with a reachable Herdr target:
 
-The current harness uses a small, explicitly identified test window and
+The retained historical harness uses a small, explicitly identified test window and
 temporarily selects window-only scope to prevent fallback to another window.
 It stops when another application takes focus. These safety changes postdate
 the historical batches above. The language experiment also isolates its catalog

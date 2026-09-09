@@ -23,7 +23,7 @@ $workspaceBuildRoot = Join-Path $OutputDirectory ('compiled-' + [Guid]::NewGuid(
 foreach ($workspaceName in @('PortsFocus.exe','TerminalViews.exe')) { [IO.File]::Copy((Join-Path $workspacePorts $workspaceName),(Join-Path $workspaceBuildRoot ('bin\' + $workspaceName)),$true) }
 $workspacePackage = Join-Path $OutputDirectory ('package-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $workspacePackage | Out-Null
-$workspaceFiles = @('bin/terminal-workspace.exe','bin/ports.exe','bin/ssh-sessions.exe','bin/PortsFocus.exe','bin/TerminalViews.exe','build/TerminalWorkspace.exe','build/herdr.ico','config/terminal.json','scripts/explorer.ps1','scripts/install-native.ps1','install.ps1','bootstrap.ps1','doctor.ps1','ports.ps1','sessions.ps1','sync.ps1','open.ps1','LICENSE','NOTICE')
+$workspaceFiles = @('bin/terminal-workspace.exe','bin/ports.exe','bin/ssh-sessions.exe','bin/PortsFocus.exe','bin/TerminalViews.exe','build/TerminalWorkspace.exe','build/herdr.ico','config/terminal.json','scripts/explorer.ps1','scripts/install-native.ps1','scripts/invoke-native.ps1','install.ps1','bootstrap.ps1','doctor.ps1','ports.ps1','sessions.ps1','sync.ps1','open.ps1','LICENSE','NOTICE')
 $workspaceHashes = [ordered]@{}
 foreach ($workspaceFile in $workspaceFiles) {
     $workspaceDestination = Join-Path $workspacePackage $workspaceFile
@@ -35,7 +35,7 @@ foreach ($workspaceFile in $workspaceFiles) {
 $workspaceManifest = [ordered]@{
     schema_version=1;version=$Version;platform='x86_64-pc-windows-msvc';
     dependencies=[ordered]@{
-        ports=@{version='0.7.0';url='https://github.com/brant92good/port-forward-tui/releases/download/v0.7.0/ports-x86_64-pc-windows-msvc.zip';sha256=$PortsSha256;binary_sha256=$workspaceHashes['bin/ports.exe']}
+        ports=@{version='0.7.1';url='https://github.com/brant92good/port-forward-tui/releases/download/v0.7.1/ports-x86_64-pc-windows-msvc.zip';sha256=$PortsSha256;binary_sha256=$workspaceHashes['bin/ports.exe']}
         ssh_sessions=@{version='0.6.0';url='https://github.com/brant92good/ssh-session-tui/releases/download/v0.6.0/ssh-sessions-x86_64-pc-windows-msvc.exe';sha256=$SessionsSha256}
     };files=$workspaceHashes
 }

@@ -3,13 +3,16 @@
 **Yes, in this experiment: about 78 ms, or 22%, off the median return time.**
 This measures returning to an already open tab. It does not measure opening
 the TUI, connecting to SSH, or rewriting the whole application in Rust.
-The Rust implementation is an experiment, not the installed default.
+The Rust implementation measured here was an experiment, not the installed
+default at the time. This report predates the full native 0.7.0 candidate. That
+candidate has separate [implementation checks](native-migration.md); its actual
+shortcut latency has not been measured by these experiments.
 
 ## Results
 
 Measured September 9, 2026, with tracing disabled. Each cell contains 12 real
-keypresses. The installed Python launcher and two experimental launchers all
-use the same installed C# focus helper.
+keypresses. The then-installed Python launcher and two experimental launchers all
+used the same installed C# focus helper.
 
 | Return to an existing tab | Installed Python, median (range) ms | Thin Python control, median (range) ms | Rust experiment, median (range) ms |
 | --- | ---: | ---: | ---: |
@@ -50,9 +53,9 @@ The launch sequence remains:
 
 Only the launcher is replaced. The experimental interface does **not** include
 the machine picker, automatic multi-machine context selection or opening a
-new view when none exists. Normal installations still use Python and need no
-Rust toolchain. This is evidence for a possible native return path, not a
-feature-complete replacement ready to install.
+new view when none exists. At experiment time, normal installations used Python
+and needed no Rust toolchain. This was evidence for a possible native return
+path, not qualification of a feature-complete replacement.
 
 ## Process and import microbenchmarks
 
@@ -93,17 +96,17 @@ and [unsafe Rust](https://doc.rust-lang.org/book/ch20-01-unsafe-rust.html).
 
 | Candidate | Evidence and remaining uncertainty |
 | --- | --- |
-| Native or thinner return launcher | The matched experiment saved about 78 ms versus installed Python; simplifying Python alone saved 19–30 ms. A production implementation still needs machine selection, fallback and packaging parity. |
+| Native or thinner return launcher | The matched experiment saved about 78 ms versus installed Python; simplifying Python alone saved 19–30 ms. A production implementation needed separate machine-selection, fallback and packaging qualification. |
 | Combine multi-machine context lookup with focus lookup | The earlier instrumented two-machine Herdr batch spent 183 ms mean selecting the invoking window's machine. That extra helper could matter more than changing language. This experiment deliberately used one machine and does not measure the improvement. |
 | Native-helper startup and accessibility queries | They remain in the roughly 272 ms Rust result. Earlier stage timings identify runtime startup and discovery costs, but there is no new Rust-versus-Python stage decomposition here. Caching must retain identity and foreground checks. |
 | Avoid the temporary shortcut tab | Could remove creation/disposal costs, but requires a different launch mechanism. Deleting the close wait can select the wrong tab. |
-| Fresh TUI startup | The 265 ms import measurement warrants profiling first-frame startup and deferring optional imports before considering a full rewrite. No complete Rust TUI was built or timed. |
+| Fresh TUI startup | The 265 ms import measurement warranted profiling first-frame startup and deferring optional imports. No complete Rust TUI was built or timed in this experiment. |
 | Tiny JSON reads | Their raw data is small. File-format changes are unlikely to be the first useful optimization. |
 
-The practical next step would be a native return path behind the existing UI,
-with feature parity and fallback tests. A full Rust TUI/controller rewrite
-would need to reimplement favorites, multi-server views, IPC, persistent tunnels,
-reconnection and installation. These results alone do not justify that cost.
+At that point, the next proposed step was a native return path behind the
+existing UI, with feature parity and fallback tests. A full Rust TUI/controller
+rewrite needed separate favorites, multi-server, IPC, persistent-tunnel,
+reconnection and installation work. These measurements alone did not qualify it.
 
 ## Method and checks
 
@@ -149,7 +152,7 @@ Earlier exploratory Herdr trials failed when a new view exited with
 Terminal inherited its pane/session environment. The registered test view then
 disappeared. Those failed batches are not included in the timing table.
 
-The installed launcher now removes inherited Herdr runtime identity variables
+The launcher fix made during the experiment removed inherited Herdr runtime identity variables
 **only after verifying a separate Terminal tab registration**. It preserves
 PATH, Conda settings, SSH agent settings and Herdr configuration. It does not
 enable global nested sessions. Twenty-six Terminal tests passed, including
@@ -163,9 +166,9 @@ and warm/cold caches can change process startup. Terminal/.NET versions,
 accessibility providers, display scaling and the number of windows/tabs can
 change focus lookup. None of those causes was isolated in this experiment.
 
-Managed shortcuts invoke an absolute private Python executable with `-E -s`;
-they do not activate Conda or run a PowerShell profile. Python distribution and
-base-runtime availability can still matter. The Herdr environment leak above
+The measured shortcuts invoked an absolute private Python executable with `-E -s`;
+they did not activate Conda or run a PowerShell profile. Python distribution and
+base-runtime availability could still matter. The Herdr environment leak above
 also shows why ignoring Python variables alone is insufficient. SSH/VPN/server
 latency affects new connections and reconnection, not returning to an already
 open local tab. No cold-start bound, cross-machine distribution, cross-window
