@@ -1,6 +1,6 @@
 param(
     [string]$InstallDir = '', [string]$Version = '0.7.0',
-    [string]$Bundle = '', [string]$Sha256 = '',
+    [string]$Bundle = '', [string]$Sha256 = '', [string]$LegacyInstallDir = '',
     [switch]$NoConfigure, [switch]$NoShortcuts, [switch]$SourceCheckout,
     [switch]$ExplorerPowerShell
 )
@@ -29,6 +29,24 @@ function Get-WorkspaceDownload([string]$Source,[string]$Destination) {
         Invoke-WebRequest -UseBasicParsing -Uri $Source -OutFile $Destination
     } elseif (Test-Path -LiteralPath $Source -PathType Leaf) { [IO.File]::Copy([IO.Path]::GetFullPath($Source),$Destination) }
     else { throw 'Bundle must be an HTTPS URL or an existing local file.' }
+}
+function Assert-WorkspaceOrdinaryPath([string]$Path) {
+    # Legacy metadata must not redirect reads through a junction or symlink.
+    $workspaceInspect = [IO.Path]::GetFullPath($Path)
+    while ($workspaceInspect) {
+        if (Test-Path -LiteralPath $workspaceInspect) {
+            $workspaceInfo = Get-Item -LiteralPath $workspaceInspect -Force
+            if (($workspaceInfo.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Legacy installation paths must not contain junctions or symbolic links.' }
+        }
+        $workspaceParent = [IO.Directory]::GetParent($workspaceInspect)
+        $workspaceInspect = if ($workspaceParent) { $workspaceParent.FullName } else { $null }
+    }
+}
+function Read-WorkspaceLegacyFile([string]$Path) {
+    Assert-WorkspaceOrdinaryPath $Path
+    $workspaceInfo = Get-Item -LiteralPath $Path -Force
+    if ($workspaceInfo.PSIsContainer -or $workspaceInfo.Length -gt 2097152) { throw 'Invalid legacy settings file.' }
+    return ,([IO.File]::ReadAllBytes($Path))
 }
 $workspaceTempParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\')
 $workspaceStage = Join-Path $workspaceTempParent ('terminal-workspace-' + [Guid]::NewGuid().ToString('N'))
@@ -69,6 +87,48 @@ try {
         $workspaceResult = & (Join-Path $workspaceExtract ('bin\' + $workspaceApp[0] + '.exe')) --version
         if ($LASTEXITCODE -ne 0 -or ($workspaceResult -join "`n") -notmatch ('(^|\s)' + [regex]::Escape($workspaceApp[1]) + '(\s|$)')) { throw "The bundled $($workspaceApp[0]) executable did not pass its version check." }
     }
+    $workspaceMigration = New-Object Collections.Generic.List[object]
+    # Read only the exact layout created by the previous public bootstrap. A
+    # configured native installation always wins over a discovered old copy.
+    if (-not (Test-Path -LiteralPath (Join-Path $InstallDir '.machine.json'))) {
+        $workspaceExplicitLegacy = -not [string]::IsNullOrEmpty($LegacyInstallDir)
+        if (-not $LegacyInstallDir) { $LegacyInstallDir = Join-Path $env:LOCALAPPDATA 'TerminalWorkspace\install' }
+        $LegacyInstallDir = [IO.Path]::GetFullPath($LegacyInstallDir)
+        $workspaceLegacyCurrent = Join-Path $LegacyInstallDir 'current.json'
+        if ($workspaceExplicitLegacy -or (Test-Path -LiteralPath $workspaceLegacyCurrent)) {
+            $workspaceLegacyMarker = Join-Path $LegacyInstallDir '.workspace-installer'
+            $workspaceMarkerBytes = Read-WorkspaceLegacyFile $workspaceLegacyMarker
+            if ([Text.Encoding]::UTF8.GetString($workspaceMarkerBytes).Trim() -ne 'terminal-workspace') { throw 'Legacy directory is not owned by the previous Terminal Workspace bootstrap.' }
+            $workspaceCurrentBytes = Read-WorkspaceLegacyFile $workspaceLegacyCurrent
+            $workspaceCurrent = [Text.Encoding]::UTF8.GetString($workspaceCurrentBytes).TrimStart([char]0xfeff) | ConvertFrom-Json
+            if ($workspaceCurrent.commit -isnot [string] -or $workspaceCurrent.commit -notmatch '^[a-f0-9]{40}$' -or $workspaceCurrent.workspace -isnot [string]) { throw 'Legacy current.json has an invalid workspace revision.' }
+            $workspaceLegacySource = Join-Path $LegacyInstallDir ('downloads\terminal-workspace-' + $workspaceCurrent.commit)
+            if (-not [IO.Path]::GetFullPath($workspaceCurrent.workspace).Equals([IO.Path]::GetFullPath($workspaceLegacySource),[StringComparison]::OrdinalIgnoreCase)) { throw 'Legacy current.json points outside its recorded source download.' }
+            $workspaceDone = Read-WorkspaceLegacyFile (Join-Path $workspaceLegacySource '.download-complete')
+            if ([Text.Encoding]::UTF8.GetString($workspaceDone).Trim() -ne $workspaceCurrent.commit) { throw 'Legacy source download is incomplete.' }
+            $workspaceLegacyPreferences = Join-Path $workspaceLegacySource '.machine.json'
+            if (-not (Test-Path -LiteralPath $workspaceLegacyPreferences)) { throw 'Legacy installation has no saved preferences to migrate.' }
+            $workspaceMigrationInput = Join-Path $workspaceStage 'migration-input'
+            New-Item -ItemType Directory -Path (Join-Path $workspaceMigrationInput 'config') -Force | Out-Null
+            $workspacePreferenceBytes = Read-WorkspaceLegacyFile $workspaceLegacyPreferences
+            [IO.File]::WriteAllBytes((Join-Path $workspaceMigrationInput '.machine.json'),$workspacePreferenceBytes)
+            $workspaceSharedSource = Join-Path $workspaceLegacySource 'config\terminal.json'
+            $workspaceSharedBytes = if (Test-Path -LiteralPath $workspaceSharedSource) { Read-WorkspaceLegacyFile $workspaceSharedSource } else { [IO.File]::ReadAllBytes((Join-Path $workspaceExtract 'config\terminal.json')) }
+            # Preserve a customized native shared file if the destination has one.
+            $workspaceSharedDestination = Join-Path $InstallDir 'config\terminal.json'
+            $workspaceEffectiveShared = if (Test-Path -LiteralPath $workspaceSharedDestination) { [IO.File]::ReadAllBytes($workspaceSharedDestination) } else { $workspaceSharedBytes }
+            [IO.File]::WriteAllBytes((Join-Path $workspaceMigrationInput 'config\terminal.json'),$workspaceEffectiveShared)
+            $workspaceValidation = & (Join-Path $workspaceExtract 'bin\terminal-workspace.exe') configure --root $workspaceMigrationInput --settings (Join-Path $workspaceStage 'empty-settings.json') --dry-run --json
+            if ($LASTEXITCODE -ne 0) { throw ('Legacy preferences could not be validated. Originals were preserved. ' + ($workspaceValidation -join "`n")) }
+            $workspaceBackup = 'migration\legacy-' + [Guid]::NewGuid().ToString('N')
+            $workspaceMigration.Add(@{path='.machine.json';bytes=$workspacePreferenceBytes})
+            if (-not (Test-Path -LiteralPath $workspaceSharedDestination)) { $workspaceMigration.Add(@{path='config\terminal.json';bytes=$workspaceSharedBytes}) }
+            $workspaceMigration.Add(@{path=($workspaceBackup + '\current.json');bytes=$workspaceCurrentBytes})
+            $workspaceMigration.Add(@{path=($workspaceBackup + '\.machine.json');bytes=$workspacePreferenceBytes})
+            $workspaceMigration.Add(@{path=($workspaceBackup + '\terminal.json');bytes=$workspaceSharedBytes})
+            $workspaceMigration.Add(@{path=($workspaceBackup + '\migration.json');bytes=[Text.Encoding]::UTF8.GetBytes((@{schema_version=1;source=$workspaceLegacySource;commit=$workspaceCurrent.commit;version=$Version} | ConvertTo-Json))})
+        }
+    }
     # All downloads, hashes and launches passed before changing destination files.
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
     $workspaceTransaction = [Guid]::NewGuid().ToString('N')
@@ -87,6 +147,16 @@ try {
             }
             $workspaceReplaced.Add(@{path=$workspaceDestination;previous=$workspacePrevious})
             [IO.File]::Copy((Join-Path $workspaceExtract $workspaceName),$workspaceDestination)
+        }
+        foreach ($workspaceItem in $workspaceMigration) {
+            $workspaceDestination = Join-Path $InstallDir $workspaceItem.path
+            New-Item -ItemType Directory -Path (Split-Path $workspaceDestination -Parent) -Force | Out-Null
+            # The package config may have been copied above; its transaction entry
+            # already restores any original during rollback.
+            if (-not @($workspaceReplaced | Where-Object { $_.path -eq $workspaceDestination }).Count) {
+                $workspaceReplaced.Add(@{path=$workspaceDestination;previous=$null})
+            }
+            [IO.File]::WriteAllBytes($workspaceDestination,$workspaceItem.bytes)
         }
         [IO.File]::Copy((Join-Path $workspaceExtract 'release.json'),(Join-Path $InstallDir 'release.json'),$true)
         [IO.File]::WriteAllText($workspaceMarker,$workspaceMarkerValue)

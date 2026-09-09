@@ -1,4 +1,8 @@
-"""Download and prepare a source bundle without changing the desktop setup."""
+"""Historical Python/source bootstrap check (pre-0.7 only).
+
+The native installer is tested by tests/native_install.rs with an actual ZIP.
+Do not run this old harness against the native bootstrap interface.
+"""
 import argparse
 import json
 import os

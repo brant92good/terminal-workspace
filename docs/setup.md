@@ -38,6 +38,15 @@ same command to update. Existing `.machine.json`, shared appearance configuratio
 and unrelated files remain. Replaced executables are retained with a
 `.previous-...` suffix for rollback and running sessions.
 
+Upgrading the older public source-bundle install carries over its saved machine
+preferences and shared appearance file automatically from
+`%LOCALAPPDATA%\TerminalWorkspace\install`. The installer checks the old ownership
+marker and recorded source revision first. Originals and `current.json` stay in
+place; exact-byte backups are saved under the new installation's `migration`
+directory. An existing native `.machine.json` always takes precedence. For a
+custom old location, pass `-LegacyInstallDir 'C:\Tools\Old Workspace'` to the
+downloaded bootstrap. It does not search arbitrary folders or modify checkouts.
+
 To inspect or pass options, download [bootstrap.ps1](../bootstrap.ps1), then:
 
 ```powershell

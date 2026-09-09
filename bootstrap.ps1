@@ -1,5 +1,6 @@
-param([string]$InstallDir = '', [string]$Version = '0.7.0', [switch]$NoConfigure, [switch]$NoShortcuts, [switch]$ExplorerPowerShell)
+param([string]$InstallDir = '', [string]$Version = '0.7.0', [string]$LegacyInstallDir = '', [switch]$NoConfigure, [switch]$NoShortcuts, [switch]$ExplorerPowerShell)
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$workspaceInstaller = Invoke-RestMethod 'https://raw.githubusercontent.com/brant92good/terminal-workspace/main/scripts/install-native.ps1'
+if ($Version -notmatch '^\d+\.\d+\.\d+(-[A-Za-z0-9.-]+)?$') { throw 'Invalid release version.' }
+$workspaceInstaller = Invoke-RestMethod "https://raw.githubusercontent.com/brant92good/terminal-workspace/v$Version/scripts/install-native.ps1"
 & ([scriptblock]::Create($workspaceInstaller)) @PSBoundParameters

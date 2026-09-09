@@ -168,6 +168,7 @@ fn configure(root: &std::path::Path, options: Configure) -> Result<Value> {
     preferences.apply_default = options.session_picker || options.no_session_picker;
     if (preferences.local_herdr || preferences.remote_client == "herdr")
         && !std::path::Path::new(&preferences.herdr).is_file()
+        && !options.dry_run
     {
         bail!("Install Herdr first or pass --herdr PATH");
     }

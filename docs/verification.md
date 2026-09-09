@@ -5,11 +5,12 @@
 Twelve native parent checks passed locally on Windows: ten settings/launch
 contract checks, JSON CLI errors and the read-only Explorer plan. Clippy passed with
 warnings denied. Precompiled Windows helpers built in an isolated artifact
-directory. An additional actual-ZIP installer test passed against a locally built
+directory. Two additional actual-ZIP installer tests passed against a locally built
 candidate using `WORKSPACE_TEST_BUNDLE`, as documented in [reference](reference.md).
-It covers fresh/update/integrity/ownership behavior, saved settings and machine
-selection, and writes Terminal settings only in a temporary fixture. It stays
-ignored in ordinary test runs because the actual ZIP must be supplied explicitly.
+They cover fresh/update/integrity/ownership behavior, saved settings, machine
+selection and validated legacy bootstrap migration. They write Terminal settings
+only in a temporary fixture and stay ignored in ordinary test runs because the
+actual ZIP must be supplied explicitly.
 
 No native desktop or shortcut latency claim follows from these checks. Historical
 sections below name earlier versions. Actual release-download, installation and

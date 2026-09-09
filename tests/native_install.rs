@@ -12,6 +12,7 @@ fn run(script: &Path, args: &[String]) -> Output {
     use std::os::windows::process::CommandExt;
     let powershell = PathBuf::from(std::env::var_os("SystemRoot").unwrap())
         .join("System32/WindowsPowerShell/v1.0/powershell.exe");
+    let local_data = tempfile::tempdir().unwrap();
     Command::new(powershell)
         .args([
             "-NoProfile",
@@ -26,9 +27,95 @@ fn run(script: &Path, args: &[String]) -> Output {
         .env("PYTHONPATH", "Z:/no-packages-here")
         .env("CONDA_PREFIX", "Z:/no-conda-here")
         .env("VIRTUAL_ENV", "Z:/no-venv-here")
+        .env("LOCALAPPDATA", local_data.path())
         .creation_flags(0x08000000)
         .output()
         .unwrap()
+}
+
+#[test]
+#[ignore = "Set WORKSPACE_TEST_BUNDLE to the actual release ZIP and run explicitly"]
+fn legacy_owned_bootstrap_migrates_preferences_and_preserves_originals() {
+    let archive = PathBuf::from(
+        std::env::var_os("WORKSPACE_TEST_BUNDLE").expect("WORKSPACE_TEST_BUNDLE is required"),
+    );
+    let checksum = format!("{:x}", Sha256::digest(fs::read(&archive).unwrap()));
+    let script = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("scripts/install-native.ps1");
+    let sandbox = tempfile::tempdir().unwrap();
+    let legacy = sandbox.path().join("old bootstrap 測試");
+    let commit = "a".repeat(40);
+    let source = legacy
+        .join("downloads")
+        .join(format!("terminal-workspace-{commit}"));
+    fs::create_dir_all(source.join("config")).unwrap();
+    fs::write(legacy.join(".workspace-installer"), b"terminal-workspace").unwrap();
+    fs::write(source.join(".download-complete"), &commit).unwrap();
+    let current = serde_json::to_vec(&json!({"workspace":source,"commit":commit})).unwrap();
+    fs::write(legacy.join("current.json"), &current).unwrap();
+    let preferences = b"{ /* keep exact bytes */ \"session_picker\":true,\"integration_only\":true,\"remote_client\":\"herdr\",\"herdr\":\"Z:/old-herdr.exe\",\"custom\":\"keep\",\"shortcuts\":{\"newTab\":\"ctrl+n\"}}";
+    fs::write(source.join(".machine.json"), preferences).unwrap();
+    let mut shared: Value = serde_json::from_str(include_str!("../config/terminal.json")).unwrap();
+    shared["terminal"]["theme"] = json!("light");
+    let shared = serde_json::to_vec(&shared).unwrap();
+    fs::write(source.join("config/terminal.json"), &shared).unwrap();
+    let destination = sandbox.path().join("new native O'Brien");
+    let mut arguments = vec![
+        "-InstallDir".into(),
+        destination.to_string_lossy().into_owned(),
+        "-Bundle".into(),
+        archive.to_string_lossy().into_owned(),
+        "-Sha256".into(),
+        checksum,
+        "-NoConfigure".into(),
+        "-NoShortcuts".into(),
+        "-LegacyInstallDir".into(),
+        legacy.to_string_lossy().into_owned(),
+    ];
+    check(run(&script, &arguments));
+    assert_eq!(
+        fs::read(destination.join(".machine.json")).unwrap(),
+        preferences
+    );
+    assert_eq!(
+        fs::read(destination.join("config/terminal.json")).unwrap(),
+        shared
+    );
+    assert_eq!(fs::read(legacy.join("current.json")).unwrap(), current);
+    assert_eq!(fs::read(source.join(".machine.json")).unwrap(), preferences);
+    let backup = fs::read_dir(destination.join("migration"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    assert_eq!(fs::read(backup.join("current.json")).unwrap(), current);
+    assert_eq!(fs::read(backup.join(".machine.json")).unwrap(), preferences);
+    let changed =
+        b"{\"integration_only\":true,\"remote_client\":\"ssh\",\"custom\":\"new native settings\"}";
+    fs::write(destination.join(".machine.json"), changed).unwrap();
+    check(run(&script, &arguments));
+    assert_eq!(
+        fs::read(destination.join(".machine.json")).unwrap(),
+        changed
+    );
+    // Recorded paths cannot redirect import to another checkout, even one we own.
+    fs::write(
+        legacy.join("current.json"),
+        serde_json::to_vec(&json!({"workspace":sandbox.path(),"commit":commit})).unwrap(),
+    )
+    .unwrap();
+    let rejected = sandbox.path().join("bad destination");
+    arguments[1] = rejected.to_string_lossy().into_owned();
+    assert!(!run(&script, &arguments).status.success());
+    assert!(!rejected.exists());
+    fs::write(legacy.join("current.json"), &current).unwrap();
+    fs::write(source.join(".machine.json"), b"{\"shortcuts\":42}").unwrap();
+    assert!(!run(&script, &arguments).status.success());
+    assert!(!rejected.exists());
+    assert_eq!(
+        fs::read(source.join(".machine.json")).unwrap(),
+        b"{\"shortcuts\":42}"
+    );
 }
 fn check(output: Output) {
     assert!(

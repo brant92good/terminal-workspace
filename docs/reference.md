@@ -48,12 +48,20 @@ cargo clippy --locked --all-targets -- -D warnings
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build_native.ps1
 ```
 
-Build output defaults to `artifacts/native-build`. The actual-bundle test is
+Build output defaults to `artifacts/native-build`. The actual-bundle tests are
 opt-in and writes only an owned temporary directory:
 
 ```powershell
 $env:WORKSPACE_TEST_BUNDLE = 'C:\Downloads\terminal-workspace-x86_64-pc-windows-msvc.zip'
 cargo test --locked --test native_install -- --ignored
+```
+
+These cover fresh/update integrity plus migration from the exact legacy public
+bootstrap layout. After publishing a prerelease, check the real versioned HTTPS
+bootstrap, installer and release downloads without touching the desktop:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-native-release.ps1 -Version 0.7.0
 ```
 
 Older Python scripts and measurements remain reference/compatibility material;
