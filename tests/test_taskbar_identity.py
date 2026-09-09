@@ -19,6 +19,9 @@ class TaskbarIdentityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='workspace-taskbar-') as name:
             folder = Path(name) / 'space 測試'
             folder.mkdir()
+            # Hosted Windows TEMP uses RUNNER~1. Pass the resolved long path to
+            # WScript.Shell, as the source installer's PSScriptRoot does.
+            folder = folder.resolve()
             executable = folder / 'taskbar-check.exe'
             shortcut = folder / 'Workspace.lnk'
             references = ['System.Windows.Forms.dll', 'System.Core.dll',
