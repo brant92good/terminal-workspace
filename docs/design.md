@@ -10,7 +10,7 @@ Port Forward TUI can be used without Herdr or this setup. It owns favorites,
 the TUI, connection commands and the background SSH processes. This repository
 owns the workspace button, remote/local tab registration, Terminal profiles,
 return shortcuts and settings export. Ordinary SSH is the public default;
-Herdr and a third local Herdr tab are optional.
+Herdr, a local Herdr tab, and an SFTP companion tab are optional.
 
 The three leaf apps are Git submodules: separate repositories whose exact commits
 are recorded here. SSH Sessions owns machine routes and its X handoff to the
@@ -45,7 +45,9 @@ Installation downloads compiled apps and creates Terminal integration without re
 a host. A fresh public installation does not require Herdr.
 
 The workspace picker opens a remote session and Ports for the same machine.
-An optional third tab opens local Herdr. Return shortcuts resolve the invoking
+Optional tabs add local Herdr then SFTP, retaining Remote selection. SFTP receives
+the same frozen alias/config/port; its separate menu entry can select a machine
+through Ports. Return shortcuts resolve the invoking
 Terminal window by a unique title marker, then use its last-focused registered
 machine view. Candidate tabs are filtered by machine before applying the saved
 window scope and most-recent-focus ordering. A window without a known machine

@@ -1,4 +1,4 @@
-param([string]$Version = '0.8.0')
+param([string]$Version = '0.9.0')
 # Developer/release qualification only. All writes stay in this owned fixture.
 $ErrorActionPreference = 'Stop'
 if ($Version -notmatch '^\d+\.\d+\.\d+(-[A-Za-z0-9.-]+)?$') { throw 'Invalid release version.' }
@@ -20,13 +20,15 @@ try {
     if ($LASTEXITCODE -ne 0 -or $workspaceResult -ne "terminal-workspace $Version") { throw 'Installed version differs from the requested release.' }
     $workspaceSettings = Join-Path $workspaceFixture 'terminal-settings.json'
     [IO.File]::WriteAllText($workspaceSettings,'{"theme":"light","profiles":{"list":[]}}')
-    $workspaceConfigured = & $workspaceBinary configure --root $workspaceDestination --settings $workspaceSettings --integration-only --session-picker --new-tab-shortcut ctrl+n --json
+    $workspaceConfigured = & $workspaceBinary configure --root $workspaceDestination --settings $workspaceSettings --integration-only --session-picker --workspace-files --new-tab-shortcut ctrl+n --json
     if ($LASTEXITCODE -ne 0 -or ($workspaceConfigured | ConvertFrom-Json).ok -ne $true) { throw 'Installed configure command failed in the fixture.' }
     $workspaceBefore = [IO.File]::ReadAllText((Join-Path $workspaceDestination '.machine.json'))
     & $workspaceBootstrap -Version $Version -InstallDir $workspaceDestination -NoConfigure -NoShortcuts
     if ([IO.File]::ReadAllText((Join-Path $workspaceDestination '.machine.json')) -cne $workspaceBefore) { throw 'Update changed personal preferences.' }
     $workspaceRendered = [IO.File]::ReadAllText($workspaceSettings) | ConvertFrom-Json
     if ($workspaceRendered.defaultProfile -ne '{2ab64c44-ef5c-48d2-8f4d-678473aae748}' -or $workspaceRendered.theme -ne 'light') { throw 'New-tab or existing-theme contract failed.' }
+    $workspaceSftp = @($workspaceRendered.profiles.list | Where-Object { $_.name -eq 'SFTP' -and $_.hidden -eq $false })
+    if ($workspaceSftp.Count -ne 1 -or ($workspaceBefore | ConvertFrom-Json).workspace_files -ne $true) { throw 'SFTP profile/automatic companion choice is missing.' }
     if ([IO.File]::ReadAllText($workspaceSettings) -match 'python(\.exe)?') { throw 'A profile still uses Python.' }
     [PSCustomObject]@{ok=$true;version=$Version;checks=@('real HTTPS bootstrap','versioned installer','released ZIP/checksums','fresh install','update','saved preferences','fixture configure');desktop_changed=$false} | ConvertTo-Json -Depth 4
 } finally {

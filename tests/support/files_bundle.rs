@@ -123,6 +123,76 @@ pub fn verify_installed(destination: &Path, sandbox: &Path) {
         ])
     );
     assert_eq!(fs::read(&catalog).unwrap(), before);
+    verify_workspace_files(destination, sandbox, &config);
+}
+
+fn verify_workspace_files(destination: &Path, sandbox: &Path, config: &Path) {
+    let data = sandbox.join("workspace-files-data");
+    let added = Command::new(destination.join("bin/ports.exe"))
+        .arg("--data-dir")
+        .arg(&data)
+        .args([
+            "machines",
+            "add",
+            "fixture-alias",
+            "--name",
+            "Workspace demo",
+            "--ssh-port",
+            "2222",
+            "--config",
+        ])
+        .arg(config)
+        .arg("--json")
+        .output()
+        .unwrap();
+    assert!(
+        added.status.success(),
+        "{}",
+        String::from_utf8_lossy(&added.stdout)
+    );
+    let added: Value = serde_json::from_slice(&added.stdout).unwrap();
+    let machine = added["machine"]["id"].as_str().unwrap();
+    let forwards = data.join("machines").join(machine).join("forwards.json");
+    let before = fs::read(&forwards).unwrap();
+    let preview = Command::new(destination.join("bin/terminal-workspace.exe"))
+        .arg("--root")
+        .arg(destination)
+        .args(["files", "--machine", machine, "--data-dir"])
+        .arg(&data)
+        .arg("--json")
+        .output()
+        .unwrap();
+    assert!(
+        preview.status.success(),
+        "{}",
+        String::from_utf8_lossy(&preview.stdout)
+    );
+    let preview: Value = serde_json::from_slice(&preview.stdout).unwrap();
+    let arguments = preview["arguments"].as_array().unwrap();
+    assert_eq!(
+        preview["executable"],
+        json!(destination.join("bin/ssh-files.exe"))
+    );
+    assert!(arguments.contains(&json!("--host=fixture-alias")));
+    assert!(arguments.contains(&json!("--port=2222")));
+    assert!(arguments.contains(&json!("--label=Workspace demo")));
+    let config_arg = arguments
+        .iter()
+        .filter_map(Value::as_str)
+        .find_map(|v| v.strip_prefix("--config="))
+        .unwrap();
+    assert_eq!(
+        fs::canonicalize(config_arg).unwrap(),
+        fs::canonicalize(config).unwrap()
+    );
+    assert_eq!(fs::read(forwards).unwrap(), before);
+    assert!(
+        !data
+            .join("machines")
+            .join(machine)
+            .join("endpoint.json")
+            .exists()
+    );
 }
 
 pub fn reject_incomplete_update(
