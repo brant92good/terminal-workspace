@@ -91,8 +91,16 @@ pub fn verify_installed(destination: &Path, sandbox: &Path) {
     let launch: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(launch["machine_id"], machine);
     assert_eq!(launch["route_id"], route);
+    // Import resolves existing config paths. Hosted TEMP uses RUNNER~1, while
+    // the saved config uses runneradmin; both must name this exact owned file.
     assert_eq!(
-        launch["argv"],
+        fs::canonicalize(launch["argv"][6].as_str().unwrap()).unwrap(),
+        fs::canonicalize(&config).unwrap()
+    );
+    let mut arguments = launch["argv"].clone();
+    arguments[6] = json!(config);
+    assert_eq!(
+        arguments,
         json!([
             destination.join("bin").join("ssh-files.exe"),
             "--host",
