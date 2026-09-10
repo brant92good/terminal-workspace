@@ -138,7 +138,9 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 Add-Type -AssemblyName System.IO.Compression
 $zip=[IO.Compression.ZipFile]::Open($Archive,[IO.Compression.ZipArchiveMode]::Update)
 try {
-  $entry=$zip.GetEntry('bin/ssh-files.exe')
+  $matches=@($zip.Entries | Where-Object { $_.FullName.Replace('\','/') -ceq 'bin/ssh-files.exe' })
+  if($matches.Count -ne 1) { throw 'Expected exactly one Files fixture entry' }
+  $entry=$matches[0]
   if($Mode -eq 'tamper') {
     $stream=$entry.Open(); try { $stream.SetLength(0); $stream.WriteByte(0) } finally { $stream.Dispose() }
   } else {
