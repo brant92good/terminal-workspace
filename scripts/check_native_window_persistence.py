@@ -220,8 +220,13 @@ if ($tabs.Count -ne 1 -or $tabs[0].runtime_id -cne $Runtime -or $tabs[0].title -
                                 "machines", "add", "window-fixture.invalid", "--json"],
                                capture_output=True, timeout=10, creationflags=NO_WINDOW, check=True)
         machine = json.loads(added.stdout)["machine"]
-        directory = Path(machine["directory"])
+        # Only `machines pick` exposes a directory in its public JSON result.
+        # This fresh isolated catalog stores added machines under their IDs.
+        assert len(machine["id"]) == 32 and all(c in "0123456789abcdef" for c in machine["id"])
+        directory = folder / "data" / "machines" / machine["id"]
+        assert (directory / "forwards.json").is_file(), "Fixture settings were not created"
         assert directory.resolve().is_relative_to(folder), "Fixture machine escaped its owned root"
+        original_forwards = json.loads((directory / "forwards.json").read_text(encoding="utf-8"))["forwards"]
         assert not (directory / "endpoint.json").exists(), "No controller may exist before Terminal"
         before = state()
         evidence["previous_foreground"] = before["foreground"]
@@ -248,10 +253,11 @@ if ($tabs.Count -ne 1 -or $tabs[0].runtime_id -cne $Runtime -or $tabs[0].title -
         evidence["runtime_id"] = runtime
         evidence["measured_size"] = [width, height]
         assert not user32.IsZoomed(window) and 100 < width <= 1100 and 100 < height <= 650, "Window is not small; aborting before test action"
-        assert user32.GetForegroundWindow() == window, "Another app has focus; no activation attempted"
+        # This fixture sends no keyboard input: its save is gated by a file.
+        # Keep the user's current app focused instead of requiring activation.
+        evidence["foreground_during_test"] = user32.GetForegroundWindow()
         deadline = time.monotonic() + 10
         while not (folder / "worker-start.json").exists() and time.monotonic() < deadline:
-            assert user32.GetForegroundWindow() == window, "Another app has focus; no activation attempted"
             time.sleep(.05)
         worker_identity = json.loads((folder / "worker-start.json").read_text(encoding="utf-8"))
         worker_witness = ProcessWitness(worker_identity, python_image)
@@ -259,7 +265,6 @@ if ($tabs.Count -ne 1 -or $tabs[0].runtime_id -cne $Runtime -or $tabs[0].title -
         (folder / "go").write_text("go", encoding="ascii")
         deadline = time.monotonic() + 20
         while not (folder / "result.json").exists() and time.monotonic() < deadline:
-            assert user32.GetForegroundWindow() == window, "Another app has focus; test stopped"
             time.sleep(.1)
         result = json.loads((folder / "result.json").read_text(encoding="utf-8"))
         evidence["save"] = result
@@ -267,15 +272,19 @@ if ($tabs.Count -ne 1 -or $tabs[0].runtime_id -cne $Runtime -or $tabs[0].title -
         child_witness = ProcessWitness(child_identity, executable)
         assert child_witness.wait(0), "Captured first-save CLI must already have exited"
         assert result.get("code") == 0 and "error" not in result, result
-        assert json.loads(result["stdout"])["ok"] is True
+        saved = json.loads(result["stdout"])
+        assert saved["ok"] is True
         first = rpc(directory, "status")
-        assert len(first["forwards"]) == 1 and not first["running"], first
+        expected = original_forwards + [{"id": saved["id"], "local_port": 18763,
+                                         "remote_port": 18763, "name": "Owned OFF fixture"}]
+        assert first["forwards"] == expected and not first["running"], first
         assert all(value == "OFF" for value in first["states"].values()), first
         evidence["controller_pid_before_close"] = first["pid"]
         close_owned()
         after = rpc(directory, "status")
         assert after["pid"] == first["pid"], "Original controller did not survive window closure"
         evidence["controller_pid_after_close"] = after["pid"]
+        evidence["foreground_after_close"] = user32.GetForegroundWindow()
         evidence["ok"] = True
     finally:
         (folder / "STOP").write_text("stop", encoding="ascii")
