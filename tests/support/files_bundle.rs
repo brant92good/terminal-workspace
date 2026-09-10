@@ -171,7 +171,7 @@ fn verify_workspace_files(destination: &Path, sandbox: &Path, config: &Path) {
     let arguments = preview["arguments"].as_array().unwrap();
     assert_eq!(
         preview["executable"],
-        json!(destination.join("bin/ssh-files.exe"))
+        json!(destination.join("bin").join("ssh-files.exe"))
     );
     assert!(arguments.contains(&json!("--host=fixture-alias")));
     assert!(arguments.contains(&json!("--port=2222")));
