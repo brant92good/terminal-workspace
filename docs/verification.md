@@ -1,8 +1,9 @@
 # Verification
 
-## Native 0.7.2 candidate - September 10, 2026
+## Native 0.7.2 release - September 10, 2026
 
-The candidate records Ports source `23e3cef` and SSH Sessions source `54a7815`,
+[Release 0.7.2](https://github.com/brant92good/terminal-workspace/releases/tag/v0.7.2)
+is built from `b79a408`, recording Ports source `23e3cef` and SSH Sessions source `54a7815`,
 packaging the official Ports 0.7.3 and SSH Sessions 0.6.2 Windows releases.
 Both leaves passed their independent release and actual HTTPS installation gates.
 SSH 0.6.2 clears the visible session display at picker handoffs, preserves shell
@@ -10,10 +11,15 @@ history files, and fixes the compatibility picker's Ctrl+C wait race. Its
 [release qualification](https://github.com/brant92good/ssh-session-tui/actions/runs/34448027497)
 passed all eleven jobs, including five actual HTTPS installer jobs.
 
-The local package passed fourteen ordinary parent tests, Clippy, three actual-ZIP
-checks and three captured first-save/restart checks for the executable and both
-PowerShell wrappers. Hosted exact-pin packaging and this parent version's actual
-HTTPS installer checks remain required before stable promotion.
+The local package and [hosted exact-pin run](https://github.com/brant92good/terminal-workspace/actions/runs/34459179581)
+passed fourteen ordinary parent tests, Clippy, three actual-ZIP checks and three
+captured first-save/restart checks for the executable and both PowerShell wrappers.
+The published ZIP SHA-256 is
+`af9ccc9319f6d1a4298efdd3d12b7ee57fee6922dd8e34ef8c467ec6751b66a8`.
+After prerelease publication, the actual public HTTPS bootstrap, versioned
+installer and release ZIP/checksum passed fresh installation, update, preserved
+preferences and isolated settings configuration on both Windows PowerShell 5.1
+and PowerShell 7. No local bundle override or desktop change was used.
 
 The opt-in [three-tab fixture](../scripts/check_native_workspace.py) passed an
 independent source review and two headless protocol regressions. It has not been

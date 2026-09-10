@@ -1,10 +1,10 @@
-# Native integration candidate
+# Native integration
 
 Terminal Workspace 0.7.2 packages the released Ports 0.7.3 and SSH Sessions 0.6.2
 binaries. The SSH update clears visible output between interactive sessions and
 keeps the compatibility picker waiting when Ctrl+C interrupts a local shell.
-Local package checks pass; the new immutable bundle awaits hosted packaging and
-actual public HTTPS qualification. Earlier 0.7.0 and 0.7.1 assets stay unchanged.
+Local and hosted package checks pass, as does actual public HTTPS installation
+on PowerShell 5.1 and 7. Earlier 0.7.0 and 0.7.1 assets stay unchanged.
 The owned real-Windows-Terminal first-save and window-close check passed against
 0.7.1 with the same Ports release; three-tab focus and pin clicks remain separate.
 
@@ -47,11 +47,11 @@ descendant remains alive. The three status-only call sites use explicit argument
 and a shared Windows handle-list creator, inheriting the developer's environment
 and working directory. Interactive machine selection still captures its JSON
 output with console input/stderr. Clippy passes with warnings denied.
-The [hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34444342819)
+The [hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34459179581)
 passes with the recorded leaf source pins and packages the exact released Windows
 binaries and helpers. The versioned public HTTPS bootstrap, fresh installation
 and update also passed in isolated fixtures on PowerShell 5.1 and 7.
-See [verification](verification.md) for the tested archive and unresolved gate.
+See [verification](verification.md) for the tested archive and remaining limits.
 Native desktop focus and shortcut timings remain separate qualifications.
 
 Three additional actual-ZIP tests pass against the published package:

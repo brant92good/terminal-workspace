@@ -3,7 +3,7 @@
 [README](../README.md) · [Daily use](daily-use.md)
 
 These instructions describe the compiled distribution. Check the
-[prerelease status and remaining release gates](native-migration.md) before installing.
+[release status and remaining limits](native-migration.md) before installing.
 
 ## Prerequisites
 
