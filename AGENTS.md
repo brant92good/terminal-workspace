@@ -1,7 +1,7 @@
 # Working on Terminal Workspace
 
 Read README.md and docs/native-migration.md before changing shipping paths.
-This is the Windows integration layer around two independent public leaf apps.
+This is the Windows integration layer around three independent public leaf apps.
 An optional private parent can pin this repository; public installs never need it.
 
 ## Behavior contracts
@@ -33,12 +33,18 @@ An optional private parent can pin this repository; public installs never need i
 | `scripts/WorkspaceLauncher.cs`, `TaskbarIdentity.cs`, `WorkspaceShortcut.cs` | Explicit workspace/taskbar identity |
 | `apps/port-forward-tui` | Separate repo: tunnels, TUI, shared Windows view/focus API |
 | `apps/ssh-session-tui` | Separate repo: picker, routes, import and catalog sync |
+| `apps/ssh-files` | Separate repo: beta SFTP browser and transfer queue on a frozen SSH route |
 | `config/terminal.json` | Portable preferences |
 | ignored `.machine.json` | Device choices and paths |
 
 The two machine catalogs remain independent. The parent calls the documented
 `ports machines pick --json` interface with inherited stdin/stderr and captured
 stdout. Cancellation creates no companion tabs. Do not guess cross-catalog IDs.
+SSH Sessions owns the X action and frozen Files handoff. The parent bundles
+`ssh-files.exe` beside `ssh-sessions.exe` for adjacent discovery; Files has no
+catalog of its own. Preserve explicit route choices and no automatic fallback.
+Include each bundled leaf's license notices; SourceCheckout installs generated
+`bin/`, `build/` and `licenses/` files while retaining checked-out source/config.
 
 Read each child's AGENTS.md before editing it. Publish reviewed child versions,
 then parent pins, then the optional private pin. Never reset dirty child worktrees

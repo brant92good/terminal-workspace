@@ -4,6 +4,7 @@ bin/
 target/
 .workspace-installer
 release.json
+/licenses/
 *.previous-*
 artifacts/
 __pycache__/

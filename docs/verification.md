@@ -1,5 +1,28 @@
 # Verification
 
+## Native 0.8.0 candidate - September 10, 2026
+
+This bundle combines the released Ports 0.7.3, SSH Sessions 0.7.0 and SSH Files
+0.1.0 beta binaries. Each leaf passed its own independent source/README/assets
+and actual HTTPS installation gates. The parent adds adjacent companion packaging
+and notices, without a new transfer launcher or machine catalog.
+
+The local actual-ZIP checks pass with all four program versions and manifest
+hashes. A disposable SSH import then verifies `files --json` chooses the actual
+adjacent companion over a bad PATH candidate. The exact command preserves a
+distinct SSH alias and selected hostname, custom config, user, port, Unicode
+label, local directory and machine/route IDs. It opens neither UI nor SSH.
+Tampered Files bytes and a removed Files executable/manifest entry are rejected
+before installation writes. Existing preferences and the installed binary remain
+unchanged. SourceCheckout installs the generated Files runtime and license notices
+while retaining local source documentation, Cargo metadata and preferences.
+
+The three actual-ZIP tests also retain legacy migration, quoted/Unicode wrapper
+pipelines and real ConPTY input coverage. Clippy passes. Hosted packaging and
+this version's actual public HTTPS installation remain required before promotion.
+Files and macOS remain beta. Existing transfer evidence belongs to the Files
+leaf; these package tests make no new desktop, SSH-network or transfer claim.
+
 ## Native 0.7.2 release - September 10, 2026
 
 [Release 0.7.2](https://github.com/brant92good/terminal-workspace/releases/tag/v0.7.2)

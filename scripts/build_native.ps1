@@ -1,4 +1,4 @@
-param([switch]$SkipRust, [string]$PortsBinary = '', [string]$SessionsBinary = '', [string]$OutputDirectory = '')
+param([switch]$SkipRust, [string]$PortsBinary = '', [string]$SessionsBinary = '', [string]$FilesBinary = '', [string]$OutputDirectory = '')
 $ErrorActionPreference = 'Stop'
 $workspaceRoot = Split-Path $PSScriptRoot -Parent
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $workspaceRoot 'artifacts\native-build' }
@@ -46,3 +46,4 @@ if (-not $SkipRust) {
 }
 if ($PortsBinary) { Copy-Item -LiteralPath $PortsBinary -Destination (Join-Path $workspaceBin 'ports.exe') -Force }
 if ($SessionsBinary) { Copy-Item -LiteralPath $SessionsBinary -Destination (Join-Path $workspaceBin 'ssh-sessions.exe') -Force }
+if ($FilesBinary) { Copy-Item -LiteralPath $FilesBinary -Destination (Join-Path $workspaceBin 'ssh-files.exe') -Force }

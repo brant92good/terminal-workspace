@@ -159,9 +159,11 @@ In your own fork, `config/terminal.json` stores appearance and shortcut
 preferences. Each computer keeps paths, client choice and install mode in
 ignored `.machine.json`; the port app keeps machines in private local app data.
 The included port app is pinned to a specific version.
-SSH Sessions is a second independent public app, also pinned as a submodule.
+SSH Sessions and SSH Files are independent public apps, also pinned as submodules.
+Press X on a remote machine in SSH Sessions to browse it with the bundled Files
+beta. Files uses that selected route; it does not add a third machine catalog.
 An optional private parent stores personal values and pins this repository;
-neither public app requires that private parent.
+none of the public apps requires that private parent.
 
 ```powershell
 .\sync.ps1             # Download the saved version and apply it here

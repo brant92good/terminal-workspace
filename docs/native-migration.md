@@ -1,10 +1,10 @@
 # Native integration
 
-Terminal Workspace 0.7.2 packages the released Ports 0.7.3 and SSH Sessions 0.6.2
-binaries. The SSH update clears visible output between interactive sessions and
-keeps the compatibility picker waiting when Ctrl+C interrupts a local shell.
-Local and hosted package checks pass, as does actual public HTTPS installation
-on PowerShell 5.1 and 7. Earlier 0.7.0 and 0.7.1 assets stay unchanged.
+Terminal Workspace 0.8.0 adds the released SSH Files 0.1.0 beta beside SSH Sessions
+0.7.0 and Ports 0.7.3. SSH Sessions owns X, route selection and return to the picker;
+the parent supplies the reviewed binary and license notices. Local package checks
+pass; this new bundle still needs hosted packaging and public HTTPS qualification.
+The stable 0.7.2 release passed those gates. Earlier release assets stay unchanged.
 The owned real-Windows-Terminal first-save and window-close check passed against
 0.7.1 with the same Ports release; three-tab focus and pin clicks remain separate.
 
@@ -15,6 +15,9 @@ composition and remote/local Herdr or SSH launch. Profiles call the installed
 `ssh-sessions.exe` and `ports.exe` directly. Taskbar identity and accessibility
 helpers remain compiled C# programs using the Windows .NET Framework; no Python
 process or compiler runs during ordinary use.
+Files adds no parent launch process: SSH Sessions discovers its adjacent binary.
+The optional source-checkout installer copies generated runtimes and their
+`licenses/` notices while preserving source/configuration files.
 
 The parent uses the Ports `machines pick --json` interface. Its TUI uses
 stderr and console input while the parent captures stdout. The SSH picker keeps

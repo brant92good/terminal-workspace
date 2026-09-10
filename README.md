@@ -6,8 +6,8 @@
 
 Give Windows Terminal a searchable SSH picker, saved port forwards, and shortcuts
 that bring you back to the right machine. Run a coding agent on a server, preview
-its app on localhost, and keep the shell and tunnels within reach across tabs
-and windows.
+its app on localhost, browse its files, and keep the shell and tunnels within
+reach across tabs and windows.
 
 [![Checks](https://github.com/brant92good/terminal-workspace/actions/workflows/test.yml/badge.svg)](https://github.com/brant92good/terminal-workspace/actions/workflows/test.yml)
 [![Windows](https://img.shields.io/badge/integration-Windows-65d6be)](docs/platforms.md)
@@ -15,12 +15,12 @@ and windows.
 
 [Install](#install) · [Daily use](docs/daily-use.md) · [Standalone apps](#use-only-what-you-need) · [Setup help](docs/setup.md)
 
-![SSH Sessions: choose a server or local terminal](https://raw.githubusercontent.com/brant92good/ssh-session-tui/v0.6.2/docs/screenshots/picker.svg)
+![SSH Sessions: choose a server or local terminal](https://raw.githubusercontent.com/brant92good/ssh-session-tui/v0.7.0/docs/screenshots/picker.svg)
 
 *The included SSH Sessions picker, using example machines.*
 
-> Version 0.7.2 bundles the SSH session screen-cleanup fix. Installation and
-> captured-command checks pass; taskbar grouping remains beta.
+> Version 0.8.0 includes SSH Files. Bundle qualification is in progress;
+> Files and taskbar grouping remain beta.
 > [Verification](docs/verification.md).
 
 ## Install
@@ -28,7 +28,7 @@ and windows.
 On **Windows 10/11 x64**, with Windows Terminal, PowerShell 7 and OpenSSH Client:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.7.2/bootstrap.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.8.0/bootstrap.ps1 | iex"
 ```
 
 Setup downloads compiled apps and checks their SHA256 hashes. It needs no Python,
@@ -51,6 +51,7 @@ PowerShell. Appearance and menus stay as configured.
 | Return to this machine's saved tunnels | **Ctrl+Alt+P** |
 | Open another view | Add **Shift** to the R/P shortcut |
 | Work locally | **Ctrl+Alt+N**, or the picker's Local terminal row |
+| Browse a server's files | Select it in the SSH picker and press **X** |
 | Keep return shortcuts inside the current window | **F2** in Ports |
 
 The shortcuts apply while Windows Terminal has focus. With several windows open,
@@ -71,16 +72,34 @@ Prefer **Ctrl+N** for a new tab? Set it once with
 `./install.ps1 -SkipDependencies -NewTabShortcut ctrl+n` in the installed directory.
 [Keyboard and machine-selection details](docs/daily-use.md).
 
+## Files on the route you selected
+
+Select a server in the SSH picker and press **X**. SSH Files opens local and remote
+panes on that machine's selected route. Mark files, review their destinations,
+and start the queue while you keep browsing. Close Files to return to the picker.
+
+![SSH Files local and remote panes](https://raw.githubusercontent.com/brant92good/ssh-files/v0.1.0/docs/assets/browser.svg)
+
+*The bundled beta file manager, rendered by the app with example files.*
+
+Files uses the same SSH alias, selected address and custom config as the picker;
+it adds no address book. It requires SSH authentication without an interactive
+prompt and an already trusted host. Uploads currently need OpenSSH's SFTP hardlink
+extension. Existing destinations are preserved, and interrupted or uncertain
+transfers stay visible. [Connection requirements and transfer controls](https://github.com/brant92good/ssh-files/blob/v0.1.0/docs/usage.md).
+
 ## Use only what you need
 
 - **[SSH Sessions](https://github.com/brant92good/ssh-session-tui)** — searchable
   machines, numbered favorites, groups, SSH import and routes chosen per device.
 - **[Ports](https://github.com/brant92good/port-forward-tui)** — saved SSH forwards,
   several servers in one list, background connections and reconnect.
+- **[SSH Files](https://github.com/brant92good/ssh-files)** — beta file browsing and
+  queued SFTP transfers using your existing SSH setup.
 - **Terminal Workspace** — the Windows profiles, paired tabs, return shortcuts and
   optional local/remote [Herdr](https://herdr.dev/) integration around those apps.
 
-Both leaves have their own compiled installers for Windows, Linux and macOS
+All three leaves have their own compiled installers for Windows, Linux and macOS
 (macOS **beta**). This repo's Terminal integration is **Windows only**.
 [Platform boundaries](docs/platforms.md).
 
@@ -100,8 +119,10 @@ installs work independently; released bundles pin exact app versions and hashes.
 
 ## Evidence and limits
 
-The compiled release passes native settings and launch checks, actual-ZIP
-install/update tests, and the public HTTPS bootstrap on PowerShell 5.1 and 7.
+The candidate passes native settings and launch checks and actual-ZIP install/update
+tests, including the bundled Files handoff and rejected incomplete updates.
+The stable 0.7.2 bundle passed public HTTPS installation on PowerShell 5.1 and 7;
+0.8.0's released-download gate is still pending.
 Wrapper JSON pipelines and interactive input are tested through real pseudo
 terminals. [Verification and remaining gates](docs/verification.md).
 Historical focus/SSH/persistence checks and [timing measurements](docs/before-after.md)

@@ -1,12 +1,13 @@
 # Platform support
 
-Terminal Workspace is the Windows integration around two independent Rust apps.
+Terminal Workspace is the Windows integration around three independent Rust apps.
 Installing a leaf does not require Windows Terminal or this repository.
 
 | Component | Windows | Linux | macOS |
 | --- | --- | --- | --- |
 | [SSH Sessions](https://github.com/brant92good/ssh-session-tui) | Compiled x64 app | Compiled x64/ARM64 app | Compiled Intel/Apple Silicon app; **beta** |
 | [Ports](https://github.com/brant92good/port-forward-tui) | Compiled x64 app and focus helpers | Compiled x64/ARM64 app | Compiled Intel/Apple Silicon app; **beta** |
+| [SSH Files](https://github.com/brant92good/ssh-files) | Compiled x64 app; **beta** | Compiled x64/ARM64 app; **beta** | Compiled Intel/Apple Silicon app; **beta** |
 | Terminal Workspace | Windows Terminal profiles, shortcuts and paired tabs | No terminal adapter | No terminal adapter |
 
 The native releases are tracked in [migration status](native-migration.md).
@@ -22,6 +23,7 @@ without tying the leaf apps to a particular terminal.
 
 - The **leaf apps** own their TUI keys, machine catalogs, favorites and connection
   behavior. Ports includes the shared Windows focus adapter used by this parent.
+  Files receives one selected route from SSH Sessions and owns no machine catalog.
 - **Terminal Workspace** owns terminal profiles, ordinary new-tab behavior,
   companion tabs, R/P/L return shortcuts and optional Explorer integration.
 - An **optional private parent** stores personal choices and pins this public

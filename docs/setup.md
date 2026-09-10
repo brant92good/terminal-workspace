@@ -24,7 +24,7 @@ SSH keys or an existing key agent must allow noninteractive authentication.
 ## One-command setup
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.7.2/bootstrap.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.8.0/bootstrap.ps1 | iex"
 ```
 
 The installer downloads a versioned ZIP, verifies its SHA256 checksum and its
@@ -52,9 +52,15 @@ To inspect or pass options, download [bootstrap.ps1](../bootstrap.ps1), then:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1 -InstallDir 'C:\Tools\Terminal Workspace'
 ```
 
-`-Version 0.7.2` selects a release. `-NoShortcuts` skips Start/desktop entries.
+`-Version 0.8.0` selects a release. `-NoShortcuts` skips Start/desktop entries.
 `-NoConfigure` only prepares compiled files; it does not apply Terminal settings,
 Explorer entries or shortcuts. Setup opens no app window.
+
+For a source checkout, `scripts/install-native.ps1 -SourceCheckout` installs only
+generated `bin/`, `build/` and `licenses/` files plus the release manifest/ownership
+marker. It preserves checked-out scripts, documentation, configuration and local
+preferences. The manifest describes the complete release ZIP; only the applied
+generated paths should be compared with its file hashes in this mode.
 
 ## What changes
 
@@ -63,6 +69,8 @@ as the new-tab default, and adds the R/P return/new-view shortcuts plus
 **Ctrl+Alt+N** for local PowerShell. It creates a Terminal Workspace Start/desktop
 shortcut. Your appearance, unrelated profiles and custom menu remain as configured.
 Windows Terminal settings are backed up beside `settings.json` before changes.
+The bundle also places the SSH Files beta beside SSH Sessions. The picker's X
+action finds it there; setup only validates its version and opens no connection.
 
 The + button and ordinary Ctrl+Shift+T use the SSH picker. Optional Ctrl+N or
 Ctrl+T bindings explicitly open its profile. Explorer integration never switches

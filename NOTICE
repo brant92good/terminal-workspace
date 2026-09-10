@@ -2,3 +2,6 @@ Herdr and its logo are the work of the Herdr project: https://herdr.dev/
 The supplied PNG is the official Herdr site icon. The installer wraps the
 original PNG in an ICO container for Windows shortcuts.
 This project is an independent Windows setup companion.
+
+Released bundles also contain Ports, SSH Sessions and SSH Files. Their license
+texts and additional notices are preserved in the bundled licenses directory.

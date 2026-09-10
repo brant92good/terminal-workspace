@@ -153,6 +153,7 @@ fn actual_bundle_fresh_update_integrity_ownership_and_settings() {
     check(run(&script, &arguments));
     let executable = destination.join("bin/terminal-workspace.exe");
     assert!(executable.is_file());
+    files_bundle::verify_installed(&destination, sandbox.path());
     let preferences = json!({"integration_only":true,"session_picker":true,"shortcuts":{"newTab":"ctrl+n"},"custom":"preserve"});
     fs::write(
         destination.join(".machine.json"),
@@ -168,6 +169,7 @@ fn actual_bundle_fresh_update_integrity_ownership_and_settings() {
     let after: Value =
         serde_json::from_slice(&fs::read(destination.join(".machine.json")).unwrap()).unwrap();
     assert_eq!(after, preferences);
+    files_bundle::reject_incomplete_update(&script, &arguments, &destination, sandbox.path());
     assert!(destination.join("scripts/invoke-native.ps1").is_file());
     let wrapper_data = sandbox.path().join("wrapper catalog space");
     for (index, name) in [
@@ -387,3 +389,6 @@ fn invalid_native_arguments_have_json_error() {
 
 #[path = "support/wrapper.rs"]
 mod wrapper;
+
+#[path = "support/files_bundle.rs"]
+mod files_bundle;

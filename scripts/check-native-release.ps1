@@ -1,4 +1,4 @@
-param([string]$Version = '0.7.2')
+param([string]$Version = '0.8.0')
 # Developer/release qualification only. All writes stay in this owned fixture.
 $ErrorActionPreference = 'Stop'
 if ($Version -notmatch '^\d+\.\d+\.\d+(-[A-Za-z0-9.-]+)?$') { throw 'Invalid release version.' }

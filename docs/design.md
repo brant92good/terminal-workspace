@@ -12,8 +12,10 @@ owns the workspace button, remote/local tab registration, Terminal profiles,
 return shortcuts and settings export. Ordinary SSH is the public default;
 Herdr and a third local Herdr tab are optional.
 
-The app is a Git submodule: a separate repository whose exact commit is
-recorded here. `git clone --recurse-submodules` downloads that version. A
+The three leaf apps are Git submodules: separate repositories whose exact commits
+are recorded here. SSH Sessions owns machine routes and its X handoff to the
+SSH Files beta; Files owns browsing/transfers without another catalog.
+`git clone --recurse-submodules` downloads those versions. A
 private parent can pin this repository and other personal tools, but public
 users do not need one.
 

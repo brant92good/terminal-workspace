@@ -37,8 +37,15 @@ to edit their tags. Search accepts names, addresses, groups and tags. Numbered
 favorites work across groups. Group/tag metadata syncs with the catalog and
 requires SSH Sessions 0.4+ on each device.
 
-The existing workspace button and R/P/L shortcuts remain independent. The two
-leaf apps currently use separate machine catalogs. Existing local SSH
+Press X on a remote row to open the bundled SSH Files beta using the selected
+machine and route. If a route is needed, the existing route picker asks for it;
+Esc cancels. Closing Files returns here. The companion receives the alias,
+selected address, user, port, local directory and custom SSH config explicitly.
+It requires noninteractive SSH authentication and a trusted host; ordinary SSH
+handles initial login or trust setup. See [SSH Files usage](../apps/ssh-files/docs/usage.md).
+
+The existing workspace button and R/P/L shortcuts remain independent. SSH Sessions
+and Ports currently use separate machine catalogs; Files creates none. Existing local SSH
 configuration is used by the normal SSH client. See the leaf's [README](../apps/ssh-session-tui/README.md)
 and [backlog](../apps/ssh-session-tui/docs/backlog.md).
 
