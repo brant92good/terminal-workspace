@@ -100,8 +100,9 @@ installs work independently; released bundles pin exact app versions and hashes.
 
 ## Evidence and limits
 
-The compiled prerelease passes native settings and launch checks, actual-ZIP
-install/update tests, and the public HTTPS bootstrap on PowerShell 5.1 and 7.
+The current candidate passes native settings and launch checks and actual-ZIP
+install/update tests. The previous 0.7.1 prerelease also passed the public HTTPS
+bootstrap on PowerShell 5.1 and 7; 0.7.2's released-download gate is next.
 Wrapper JSON pipelines and interactive input are tested through real pseudo
 terminals. [Verification and remaining gates](docs/verification.md).
 Historical focus/SSH/persistence checks and [timing measurements](docs/before-after.md)
