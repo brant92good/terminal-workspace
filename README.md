@@ -15,7 +15,7 @@ and windows.
 
 [Install](#install) · [Daily use](docs/daily-use.md) · [Standalone apps](#use-only-what-you-need) · [Setup help](docs/setup.md)
 
-![SSH Sessions: choose a server or local terminal](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
+![SSH Sessions: choose a server or local terminal](https://raw.githubusercontent.com/brant92good/ssh-session-tui/v0.6.2/docs/screenshots/picker.svg)
 
 *The included SSH Sessions picker, using example machines.*
 
@@ -57,7 +57,7 @@ The shortcuts apply while Windows Terminal has focus. With several windows open,
 the invoking window's machine context determines the target; the most recently
 used matching view wins. The current-window setting keeps that search local.
 
-![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/main/docs/screenshots/connections.svg)
+![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/v0.7.3/docs/screenshots/connections.svg)
 
 *Ports with example servers and simulated connection states.*
 
