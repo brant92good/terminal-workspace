@@ -19,8 +19,8 @@ and windows.
 
 *The included SSH Sessions picker, using example machines.*
 
-> Version 0.7.1 is a development candidate. Windows captured-output fixes pass
-> locally; hosted checks and the corrected release bundles are still pending.
+> Version 0.7.2 bundles the SSH session screen-cleanup fix. Release qualification
+> is in progress; taskbar grouping remains beta.
 > [Verification](docs/verification.md).
 
 ## Install
@@ -28,7 +28,7 @@ and windows.
 On **Windows 10/11 x64**, with Windows Terminal, PowerShell 7 and OpenSSH Client:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.7.2/bootstrap.ps1 | iex"
 ```
 
 Setup downloads compiled apps and checks their SHA256 hashes. It needs no Python,
@@ -63,9 +63,9 @@ used matching view wins. The current-window setting keeps that search local.
 
 For a dev server on remote port **8000**, type `8000` in Ports and press **Enter**.
 When it shows **ON**, press **B** to open `http://localhost:8000`. Several servers
-can forward at once. Closing the views or Terminal leaves requested forwards
-running; recoverable network failures retry. Stop them explicitly when finished.
-Reboot and sign-out end the connections.
+can forward at once. A background controller keeps active forwards independent
+of the views and retries recoverable network failures. Stop forwards explicitly
+when finished; reboot and sign-out end the connections.
 
 Prefer **Ctrl+N** for a new tab? Set it once with
 `./install.ps1 -SkipDependencies -NewTabShortcut ctrl+n` in the installed directory.

@@ -3,7 +3,7 @@
 [README](../README.md) · [Daily use](daily-use.md)
 
 These instructions describe the compiled distribution. Check the
-[candidate status and remaining release gates](native-migration.md) before installing.
+[prerelease status and remaining release gates](native-migration.md) before installing.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ SSH keys or an existing key agent must allow noninteractive authentication.
 ## One-command setup
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/main/bootstrap.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.7.2/bootstrap.ps1 | iex"
 ```
 
 The installer downloads a versioned ZIP, verifies its SHA256 checksum and its
@@ -52,7 +52,7 @@ To inspect or pass options, download [bootstrap.ps1](../bootstrap.ps1), then:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1 -InstallDir 'C:\Tools\Terminal Workspace'
 ```
 
-`-Version 0.7.0` selects a release. `-NoShortcuts` skips Start/desktop entries.
+`-Version 0.7.2` selects a release. `-NoShortcuts` skips Start/desktop entries.
 `-NoConfigure` only prepares compiled files; it does not apply Terminal settings,
 Explorer entries or shortcuts. Setup opens no app window.
 

@@ -65,7 +65,7 @@ CI-only verified WMI harness. After publishing a prerelease, check the real vers
 bootstrap, installer and release downloads without touching the desktop:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-native-release.ps1 -Version 0.7.0
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-native-release.ps1 -Version 0.7.2
 ```
 
 Older Python scripts and measurements remain reference/compatibility material;

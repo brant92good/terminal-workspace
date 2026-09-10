@@ -8,7 +8,7 @@ param(
     [switch]$NoShortcuts, [switch]$NoConfigure, [switch]$SkipDependencies,
     [switch]$NonInteractive, [switch]$IntegrationOnly, [switch]$ApplySharedSettings,
     [switch]$ExplorerPowerShell, [switch]$NoExplorerPowerShell,
-    [string]$Version = '0.7.1', [string]$Bundle = '', [string]$Sha256 = ''
+    [string]$Version = '0.7.2', [string]$Bundle = '', [string]$Sha256 = ''
 )
 $ErrorActionPreference = 'Stop'
 if ($IntegrationOnly -and $ApplySharedSettings) { throw 'Choose IntegrationOnly or ApplySharedSettings.' }

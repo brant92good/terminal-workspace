@@ -1,28 +1,68 @@
 # Verification
 
-## Native 0.7.1 candidate - September 10, 2026
+## Native 0.7.2 candidate - September 10, 2026
 
-Fourteen ordinary parent tests and Clippy pass locally. Status-only helper dispatch
-now uses a shared Windows creator with an explicit inherited-handle list. A
-bounded regression reproduces the old leak with an unrelated caller pipe, then
-passes after the fix without opening a desktop window. Its owned descendant is
-released before assertions and has a separate eight-second self-expiry.
+The candidate records Ports source `23e3cef` and SSH Sessions source `54a7815`,
+packaging the official Ports 0.7.3 and SSH Sessions 0.6.2 Windows releases.
+Both leaves passed their independent release and actual HTTPS installation gates.
+SSH 0.6.2 clears the visible session display at picker handoffs, preserves shell
+history files, and fixes the compatibility picker's Ctrl+C wait race. Its
+[release qualification](https://github.com/brant92good/ssh-session-tui/actions/runs/34448027497)
+passed all eleven jobs, including five actual HTTPS installer jobs.
 
-A local candidate bundle with the Ports controller fix passes three direct/public
-wrapper first-save and restart cases, and the same three cases through copied
-private wrappers. Both PowerShell 5.1 and 7 release outer stdout/stderr and stdin
-while the controller remains alive. Each test checks the restarted controller's
-new PID and shuts down only its authenticated fixture controller. The older
-candidate failed both wrapper variants before the fix. The actual-ZIP install,
-migration, quoted/Unicode JSON pipelines and real ConPTY checks also pass locally.
-These are local candidate checks, not qualification of new published assets.
+The local package passed fourteen ordinary parent tests, Clippy, three actual-ZIP
+checks and three captured first-save/restart checks for the executable and both
+PowerShell wrappers. Hosted exact-pin packaging and this parent version's actual
+HTTPS installer checks remain required before stable promotion.
 
-Hosted job isolation is a separate test requirement: GitHub's Windows runner
-blocks process breakaway. The CI-only WMI harness requests breakaway, verifies
-worker/test job membership, uses a bounded result channel, and cleans only exact
-fixture processes. Its source has independent review; hosted execution remains
-required. Stable publication is held until those checks, corrected leaf assets,
-actual HTTPS installation and final independent review pass.
+The opt-in [three-tab fixture](../scripts/check_native_workspace.py) passed an
+independent source review and two headless protocol regressions. It has not been
+run on the desktop. Its future measurements would qualify programmatic return
+routing, not physical hotkey latency or taskbar pin clicks.
+
+## Native 0.7.1 prerelease - September 10, 2026
+
+[Prerelease 0.7.1](https://github.com/brant92good/terminal-workspace/releases/tag/v0.7.1)
+is built from `397946b`, recording Ports source `3315744` and SSH Sessions source
+`18d3f67`. It packages the official Ports 0.7.3 and SSH Sessions 0.6.0 Windows
+binaries. The [exact-pin hosted run](https://github.com/brant92good/terminal-workspace/actions/runs/34444342819)
+passes fourteen ordinary parent tests, Clippy, three actual-ZIP checks and three
+captured-command checks. The ZIP SHA256 is
+`1e301c56f63fb84b204bff3c4ea00b3b8b59e1fd87aaddaf6617639173ec016e`.
+
+Status-only helper dispatch uses a shared Windows creator with an explicit
+inherited-handle list. A bounded regression reproduced the old unrelated-pipe
+leak and passed after the fix, without opening a desktop window. The direct CLI
+and both PowerShell wrapper first-save/restart checks verify outer stdout/stderr
+EOF and stdin closure while the controller remains alive. Each checks the new
+controller PID after restart, then shuts down only its authenticated fixture.
+Copied private wrappers passed the same three cases locally with released bytes.
+
+The actual-ZIP tests cover fresh/update integrity, legacy metadata migration,
+quoted/empty/Unicode JSON pipelines and real ConPTY input, including an interactive
+machine picker. The separate CI-only WMI harness escapes the hosted runner's
+restrictive job and explicitly verifies that its worker and test are job-free;
+its captured-command tests passed. This does not modify a local system service.
+
+After publication, PowerShell 5.1 and 7 each downloaded the versioned bootstrap,
+installer and real release ZIP/checksum over public HTTPS. Fresh installation,
+repeat update, saved preferences and fixture-only settings configuration passed
+without a local bundle override or desktop changes.
+
+The independently reviewed [owned-window harness](../scripts/check_native_window_persistence.py)
+also passed against that exact published ZIP. Its first OFF-only save originated
+inside a real Windows Terminal window measuring 701 × 400 pixels. The captured
+CLI exited successfully with pipe EOF; the same controller answered authenticated
+RPC after only that owned window was closed. No SSH connection was opened, the
+foreground window was unchanged, and cleanup stopped the fixture controller.
+This qualifies controller persistence across real Terminal window closure; it
+does not test the workspace's three-tab focus or pin-click behavior.
+
+Stable promotion was held for a separate SSH Sessions screen-cleanup patch in a
+new immutable parent bundle. The 0.7.1 prerelease assets remain unchanged.
+Native shortcut behavior, taskbar pin clicks and focus latency also remain separate
+qualifications. Taskbar grouping is beta. Historical measurements below concern
+earlier implementations, not this Rust release.
 
 ## Native 0.7.0 prerelease - September 10, 2026
 
