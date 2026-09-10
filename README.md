@@ -60,7 +60,7 @@ The shortcuts apply while Windows Terminal has focus. With several windows open,
 the invoking window's machine context determines the target; the most recently
 used matching view wins. The current-window setting keeps that search local.
 
-![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/v0.8.0/docs/screenshots/connections.svg)
+![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/v0.8.1/docs/screenshots/connections.svg)
 
 *Ports with example servers and simulated connection states.*
 

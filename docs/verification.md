@@ -3,7 +3,7 @@
 ## 0.9.0 candidate — September 10, 2026
 
 The candidate adds the SFTP profile and optional fourth workspace tab, and targets
-Ports 0.8.0 automatic forwarding. Nineteen local native integration tests, Clippy
+Ports 0.8.1 automatic forwarding. Nineteen local native integration tests, Clippy
 with warnings denied, and formatting checks pass. Independent source review passed
 frozen destination/config handling, read-only JSON, preserved settings/custom
 actions, cancellation and missing-companion preflight. Owned process fixtures
@@ -12,6 +12,11 @@ They do not establish physical four-tab focus or taskbar pin behavior.
 
 Release ZIP, hosted package and actual HTTPS installation gates are pending.
 The published release and its evidence below remain 0.8.0 until those pass.
+
+Ports' first 0.8.0 tag produced no release assets: one ARM64 check watched a
+temporary confirmation message that another successful operation replaced. The
+saved preference and stopped forward were correct. The corrected 0.8.1 check
+uses the persistent setting display; the earlier tag stays unchanged.
 
 ## Native 0.8.0 release - September 10, 2026
 
