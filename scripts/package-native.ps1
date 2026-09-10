@@ -35,7 +35,7 @@ foreach ($workspaceFile in $workspaceFiles) {
 $workspaceManifest = [ordered]@{
     schema_version=1;version=$Version;platform='x86_64-pc-windows-msvc';
     dependencies=[ordered]@{
-        ports=@{version='0.7.2';url='https://github.com/brant92good/port-forward-tui/releases/download/v0.7.2/ports-x86_64-pc-windows-msvc.zip';sha256=$PortsSha256;binary_sha256=$workspaceHashes['bin/ports.exe']}
+        ports=@{version='0.7.3';url='https://github.com/brant92good/port-forward-tui/releases/download/v0.7.3/ports-x86_64-pc-windows-msvc.zip';sha256=$PortsSha256;binary_sha256=$workspaceHashes['bin/ports.exe']}
         ssh_sessions=@{version='0.6.0';url='https://github.com/brant92good/ssh-session-tui/releases/download/v0.6.0/ssh-sessions-x86_64-pc-windows-msvc.exe';sha256=$SessionsSha256}
     };files=$workspaceHashes
 }

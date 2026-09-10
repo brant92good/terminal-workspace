@@ -57,9 +57,9 @@ jobs:
           New-Item -ItemType Directory -Path $out -Force | Out-Null
           $ports = Join-Path $out 'ports-x86_64-pc-windows-msvc.zip'
           $ssh = Join-Path $out 'ssh-sessions-x86_64-pc-windows-msvc.exe'
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.2/ports-x86_64-pc-windows-msvc.zip' -OutFile $ports
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.3/ports-x86_64-pc-windows-msvc.zip' -OutFile $ports
           $portSums = Join-Path $out 'ports-SHA256SUMS'
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.2/SHA256SUMS' -OutFile $portSums
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.3/SHA256SUMS' -OutFile $portSums
           $portHash = (([IO.File]::ReadAllText($portSums) -split "`n" | Where-Object { $_ -match '  ports-x86_64-pc-windows-msvc.zip\s*$' }) -split '\s+')[0]
           Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.6.0/ssh-sessions-x86_64-pc-windows-msvc.exe' -OutFile $ssh
           $sshSum = Join-Path $out 'ssh-sessions.sha256'
@@ -71,10 +71,20 @@ jobs:
         run: |
           $env:WORKSPACE_TEST_BUNDLE = Join-Path $PWD 'artifacts\release\terminal-workspace-x86_64-pc-windows-msvc.zip'
           cargo +1.94.0 test --locked --test native_install -- --ignored
-      - name: Captured first-save and restart outside Cargo's process job
+      - name: Captured first-save and restart outside hosted process jobs
         if: inputs.package
         run: |
           ./scripts/check-captured-save.ps1 -Bundle (Join-Path $PWD 'artifacts\release\terminal-workspace-x86_64-pc-windows-msvc.zip')
+      - name: Retain capture diagnostics on failure
+        if: always() && inputs.package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-capture-diagnostics
+          path: |
+            ${{ runner.temp }}/ports-capture-*/result.json
+            ${{ runner.temp }}/ports-capture-*/stdout.log
+            ${{ runner.temp }}/ports-capture-*/stderr.log
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: inputs.package
         with:
