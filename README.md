@@ -19,8 +19,8 @@ reach across tabs and windows.
 
 *The included SSH Sessions picker, using example machines.*
 
-> Version 0.8.0 includes SSH Files. Published installer and package checks pass;
-> Files and taskbar grouping remain beta.
+> Version 0.9.0 adds an SFTP menu entry, an optional SFTP workspace tab, and
+> chosen forwards that open with Ports. Files and taskbar grouping remain beta.
 > [Verification](docs/verification.md).
 
 ## Install
@@ -28,7 +28,7 @@ reach across tabs and windows.
 On **Windows 10/11 x64**, with Windows Terminal, PowerShell 7 and OpenSSH Client:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.8.0/bootstrap.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.9.0/bootstrap.ps1 | iex"
 ```
 
 Setup downloads compiled apps and checks their SHA256 hashes. It needs no Python,
@@ -52,6 +52,7 @@ PowerShell. Appearance and menus stay as configured.
 | Open another view | Add **Shift** to the R/P shortcut |
 | Work locally | **Ctrl+Alt+N**, or the picker's Local terminal row |
 | Browse a server's files | Select it in the SSH picker and press **X** |
+| Open SFTP for the current workspace | Choose **SFTP** in Terminal's tab menu |
 | Keep return shortcuts inside the current window | **F2** in Ports |
 
 The shortcuts apply while Windows Terminal has focus. With several windows open,
@@ -68,11 +69,26 @@ can forward at once. A background controller keeps active forwards independent
 of the views and retries recoverable network failures. Stop forwards explicitly
 when finished; reboot and sign-out end the connections.
 
+Want the same tunnels ready each time? Select a saved forward, open **F2 Settings**,
+and enable **Open automatically**. A new Ports view starts your chosen forwards;
+already-running ones keep their connections. Refreshing a view leaves manual stops
+alone. Returning to an existing view with the shortcut does not start them again.
+
 Prefer **Ctrl+N** for a new tab? Set it once with
 `./install.ps1 -SkipDependencies -NewTabShortcut ctrl+n` in the installed directory.
 [Keyboard and machine-selection details](docs/daily-use.md).
 
 ## Files on the route you selected
+
+To include SFTP whenever you open the workspace, run this from its installed folder:
+
+```powershell
+.\install.ps1 -SkipDependencies -WorkspaceFiles
+```
+
+The button opens Remote, Ports, optional Local Herdr, then SFTP, with Remote selected.
+The SFTP tab uses the same destination you chose for that workspace. Use
+`-NoWorkspaceFiles` to turn off the extra tab; **SFTP** stays in the tab menu.
 
 Select a server in the SSH picker and press **X**. SSH Files opens local and remote
 panes on that machine's selected route. Mark files, review their destinations,
@@ -82,8 +98,10 @@ and start the queue while you keep browsing. Close Files to return to the picker
 
 *The bundled beta file manager, rendered by the app with example files.*
 
-Files uses the same SSH alias, selected address and custom config as the picker;
-it adds no address book. It requires SSH authentication without an interactive
+From the picker, Files uses its selected SSH alias, address and custom config.
+From the workspace or SFTP menu, it uses that workspace's Ports machine; outside
+a workspace it asks you to choose one when needed. It adds no address book.
+It requires SSH authentication without an interactive
 prompt and an already trusted host. Uploads currently need OpenSSH's SFTP hardlink
 extension. Existing destinations are preserved, and interrupted or uncertain
 transfers stay visible. [Connection requirements and transfer controls](https://github.com/brant92good/ssh-files/blob/v0.1.0/docs/usage.md).

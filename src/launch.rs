@@ -75,21 +75,25 @@ pub fn select(
 pub fn tab_arguments(
     root: &Path,
     window: &str,
-    machine: &str,
+    machine: &Machine,
     directory: &Path,
     preferences: &Preferences,
-) -> Vec<String> {
+) -> Result<Vec<String>> {
+    // Terminal splits even quoted argv on unescaped semicolons. Escape data
+    // before adding the deliberate command separators, not Windows argv quotes.
+    // See Microsoft Terminal v1.24.11911.0 Commandline::AddArg.
+    let wt = |value: &str| value.replace(';', "\\;");
     let mut arguments = vec![
         "-w".into(),
-        window.into(),
+        wt(window),
         "new-tab".into(),
         "-p".into(),
         settings::PORTS.into(),
-        binary(root, "ports").to_string_lossy().into_owned(),
+        wt(&binary(root, "ports").to_string_lossy()),
         "--data-dir".into(),
-        directory.to_string_lossy().into_owned(),
+        wt(&directory.to_string_lossy()),
         "--machine".into(),
-        machine.into(),
+        wt(&machine.id),
     ];
     if preferences.local_herdr {
         arguments.extend([
@@ -97,19 +101,86 @@ pub fn tab_arguments(
             "new-tab".into(),
             "-p".into(),
             settings::LOCAL.into(),
-            binary(root, "terminal-workspace")
-                .to_string_lossy()
-                .into_owned(),
+            wt(&binary(root, "terminal-workspace").to_string_lossy()),
             "remote".into(),
             "--local".into(),
             "--herdr".into(),
-            preferences.herdr.clone(),
+            wt(&preferences.herdr),
             "--data-dir".into(),
-            directory.to_string_lossy().into_owned(),
+            wt(&directory.to_string_lossy()),
         ]);
     }
+    if preferences.workspace_files {
+        let (executable, args) = files_arguments(root, machine)?;
+        arguments.extend([
+            ";".into(),
+            "new-tab".into(),
+            "-p".into(),
+            settings::FILES.into(),
+            wt(&executable.to_string_lossy()),
+        ]);
+        arguments.extend(args.iter().map(|arg| wt(arg)));
+    }
     arguments.extend([";".into(), "focus-tab".into(), "-t".into(), "0".into()]);
-    arguments
+    Ok(arguments)
+}
+
+/// Resolve metadata without selecting a current machine or touching a controller.
+pub fn read_machine(directory: &Path, id: &str) -> Result<Machine> {
+    let machine = port_forward_tui::machines::Catalog::new(directory)?.get(id)?;
+    Ok(Machine {
+        id: machine.id,
+        name: machine.name,
+        target: machine.target,
+        ssh_port: machine.ssh_port,
+        ssh_config: machine.ssh_config,
+        directory: machine.directory,
+    })
+}
+
+/// Freeze this destination into the companion's argv. Files owns no catalog.
+pub fn files_arguments(root: &Path, machine: &Machine) -> Result<(PathBuf, Vec<String>)> {
+    let executable = binary(root, "ssh-files");
+    if !executable.is_file() {
+        bail!("SSH Files is missing. Run the workspace binary installer again.");
+    }
+    port_forward_tui::store::host(&machine.target)?;
+    if machine.name.chars().any(char::is_control) || machine.id.chars().any(char::is_control) {
+        bail!("Invalid Files machine label or ID");
+    }
+    let mut args = vec![
+        format!("--host={}", machine.target),
+        format!("--label={}", machine.name),
+        format!("--machine-id={}", machine.id),
+    ];
+    if let Some(port) = machine.ssh_port {
+        if port == 0 {
+            bail!("Invalid SSH port");
+        }
+        args.push(format!("--port={port}"));
+    }
+    if let Some(config) = &machine.ssh_config {
+        let path = std::path::absolute(config)?;
+        if !path.is_file() {
+            bail!("SSH configuration file does not exist: {}", path.display());
+        }
+        args.push(format!(
+            "--config={}",
+            path.to_str()
+                .context("SSH config path is not valid Unicode")?
+        ));
+    }
+    Ok((executable, args))
+}
+
+pub fn files(root: &Path, machine: &Machine) -> Result<i32> {
+    let (executable, args) = files_arguments(root, machine)?;
+    Ok(Command::new(executable)
+        .args(args)
+        .status()
+        .context("Could not start SSH Files")?
+        .code()
+        .unwrap_or(1))
 }
 
 pub fn session_arguments(
@@ -245,11 +316,10 @@ pub fn workspace(
         return Ok(0);
     };
     let terminal = which::which("wt.exe").context("Windows Terminal was not found")?;
-    let arguments: Vec<OsString> =
-        tab_arguments(root, window, &machine.id, directory, &preferences)
-            .into_iter()
-            .map(OsString::from)
-            .collect();
+    let arguments: Vec<OsString> = tab_arguments(root, window, &machine, directory, &preferences)?
+        .into_iter()
+        .map(OsString::from)
+        .collect();
     let result = dispatch(&terminal, &arguments, Duration::from_secs(10))?;
     if !result.success() {
         bail!("Windows Terminal could not create the companion tabs");

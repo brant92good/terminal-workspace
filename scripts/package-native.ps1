@@ -8,7 +8,7 @@ param(
     [Parameter(Mandatory=$true)][string]$FilesSha256,
     [Parameter(Mandatory=$true)][string]$FilesLicense,
     [Parameter(Mandatory=$true)][string]$FilesNotices,
-    [string]$Version = '0.8.0', [string]$OutputDirectory = ''
+    [string]$Version = '0.9.0', [string]$OutputDirectory = ''
 )
 $ErrorActionPreference = 'Stop'
 $workspaceRoot = Split-Path $PSScriptRoot -Parent

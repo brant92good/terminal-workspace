@@ -1,6 +1,6 @@
 # Command and configuration reference
 
-The compiled `bin/terminal-workspace.exe` has four commands:
+The compiled `bin/terminal-workspace.exe` provides these commands:
 
 | Command | Purpose |
 | --- | --- |
@@ -10,6 +10,8 @@ The compiled `bin/terminal-workspace.exe` has four commands:
 | `configure --dry-run --json` | Print proposed settings without writing |
 | `remote` | Select or return to a machine's SSH/Herdr tab |
 | `remote --local` | Launch or return to independent local Herdr |
+| `files` | Open SFTP on a selected Ports machine or the window's machine |
+| `files --machine ID --json` | Preview exact Files argv without launching or changing selection |
 | `workspace --window UNIQUE_NAME` | Select a machine, add its companion tabs, then connect |
 
 `--root PATH` selects an installation for commands and diagnostics. Settings are
@@ -17,7 +19,7 @@ normally found in Windows Terminal's packaged or unpackaged LocalState directory
 `configure --settings PATH` permits an isolated fixture or explicit installation.
 
 Machine settings are in ignored `.machine.json`: `remote_client`, `herdr`,
-`local_herdr`, `session_picker`, `session_catalog`, `integration_only` and optional
+`local_herdr`, `workspace_files`, `session_picker`, `session_catalog`, `integration_only` and optional
 `shortcuts`. Existing additional fields are preserved. `config/terminal.json`
 contains shareable presentation settings and default managed shortcut choices.
 Export excludes shell commands, addresses, startup actions and working directories.
@@ -27,6 +29,13 @@ mirror the paired workspace's Ports machine-selection behavior. The parent calls
 `ports machines pick --json`: its terminal UI uses stderr, then stdout returns
 one selection object. Cancellation returns a null machine and opens no companion
 tabs. SSH Sessions has its own catalog; those machine IDs are not interchangeable.
+
+`configure --workspace-files` enables the SFTP companion; `--no-workspace-files`
+disables it. This opt-in does not control the always-available SFTP menu profile.
+`files --machines` forces an interactive Ports picker. JSON preview requires an
+explicit machine and cannot open a picker. Relative custom config paths are made
+absolute before handing off; workspace tabs retain the selected destination even
+if a catalog selection changes afterward.
 
 The install wrappers expose the most common choices; see [setup](setup.md).
 `sessions.ps1` adds the saved SSH catalog argument before calling the leaf binary.
@@ -71,7 +80,7 @@ CI-only verified WMI harness. After publishing a prerelease, check the real vers
 bootstrap, installer and release downloads without touching the desktop:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-native-release.ps1 -Version 0.8.0
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-native-release.ps1 -Version 0.9.0
 ```
 
 Older Python scripts and measurements remain reference/compatibility material;

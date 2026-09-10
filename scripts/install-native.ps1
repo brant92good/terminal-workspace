@@ -1,5 +1,5 @@
 param(
-    [string]$InstallDir = '', [string]$Version = '0.8.0',
+    [string]$InstallDir = '', [string]$Version = '0.9.0',
     [string]$Bundle = '', [string]$Sha256 = '', [string]$LegacyInstallDir = '',
     [switch]$NoConfigure, [switch]$NoShortcuts, [switch]$SourceCheckout,
     [switch]$ExplorerPowerShell

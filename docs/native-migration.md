@@ -1,5 +1,12 @@
 # Native integration
 
+Terminal Workspace 0.9.0 adds a visible SFTP profile and optional `workspace_files`
+companion after Remote/Ports/local Herdr. The companion freezes the selected Ports
+destination into Files argv; the independent SSH picker's X action retains its
+own catalog/route. Native route, cancellation, settings-preservation and command
+dispatch fixtures cover the change without opening desktop windows. Current
+release qualification is recorded in [verification](verification.md).
+
 Terminal Workspace 0.8.0 adds the released SSH Files 0.1.0 beta beside SSH Sessions
 0.7.0 and Ports 0.7.3. SSH Sessions owns X, route selection and return to the picker;
 the parent supplies the reviewed binary and license notices. Local and hosted
@@ -15,7 +22,8 @@ composition and remote/local Herdr or SSH launch. Profiles call the installed
 `ssh-sessions.exe` and `ports.exe` directly. Taskbar identity and accessibility
 helpers remain compiled C# programs using the Windows .NET Framework; no Python
 process or compiler runs during ordinary use.
-Files adds no parent launch process: SSH Sessions discovers its adjacent binary.
+SSH Sessions discovers Files beside its own binary. The SFTP profile uses the
+native parent's Files command; workspace companions launch the same binary directly.
 The optional source-checkout installer copies generated runtimes and their
 `licenses/` notices while preserving source/configuration files.
 
@@ -30,7 +38,7 @@ its own catalog. No cross-catalog machine-ID conversion is inferred.
   SSH Sessions explicitly; Ctrl+Alt+N names local PowerShell explicitly.
 - Remote/Ports/local-Herdr GUIDs, machine context, return scope and inherited
   Herdr environment guards remain. Custom SSH config/port routes use OpenSSH.
-- Remote first, Ports second, optional local Herdr third; the paired launcher
+- Remote first, Ports second, optional local Herdr then optional SFTP; the paired launcher
   selects the first tab in its uniquely named window.
 - Explorer integration adds **Open PowerShell here** in the classic context menu.
   Windows 11's built-in modern **Open in Terminal** entry remains unchanged.

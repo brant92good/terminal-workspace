@@ -150,10 +150,11 @@ fn session_commands_and_tab_composition_preserve_ids_and_override_fallback() {
     let arguments = launch::tab_arguments(
         Path::new("C:/root"),
         "unique-window",
-        &machine.id,
+        &machine,
         Path::new("C:/data"),
         &preferences(),
-    );
+    )
+    .unwrap();
     assert_eq!(
         &arguments[..6],
         [
@@ -230,7 +231,47 @@ fn mixed_case_profile_ids_update_in_place_and_invalid_preferences_fail() {
         json!({"remote_client":true}),
         json!({"herdr":123}),
         json!({"shortcuts":"ctrl+n"}),
+        json!({"workspace_files":"true"}),
     ] {
         assert!(Preferences::read(&invalid).is_err());
     }
+}
+
+#[test]
+fn sftp_profile_is_visible_without_enabling_auto_tab_and_preserves_custom_actions() {
+    let custom = json!({"id":"my-files","command":{"action":"newTab","profile":settings::FILES}});
+    let binding = json!({"id":"my-files","keys":"ctrl+alt+f"});
+    let original = json!({"profiles":{"list":[{"guid":settings::FILES.to_uppercase(),"hidden":true,"custom":"keep"}]},"actions":[custom],"keybindings":[binding]});
+    let options = preferences();
+    assert!(!options.workspace_files);
+    let updated =
+        settings::render(&original, &shared(), Path::new("C:/Workspace"), &options).unwrap();
+    let entries = updated["profiles"]["list"].as_array().unwrap();
+    let files: Vec<_> = entries
+        .iter()
+        .filter(|p| {
+            p["guid"]
+                .as_str()
+                .unwrap()
+                .eq_ignore_ascii_case(settings::FILES)
+        })
+        .collect();
+    assert_eq!(files.len(), 1);
+    assert_eq!(files[0]["name"], "SFTP");
+    assert_eq!(files[0]["hidden"], false);
+    assert_eq!(files[0]["custom"], "keep");
+    assert!(
+        files[0]["commandline"]
+            .as_str()
+            .unwrap()
+            .ends_with(" files")
+    );
+    assert!(updated["actions"].as_array().unwrap().contains(&custom));
+    assert!(
+        updated["keybindings"]
+            .as_array()
+            .unwrap()
+            .contains(&binding)
+    );
+    assert_eq!(updated["defaultProfile"], settings::SESSIONS);
 }

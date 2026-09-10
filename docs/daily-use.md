@@ -50,7 +50,8 @@ Groups and tags sync with the catalog and require SSH Sessions 0.4+ on each devi
 See the [picker setup and sync guide](https://github.com/brant92good/ssh-session-tui).
 
 The workspace button still opens its paired remote/Ports tabs and optional
-local Herdr tab. The picker currently has its own machine catalog; selecting a
+local Herdr and SFTP tabs. Enable the latter with
+`./install.ps1 -SkipDependencies -WorkspaceFiles`. The picker currently has its own machine catalog; selecting a
 picker machine does not retarget those paired tabs. SSH-config ownership and
 future agent session policy are [deferred design work](https://github.com/brant92good/ssh-session-tui/blob/main/docs/backlog.md).
 Use `-NoSessionPicker` to disable its profile and restore PowerShell as the default.
@@ -75,7 +76,7 @@ its local HTTP address. The remote app must already be running.
 | Ctrl+Alt+N, with SessionPicker enabled | Open local PowerShell |
 | Ctrl+N or Ctrl+T, when explicitly configured | Open SSH Sessions when the picker is enabled |
 | Add Shift | Open another view |
-| F2 inside Ports | Search this Terminal window or all Terminal windows |
+| F2 inside Ports | Settings: automatic forwards and shortcut window scope |
 | Esc, then H inside Ports | Add/import machines or choose a server without stopping forwards |
 
 These shortcuts apply while Terminal has focus. In the default all-windows
@@ -94,6 +95,13 @@ connections retry automatically after SSH detects the drop; Enter cancels a
 retry and R tries again now. Authentication, host-key and local-port errors need
 attention. Reboot or sign-out ends tunnels. Herdr owns
 its workspace on the remote server; use its detach command to leave a client.
+
+In Ports, select a saved row and use **F2 → Open automatically** to opt it in.
+Each newly opened view starts opted-in rows across its displayed machines.
+Already requested connections are reused. Stop cancels queued automatic work;
+ordinary refresh never restarts stopped rows. Opening another new view applies
+your opt-ins again; returning to an existing view does not. These choices live
+on this device, beside each machine's saved forwards, and default off.
 
 After updating, close old Ports views and run
 `ports.ps1 restart-manager --machine MACHINE_ID` for each running server to load

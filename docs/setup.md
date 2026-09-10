@@ -24,7 +24,7 @@ SSH keys or an existing key agent must allow noninteractive authentication.
 ## One-command setup
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.8.0/bootstrap.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.9.0/bootstrap.ps1 | iex"
 ```
 
 The installer downloads a versioned ZIP, verifies its SHA256 checksum and its
@@ -52,7 +52,7 @@ To inspect or pass options, download [bootstrap.ps1](../bootstrap.ps1), then:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1 -InstallDir 'C:\Tools\Terminal Workspace'
 ```
 
-`-Version 0.8.0` selects a release. `-NoShortcuts` skips Start/desktop entries.
+`-Version 0.9.0` selects a release. `-NoShortcuts` skips Start/desktop entries.
 `-NoConfigure` only prepares compiled files; it does not apply Terminal settings,
 Explorer entries or shortcuts. Setup opens no app window.
 
@@ -64,7 +64,7 @@ generated paths should be compared with its file hashes in this mode.
 
 ## What changes
 
-A fresh install adds Remote, Ports and SSH Sessions profiles, sets **SSH Sessions**
+A fresh install adds Remote, Ports, SFTP and SSH Sessions profiles, sets **SSH Sessions**
 as the new-tab default, and adds the R/P return/new-view shortcuts plus
 **Ctrl+Alt+N** for local PowerShell. It creates a Terminal Workspace Start/desktop
 shortcut. Your appearance, unrelated profiles and custom menu remain as configured.
@@ -82,6 +82,7 @@ From the installed directory:
 .\install.ps1 -SkipDependencies -NewTabShortcut ctrl+n
 .\install.ps1 -SkipDependencies -RemoteClient herdr -HerdrPath C:\Tools\Herdr\herdr.exe -LocalHerdr
 .\install.ps1 -SkipDependencies -SessionCatalog C:\MySetup\connections\catalog.json
+.\install.ps1 -SkipDependencies -WorkspaceFiles
 ```
 
 Use `-RemoteClient ssh`, `-NoLocalHerdr` or `-NewTabShortcut none` to undo those
@@ -90,6 +91,13 @@ default. Routine updates reuse saved choices. `-IntegrationOnly` preserves
 appearance/menu/default settings; explicit `-SessionPicker` changes the default
 even in that mode. `-ApplySharedSettings` applies `config/terminal.json`, including
 the compact profile menu and the saved picker/default choice.
+
+`-WorkspaceFiles` adds SFTP when the workspace button opens a machine. The order
+is Remote, Ports, optional Local Herdr, then SFTP; Remote stays selected.
+`-NoWorkspaceFiles` removes the automatic companion. The standalone SFTP menu
+profile remains available. Its machine selection comes from Ports, using the
+current window's context when available; the SSH picker's X action uses the
+picker's own route instead. Neither path silently switches connection routes.
 
 Conflicting unrelated keyboard bindings stop configuration with a message rather
 than being overwritten. Keep the installation at its chosen path.
