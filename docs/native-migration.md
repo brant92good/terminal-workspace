@@ -45,9 +45,10 @@ its own catalog. No cross-catalog machine-ID conversion is inferred.
 
 ## Development evidence
 
-Fourteen native parent tests pass on Windows: new-tab behavior, idempotence, preserved
+Nineteen native parent tests pass on Windows: new-tab behavior, idempotence, preserved
 integration-only settings, shortcut collisions, JSONC, backups/concurrent changes,
-safe export, argv quoting, JSON argument errors, Explorer plan and tab composition.
+safe export, argv quoting, JSON argument errors, Explorer plan, tab composition,
+SFTP preflight/read-only routing and exact dispatcher arguments.
 Mixed-case profile GUIDs update in place; malformed personal preferences fail
 before settings are written. The dispatch regression starts an owned child with a
 longer-lived descendant: status-only calls return when the child exits, without
@@ -58,7 +59,7 @@ descendant remains alive. The three status-only call sites use explicit argument
 and a shared Windows handle-list creator, inheriting the developer's environment
 and working directory. Interactive machine selection still captures its JSON
 output with console input/stderr. Clippy passes with warnings denied.
-The [0.8.0 hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34462955825)
+The [0.9.0 hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34478216068)
 passes with the recorded leaf source pins and packages the exact released Windows
 binaries and helpers. The versioned public HTTPS bootstrap, fresh installation
 and update also passed in isolated fixtures on PowerShell 5.1 and 7.

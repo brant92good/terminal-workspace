@@ -1,22 +1,47 @@
 # Verification
 
-## 0.9.0 candidate — September 10, 2026
+## Native 0.9.0 prerelease - September 10, 2026
 
-The candidate adds the SFTP profile and optional fourth workspace tab, and targets
-Ports 0.8.1 automatic forwarding. Nineteen local native integration tests, Clippy
-with warnings denied, and formatting checks pass. Independent source review passed
-frozen destination/config handling, read-only JSON, preserved settings/custom
-actions, cancellation and missing-companion preflight. Owned process fixtures
-record actual dispatcher arguments without opening Windows Terminal or SSH.
-They do not establish physical four-tab focus or taskbar pin behavior.
+[Release 0.9.0](https://github.com/brant92good/terminal-workspace/releases/tag/v0.9.0)
+is built from immutable `e87bd3b`, with source pins Ports `35fb915`, SSH Sessions
+`1c6dc9a` and Files `bf25010`. It bundles Ports 0.8.1, SSH Sessions 0.7.0 and SSH
+Files 0.1.0 beta. Default stable remains 0.8.0 pending promotion.
 
-Release ZIP, hosted package and actual HTTPS installation gates are pending.
-The published release and its evidence below remain 0.8.0 until those pass.
+The [exact-pin hosted run](https://github.com/brant92good/terminal-workspace/actions/runs/34478216068)
+passed nineteen ordinary native checks, formatting, Clippy with warnings denied,
+three actual-ZIP install/update tests and three captured first-save/restart tests.
+Owned process fixtures record actual four-tab dispatcher arguments, cancellation,
+missing-companion preflight, frozen SSH destination/config/port and escaped WT
+delimiters without opening Windows Terminal or SSH. Settings checks preserve
+existing profiles, custom actions and default new tabs while adding SFTP.
 
-Ports' first 0.8.0 tag produced no release assets: one ARM64 check watched a
-temporary confirmation message that another successful operation replaced. The
-saved preference and stopped forward were correct. The corrected 0.8.1 check
-uses the persistent setting display; the earlier tag stays unchanged.
+The published ZIP SHA-256 is
+`d0be5cc0b416c0a4a65334fda8493063d5cd72f0af3a4c6bfa444eaac64d0376`.
+Its manifest records all 25 bundled files; the parent executable SHA-256 is
+`04528498b8a09f95f5c6f3701632dd9dd319f9af25cc059f60ffa1a5491115c4`.
+After publication, the actual public HTTPS bootstrap, versioned installer and
+release ZIP/checksum passed fresh installation, update, preserved preferences,
+and fixture SFTP/default-profile configuration on PowerShell 5.1 and 7. No local
+bundle override or desktop change was used. The package checks also exercise the
+released Ports machine CLI and parent Files JSON against the adjacent executable.
+
+The preceding [package run](https://github.com/brant92good/terminal-workspace/actions/runs/34477673215)
+found a test expectation that compared mixed and native Windows path separators
+as text. The expected path now uses separate native path components; exact full
+path equality remains required. Production code did not change for that correction.
+
+Ports 0.8.1 passed its [eleven platform/release/HTTPS jobs](https://github.com/brant92good/port-forward-tui/actions/runs/34476916550)
+and independent public-asset plus Windows PowerShell 5.1/7 HTTPS gates. Its
+[verification](https://github.com/brant92good/port-forward-tui/blob/35fb9156fad3068df5f9d316160183a7795e3135/docs/verification.md)
+records automatic-start behavior, the assetless 0.8.0 test-oracle failure and the
+unchanged historical Python UI failure followed by one diagnostic replay.
+
+Independent final README/public-asset review verified all 25 manifest hashes and
+repeated the advertised HTTPS installation/update without local overrides.
+Independent source review passed the destination/config handling, read-only JSON,
+settings preservation and exact-path test correction. These checks do not establish
+physical four-tab focus or taskbar pin behavior. Files and macOS remain beta;
+existing network/transfer evidence belongs to the respective leaf.
 
 ## Native 0.8.0 release - September 10, 2026
 

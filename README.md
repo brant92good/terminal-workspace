@@ -19,10 +19,10 @@ reach across tabs and windows.
 
 *The included SSH Sessions picker, using example machines.*
 
-> 0.9.0 candidate: SFTP menu/profile integration and chosen forwards that open
-> with Ports are under release qualification. The published release is still
-> 0.8.0. Files and taskbar grouping remain beta.
-> [Verification](docs/verification.md).
+> [0.9.0 prerelease](https://github.com/brant92good/terminal-workspace/releases/tag/v0.9.0)
+> adds the SFTP menu/tab and opt-in automatic forwarding. Its package and public
+> Windows installers passed qualification; 0.8.0 remains the default stable release.
+> Files and taskbar grouping remain beta. [Verification](docs/verification.md).
 
 ## Install
 
@@ -140,7 +140,7 @@ installs work independently; released bundles pin exact app versions and hashes.
 
 ## Evidence and limits
 
-The 0.8.0 released bundle passed native settings and launch checks, actual-ZIP install/update
+The 0.9.0 prerelease bundle passed native settings and launch checks, actual-ZIP install/update
 tests, and public HTTPS installation on PowerShell 5.1 and 7. The checks include
 the bundled Files handoff and rejected incomplete updates.
 Wrapper JSON pipelines and interactive input are tested through real pseudo
