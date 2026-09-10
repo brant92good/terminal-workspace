@@ -19,7 +19,7 @@ reach across tabs and windows.
 
 *The included SSH Sessions picker, using example machines.*
 
-> Version 0.8.0 includes SSH Files. Bundle qualification is in progress;
+> Version 0.8.0 includes SSH Files. Published installer and package checks pass;
 > Files and taskbar grouping remain beta.
 > [Verification](docs/verification.md).
 
@@ -119,10 +119,9 @@ installs work independently; released bundles pin exact app versions and hashes.
 
 ## Evidence and limits
 
-The candidate passes native settings and launch checks and actual-ZIP install/update
-tests, including the bundled Files handoff and rejected incomplete updates.
-The stable 0.7.2 bundle passed public HTTPS installation on PowerShell 5.1 and 7;
-0.8.0's released-download gate is still pending.
+The released bundle passes native settings and launch checks, actual-ZIP install/update
+tests, and public HTTPS installation on PowerShell 5.1 and 7. The checks include
+the bundled Files handoff and rejected incomplete updates.
 Wrapper JSON pipelines and interactive input are tested through real pseudo
 terminals. [Verification and remaining gates](docs/verification.md).
 Historical focus/SSH/persistence checks and [timing measurements](docs/before-after.md)

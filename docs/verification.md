@@ -1,8 +1,10 @@
 # Verification
 
-## Native 0.8.0 candidate - September 10, 2026
+## Native 0.8.0 release - September 10, 2026
 
-This bundle combines the released Ports 0.7.3, SSH Sessions 0.7.0 and SSH Files
+[Release 0.8.0](https://github.com/brant92good/terminal-workspace/releases/tag/v0.8.0)
+is built from immutable `d4d61ba`, with source pins Ports `23e3cef`, SSH Sessions
+`1c6dc9a` and Files `bf25010`. It combines Ports 0.7.3, SSH Sessions 0.7.0 and SSH Files
 0.1.0 beta binaries. Each leaf passed its own independent source/README/assets
 and actual HTTPS installation gates. The parent adds adjacent companion packaging
 and notices, without a new transfer launcher or machine catalog.
@@ -17,9 +19,18 @@ before installation writes. Existing preferences and the installed binary remain
 unchanged. SourceCheckout installs the generated Files runtime and license notices
 while retaining local source documentation, Cargo metadata and preferences.
 
-The three actual-ZIP tests also retain legacy migration, quoted/Unicode wrapper
-pipelines and real ConPTY input coverage. Clippy passes. Hosted packaging and
-this version's actual public HTTPS installation remain required before promotion.
+The [hosted exact-pin run](https://github.com/brant92good/terminal-workspace/actions/runs/34462955825)
+passed fourteen ordinary tests, Clippy, three actual-ZIP tests and three captured
+first-save/restart tests. The ZIP tests retain legacy migration, quoted/Unicode
+wrapper pipelines and real ConPTY input coverage. Initial test-only Windows path
+and ZIP-entry lookup assumptions were corrected without changing the runtime.
+The published ZIP SHA-256 is
+`4fa9ffef29e2e0821415064c105f626a1c0f13e87ddbba9c44f44da05d9a2f13`.
+Its manifest records all 25 bundled file hashes, including original released
+license/notice bytes. After prerelease publication, the advertised public HTTPS
+bootstrap, versioned installer and ZIP/checksum passed fresh installation,
+update, preserved preferences and isolated settings configuration on PowerShell
+5.1 and 7. No local bundle override, app UI, connection or desktop change was used.
 Files and macOS remain beta. Existing transfer evidence belongs to the Files
 leaf; these package tests make no new desktop, SSH-network or transfer claim.
 

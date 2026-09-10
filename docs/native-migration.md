@@ -2,9 +2,9 @@
 
 Terminal Workspace 0.8.0 adds the released SSH Files 0.1.0 beta beside SSH Sessions
 0.7.0 and Ports 0.7.3. SSH Sessions owns X, route selection and return to the picker;
-the parent supplies the reviewed binary and license notices. Local package checks
-pass; this new bundle still needs hosted packaging and public HTTPS qualification.
-The stable 0.7.2 release passed those gates. Earlier release assets stay unchanged.
+the parent supplies the reviewed binary and license notices. Local and hosted
+package checks pass, followed by actual public HTTPS installation on PowerShell
+5.1 and 7. Earlier release assets stay unchanged.
 The owned real-Windows-Terminal first-save and window-close check passed against
 0.7.1 with the same Ports release; three-tab focus and pin clicks remain separate.
 
@@ -50,7 +50,7 @@ descendant remains alive. The three status-only call sites use explicit argument
 and a shared Windows handle-list creator, inheriting the developer's environment
 and working directory. Interactive machine selection still captures its JSON
 output with console input/stderr. Clippy passes with warnings denied.
-The [hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34459179581)
+The [0.8.0 hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34462955825)
 passes with the recorded leaf source pins and packages the exact released Windows
 binaries and helpers. The versioned public HTTPS bootstrap, fresh installation
 and update also passed in isolated fixtures on PowerShell 5.1 and 7.
