@@ -31,7 +31,8 @@ one selection object. Cancellation returns a null machine and opens no companion
 tabs. SSH Sessions has its own catalog; those machine IDs are not interchangeable.
 
 `configure --workspace-files` enables the SFTP companion; `--no-workspace-files`
-disables it. This opt-in does not control the always-available SFTP menu profile.
+disables it. The SFTP profile is installed independently; a custom tab menu may
+need an [explicit entry](setup.md#custom-tab-menus).
 `files --machines` forces an interactive Ports picker. JSON preview requires an
 explicit machine and cannot open a picker. Relative custom config paths are made
 absolute before handing off; workspace tabs retain the selected destination even

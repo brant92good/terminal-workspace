@@ -95,12 +95,26 @@ the compact profile menu and the saved picker/default choice.
 `-WorkspaceFiles` adds SFTP when the workspace button opens a machine. The order
 is Remote, Ports, optional Local Herdr, then SFTP; Remote stays selected.
 `-NoWorkspaceFiles` removes the automatic companion. The standalone SFTP menu
-profile remains available. Its machine selection comes from Ports, using the
+profile remains installed. Its machine selection comes from Ports, using the
 current window's context when available; the SSH picker's X action uses the
 picker's own route instead. Neither path silently switches connection routes.
 
 Conflicting unrelated keyboard bindings stop configuration with a message rather
 than being overwritten. Keep the installation at its chosen path.
+
+## Custom tab menus
+
+Setup preserves a custom `newTabMenu` in integration-only mode. If your menu
+lists only specific profiles, add this entry to that array in Terminal's
+`settings.json` to show SFTP:
+
+```json
+{ "type": "profile", "profile": "{dcbd174b-c14f-4639-ace1-47eae33360a8}" }
+```
+
+The normal menu includes new profiles automatically. A `remainingProfiles` entry
+does the same for profiles you haven't listed explicitly.
+[Windows Terminal menu settings](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/appearance#new-tab-dropdown).
 
 ## Explorer and taskbar
 

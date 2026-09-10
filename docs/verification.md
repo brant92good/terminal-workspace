@@ -1,5 +1,18 @@
 # Verification
 
+## 0.9.0 candidate — September 10, 2026
+
+The candidate adds the SFTP profile and optional fourth workspace tab, and targets
+Ports 0.8.0 automatic forwarding. Nineteen local native integration tests, Clippy
+with warnings denied, and formatting checks pass. Independent source review passed
+frozen destination/config handling, read-only JSON, preserved settings/custom
+actions, cancellation and missing-companion preflight. Owned process fixtures
+record actual dispatcher arguments without opening Windows Terminal or SSH.
+They do not establish physical four-tab focus or taskbar pin behavior.
+
+Release ZIP, hosted package and actual HTTPS installation gates are pending.
+The published release and its evidence below remain 0.8.0 until those pass.
+
 ## Native 0.8.0 release - September 10, 2026
 
 [Release 0.8.0](https://github.com/brant92good/terminal-workspace/releases/tag/v0.8.0)

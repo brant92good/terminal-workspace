@@ -9,7 +9,7 @@ pub fn verify_installed(destination: &Path, sandbox: &Path) {
         serde_json::from_slice(&fs::read(destination.join("release.json")).unwrap()).unwrap();
     for (program, version) in [
         ("terminal-workspace", env!("CARGO_PKG_VERSION")),
-        ("ports", "0.7.3"),
+        ("ports", "0.8.0"),
         ("ssh-sessions", "0.7.0"),
         ("ssh-files", "0.1.0"),
     ] {

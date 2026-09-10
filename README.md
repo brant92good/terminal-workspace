@@ -19,8 +19,9 @@ reach across tabs and windows.
 
 *The included SSH Sessions picker, using example machines.*
 
-> Version 0.9.0 adds an SFTP menu entry, an optional SFTP workspace tab, and
-> chosen forwards that open with Ports. Files and taskbar grouping remain beta.
+> 0.9.0 candidate: SFTP menu/profile integration and chosen forwards that open
+> with Ports are under release qualification. The published release is still
+> 0.8.0. Files and taskbar grouping remain beta.
 > [Verification](docs/verification.md).
 
 ## Install
@@ -59,7 +60,7 @@ The shortcuts apply while Windows Terminal has focus. With several windows open,
 the invoking window's machine context determines the target; the most recently
 used matching view wins. The current-window setting keeps that search local.
 
-![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/v0.7.3/docs/screenshots/connections.svg)
+![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/v0.8.0/docs/screenshots/connections.svg)
 
 *Ports with example servers and simulated connection states.*
 
@@ -70,7 +71,8 @@ of the views and retries recoverable network failures. Stop forwards explicitly
 when finished; reboot and sign-out end the connections.
 
 Want the same tunnels ready each time? Select a saved forward, open **F2 Settings**,
-and enable **Open automatically**. A new Ports view starts your chosen forwards;
+and enable **Open automatically** with **Space**, then **Enter** to save.
+A new Ports view starts your chosen forwards;
 already-running ones keep their connections. Refreshing a view leaves manual stops
 alone. Returning to an existing view with the shortcut does not start them again.
 
@@ -88,7 +90,8 @@ To include SFTP whenever you open the workspace, run this from its installed fol
 
 The button opens Remote, Ports, optional Local Herdr, then SFTP, with Remote selected.
 The SFTP tab uses the same destination you chose for that workspace. Use
-`-NoWorkspaceFiles` to turn off the extra tab; **SFTP** stays in the tab menu.
+`-NoWorkspaceFiles` to turn off the extra tab; the **SFTP** profile stays installed.
+If you maintain a custom tab menu, [add SFTP to it](docs/setup.md#custom-tab-menus).
 
 Select a server in the SSH picker and press **X**. SSH Files opens local and remote
 panes on that machine's selected route. Mark files, review their destinations,
@@ -137,7 +140,7 @@ installs work independently; released bundles pin exact app versions and hashes.
 
 ## Evidence and limits
 
-The released bundle passes native settings and launch checks, actual-ZIP install/update
+The 0.8.0 released bundle passed native settings and launch checks, actual-ZIP install/update
 tests, and public HTTPS installation on PowerShell 5.1 and 7. The checks include
 the bundled Files handoff and rejected incomplete updates.
 Wrapper JSON pipelines and interactive input are tested through real pseudo
