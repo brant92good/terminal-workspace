@@ -28,11 +28,11 @@ reach across tabs and windows.
 
 ## Install
 
-Optional Windows Ports beta setup is being qualified separately. Its
-[explicit channel helper](docs/ports-beta-setup.md) leaves the normal bundle,
-workspace tabs and hotkeys unchanged and pins the separately qualified
-Ports 0.10.0-beta.1 release. The helper's source publication and device setup
-remain separate steps.
+To try SOCKS proxies, use the optional
+[Ports beta setup](docs/ports-beta-setup.md). It installs Ports 0.10.0-beta.1
+beside the stable bundle, with a separate command, data directory and optional
+**Ports (BETA)** profile. Normal workspace tabs and hotkeys keep their current apps.
+The copyable PowerShell commands need no source checkout.
 
 On **Windows 10/11 x64**, with Windows Terminal, PowerShell 7 and OpenSSH Client:
 

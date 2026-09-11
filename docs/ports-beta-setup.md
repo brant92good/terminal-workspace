@@ -4,13 +4,15 @@ The normal Workspace installation stays on 0.10.0 with Ports 0.9.1. This optiona
 helper manages a separate Ports beta installation and profile. It is Windows-only;
 the standalone Ports installers remain the path for Linux and macOS (beta).
 
-**Helper candidate:** the contract pins the qualified
+The contract pins the qualified
 [Ports 0.10.0-beta.1 release](https://github.com/brant92good/port-forward-tui/releases/tag/v0.10.0-beta.1).
 Its [tag workflow](https://github.com/brant92good/port-forward-tui/actions/runs/34643401076)
 passed five native platform jobs and five published HTTPS installation jobs.
-The integration helper still needs its own reviewed source publication and
-device setup; a qualified leaf is not an installed profile. No current Workspace
-archive or stable binary is replaced by this source change.
+The published helper passed an actual HTTPS fresh install in Windows PowerShell
+5.1 and update in PowerShell 7. The same fixture verified metadata import and
+profile creation in PowerShell 7, a byte-preserving profile repeat in PowerShell
+5.1, and removal in PowerShell 7. Device setup is explicit; no current Workspace
+archive or stable binary is replaced.
 
 From a checkout of the reviewed integration commit:
 
@@ -23,12 +25,12 @@ Local Plan reads files only: no downloads, native process or writes. Stable
 Plan/Status never starts Ports. Stable mutation requests are refused; continue
 to use the ordinary Workspace installer for stable installation.
 
-After helper qualification, select the exact published integration commit and beta
-version. These are separate actions, so installation does not silently copy
+Select the exact published integration commit and beta version. These are
+separate actions, so installation does not silently copy
 favorites or add a profile:
 
 ```powershell
-$revision = '<reviewed full 40-character integration commit>'
+$revision = '911b84766878bf607d38a3ffcf874e0f16787deb'
 .\ports-channel.ps1 -Channel beta -Version 0.10.0-beta.1 -IntegrationRevision $revision -Action Install -Json
 .\ports-channel.ps1 -Channel beta -Version 0.10.0-beta.1 -IntegrationRevision $revision -Action Import -FromDataDir "$env:LOCALAPPDATA\PortForwardTUI" -Json
 .\ports-channel.ps1 -Channel beta -Version 0.10.0-beta.1 -IntegrationRevision $revision -Action AddProfile -Json
@@ -63,8 +65,9 @@ it only removes a verified owned fragment and needs no installed binary.
 .\ports-channel.ps1 -Channel beta -Version 0.10.0-beta.1 -IntegrationRevision $revision -Action RemoveProfile -Json
 ```
 
-The fragment lives under the current user's
-`Microsoft\Windows Terminal\Fragments\TerminalWorkspace.PortsBeta` directory.
+The fragment lives in the current user's
+`%LOCALAPPDATA%\Microsoft\Windows Terminal\Fragments\TerminalWorkspace.PortsBeta`
+directory.
 Standard menus that include remaining profiles can expose it; custom fixed menus
 or disabled fragment sources may hide it. The helper reports profile visibility
 as unobserved and never rewrites your menu to force it. A created JSON file is not
@@ -73,10 +76,28 @@ proof of a physical menu click or focus behavior. See Microsoft's
 
 ## Use without a source checkout
 
-`bootstrap-ports.ps1` requires `-IntegrationRevision` and downloads the helper,
-common functions and contract from that same immutable public commit. No Git,
-Python or compiler is required. The first qualified publication will provide
-its exact commit here; no moving-main command is supplied for this candidate.
+Run this in PowerShell to install the compiled beta:
+
+```powershell
+$revision = '911b84766878bf607d38a3ffcf874e0f16787deb'
+$bootstrap = Invoke-RestMethod "https://raw.githubusercontent.com/brant92good/terminal-workspace/$revision/bootstrap-ports.ps1"
+$portsSetup = [scriptblock]::Create($bootstrap)
+& $portsSetup -IntegrationRevision $revision -Channel beta -Version 0.10.0-beta.1 -Action Install -Json
+```
+
+To preview without installing, replace `-Action Install` with `-Action Plan` on
+that same invocation. Import and profile creation remain separate choices; run
+either command below in the same PowerShell session when wanted:
+
+```powershell
+& $portsSetup -IntegrationRevision $revision -Channel beta -Version 0.10.0-beta.1 -Action Import -FromDataDir "$env:LOCALAPPDATA\PortForwardTUI" -Json
+& $portsSetup -IntegrationRevision $revision -Channel beta -Version 0.10.0-beta.1 -Action AddProfile -Json
+```
+
+Use that same invocation with `-Action RemoveProfile` to remove only the optional
+profile. None of these commands needs a local `ports-channel.ps1` file.
+`bootstrap-ports.ps1` downloads the helper, common functions and contract from
+that same immutable public commit. No Git, Python or compiler is required.
 
 Remote bootstrap Plan necessarily fetches source into a temporary directory;
 it does not fetch leaf binaries or alter product/data/profile paths. Every later
