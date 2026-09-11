@@ -89,7 +89,13 @@ try {
     $long=Join-Path $fixture 'Owned long directory for alias'; [IO.Directory]::CreateDirectory($long) | Out-Null
     $fso=New-Object -ComObject Scripting.FileSystemObject
     try { $short=$fso.GetFolder($long).ShortPath } finally { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($fso) }
-    Check ($short -cne $long -and (Resolve-FilesChannelPath $short) -ceq $long) 'actual 8.3 alias resolves to stored long directory'
+    $resolved=Resolve-FilesChannelPath $short
+    Write-Output "8.3 fixture: long=[$long]; short=[$short]; resolved=[$resolved]"
+    if ($short.Equals($long,[StringComparison]::OrdinalIgnoreCase)) {
+        Write-Output 'SKIP: volume does not expose an 8.3 alias for the owned long directory'
+    } else {
+        Check ($resolved -ceq $long) 'actual 8.3 alias resolves to stored long directory'
+    }
     $junction=Join-Path $fixture 'owned-junction'; New-Item -ItemType Junction -Path $junction -Target $long | Out-Null
     Expect-Error { Resolve-FilesChannelPath ($junction+'\missing') } 'reparse' 'junction ancestor refused'
     [IO.Directory]::Delete($junction)
