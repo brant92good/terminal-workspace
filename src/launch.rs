@@ -83,21 +83,9 @@ pub fn tab_arguments(
     // before adding the deliberate command separators, not Windows argv quotes.
     // See Microsoft Terminal v1.24.11911.0 Commandline::AddArg.
     let wt = |value: &str| value.replace(';', "\\;");
-    let mut arguments = vec![
-        "-w".into(),
-        wt(window),
-        "new-tab".into(),
-        "-p".into(),
-        settings::PORTS.into(),
-        wt(&binary(root, "ports").to_string_lossy()),
-        "--data-dir".into(),
-        wt(&directory.to_string_lossy()),
-        "--machine".into(),
-        wt(&machine.id),
-    ];
+    let mut arguments = vec!["-w".into(), wt(window)];
     if preferences.local_herdr {
         arguments.extend([
-            ";".into(),
             "new-tab".into(),
             "-p".into(),
             settings::LOCAL.into(),
@@ -108,10 +96,21 @@ pub fn tab_arguments(
             wt(&preferences.herdr),
             "--data-dir".into(),
             wt(&directory.to_string_lossy()),
+            ";".into(),
         ]);
     }
+    arguments.extend([
+        "new-tab".into(),
+        "-p".into(),
+        settings::PORTS.into(),
+        wt(&binary(root, "ports").to_string_lossy()),
+        "--data-dir".into(),
+        wt(&directory.to_string_lossy()),
+        "--machine".into(),
+        wt(&machine.id),
+    ]);
     if preferences.workspace_files {
-        let (executable, args) = files_arguments(root, machine)?;
+        let (executable, args) = files_chooser_arguments(root, preferences)?;
         arguments.extend([
             ";".into(),
             "new-tab".into(),
@@ -123,6 +122,19 @@ pub fn tab_arguments(
     }
     arguments.extend([";".into(), "focus-tab".into(), "-t".into(), "0".into()]);
     Ok(arguments)
+}
+
+/// Open the SSH catalog's Files chooser without selecting or mapping a machine.
+pub fn files_chooser_arguments(
+    root: &Path,
+    preferences: &Preferences,
+) -> Result<(PathBuf, Vec<String>)> {
+    let (executable, mut arguments) = settings::sessions_arguments(root, preferences);
+    if !executable.is_file() {
+        bail!("SSH Sessions is missing. Run the workspace binary installer again.");
+    }
+    arguments.push("files".into());
+    Ok((executable, arguments))
 }
 
 /// Resolve metadata without selecting a current machine or touching a controller.

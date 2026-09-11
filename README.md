@@ -15,29 +15,33 @@ reach across tabs and windows.
 
 [Install](#install) · [Daily use](docs/daily-use.md) · [Standalone apps](#use-only-what-you-need) · [Setup help](docs/setup.md)
 
-![SSH Sessions: choose a server or local terminal](https://raw.githubusercontent.com/brant92good/ssh-session-tui/v0.7.0/docs/screenshots/picker.svg)
+![SSH Sessions: choose a server or local terminal](https://raw.githubusercontent.com/brant92good/ssh-session-tui/v0.8.0/docs/screenshots/picker.svg)
 
 *The included SSH Sessions picker, using example machines.*
 
-> [0.9.0 prerelease](https://github.com/brant92good/terminal-workspace/releases/tag/v0.9.0)
-> adds the SFTP menu/tab and opt-in automatic forwarding. Its package and public
-> Windows installers passed qualification; 0.8.0 remains the default stable release.
-> Files and taskbar grouping remain beta. [Verification](docs/verification.md).
+> **0.10.0 prerelease.** Includes the Files server/path chooser,
+> Remote–Local–Ports–SFTP order, grouped Ports rows and updated file controls.
+> Check [downloads and release status](https://github.com/brant92good/terminal-workspace/releases/tag/v0.10.0)
+> for availability and [verification](docs/verification.md) for qualification.
+> The [previous qualified 0.9.0 instructions](https://github.com/brant92good/terminal-workspace/blob/v0.9.0/README.md)
+> remain available. Files and taskbar grouping remain beta.
 
 ## Install
 
 On **Windows 10/11 x64**, with Windows Terminal, PowerShell 7 and OpenSSH Client:
 
+The pinned command uses this prerelease's compiled assets.
+
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.9.0/bootstrap.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.10.0/bootstrap.ps1 | iex"
 ```
 
 Setup downloads compiled apps and checks their SHA256 hashes. It needs no Python,
 Rust toolchain or Git. No server address is required during installation.
 
 Open **Terminal Workspace** from Start. Add a machine or import an SSH alias,
-then choose it. The remote tab opens first and **Ports** second, with the remote
-tab selected. Ordinary new tabs open the SSH picker; **Ctrl+Alt+N** opens local
+then choose it. The remote tab opens first, optional Local Herdr follows, then
+**Ports**, with the remote tab selected. Ordinary new tabs open the SSH picker; **Ctrl+Alt+N** opens local
 PowerShell. Appearance and menus stay as configured.
 
 [Prerequisites, options and updates](docs/setup.md) ·
@@ -53,14 +57,14 @@ PowerShell. Appearance and menus stay as configured.
 | Open another view | Add **Shift** to the R/P shortcut |
 | Work locally | **Ctrl+Alt+N**, or the picker's Local terminal row |
 | Browse a server's files | Select it in the SSH picker and press **X** |
-| Open SFTP for the current workspace | Choose **SFTP** in Terminal's tab menu |
+| Choose a server or saved path for SFTP | Choose **SFTP** in Terminal's tab menu |
 | Keep return shortcuts inside the current window | **F2** in Ports |
 
 The shortcuts apply while Windows Terminal has focus. With several windows open,
 the invoking window's machine context determines the target; the most recently
 used matching view wins. The current-window setting keeps that search local.
 
-![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/v0.8.1/docs/screenshots/connections.svg)
+![Saved forwards grouped by server](https://raw.githubusercontent.com/brant92good/port-forward-tui/v0.9.1/docs/screenshots/connections.svg)
 
 *Ports with example servers and simulated connection states.*
 
@@ -70,8 +74,8 @@ can forward at once. A background controller keeps active forwards independent
 of the views and retries recoverable network failures. Stop forwards explicitly
 when finished; reboot and sign-out end the connections.
 
-Want the same tunnels ready each time? Select a saved forward, open **F2 Settings**,
-and enable **Open automatically** with **Space**, then **Enter** to save.
+Want the same tunnels ready each time? Select a saved forward and press **E** to
+edit **Open automatically**, or use **F2 Settings**. The preference defaults off.
 A new Ports view starts your chosen forwards;
 already-running ones keep their connections. Refreshing a view leaves manual stops
 alone. Returning to an existing view with the shortcut does not start them again.
@@ -88,8 +92,8 @@ To include SFTP whenever you open the workspace, run this from its installed fol
 .\install.ps1 -SkipDependencies -WorkspaceFiles
 ```
 
-The button opens Remote, Ports, optional Local Herdr, then SFTP, with Remote selected.
-The SFTP tab uses the same destination you chose for that workspace. Use
+The button opens Remote, optional Local Herdr, Ports, then SFTP, with Remote selected.
+The SFTP tab shows your SSH catalog's groups, servers and saved paths before connecting. Use
 `-NoWorkspaceFiles` to turn off the extra tab; the **SFTP** profile stays installed.
 If you maintain a custom tab menu, [add SFTP to it](docs/setup.md#custom-tab-menus).
 
@@ -97,17 +101,17 @@ Select a server in the SSH picker and press **X**. SSH Files opens local and rem
 panes on that machine's selected route. Mark files, review their destinations,
 and start the queue while you keep browsing. Close Files to return to the picker.
 
-![SSH Files local and remote panes](https://raw.githubusercontent.com/brant92good/ssh-files/v0.1.0/docs/assets/browser.svg)
+![SSH Files local and remote panes](https://raw.githubusercontent.com/brant92good/ssh-files/v0.3.0/docs/assets/browser.svg)
 
 *The bundled beta file manager, rendered by the app with example files.*
 
 From the picker, Files uses its selected SSH alias, address and custom config.
-From the workspace or SFTP menu, it uses that workspace's Ports machine; outside
-a workspace it asks you to choose one when needed. It adds no address book.
+The workspace and SFTP menu open that same SSH catalog's Files chooser. They do
+not copy a machine ID from the separate Ports catalog. Files adds no address book.
 It requires SSH authentication without an interactive
 prompt and an already trusted host. Uploads currently need OpenSSH's SFTP hardlink
 extension. Existing destinations are preserved, and interrupted or uncertain
-transfers stay visible. [Connection requirements and transfer controls](https://github.com/brant92good/ssh-files/blob/v0.1.0/docs/usage.md).
+transfers stay visible. [Connection requirements and transfer controls](https://github.com/brant92good/ssh-files/blob/v0.3.0/docs/usage.md).
 
 ## Use only what you need
 
@@ -140,7 +144,9 @@ installs work independently; released bundles pin exact app versions and hashes.
 
 ## Evidence and limits
 
-The 0.9.0 prerelease bundle passed native settings and launch checks, actual-ZIP install/update
+The 0.10.0 [verification record](docs/verification.md) distinguishes source,
+bundle and public-download checks; availability is recorded on its release page.
+The previous 0.9.0 prerelease bundle passed native settings and launch checks, actual-ZIP install/update
 tests, and public HTTPS installation on PowerShell 5.1 and 7. The checks include
 the bundled Files handoff and rejected incomplete updates.
 Wrapper JSON pipelines and interactive input are tested through real pseudo

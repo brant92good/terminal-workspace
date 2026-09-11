@@ -7,11 +7,12 @@ use std::{fs, path::Path, process::Command};
 pub fn verify_installed(destination: &Path, sandbox: &Path) {
     let manifest: Value =
         serde_json::from_slice(&fs::read(destination.join("release.json")).unwrap()).unwrap();
+    assert_eq!(manifest["files"].as_object().unwrap().len(), 26);
     for (program, version) in [
         ("terminal-workspace", env!("CARGO_PKG_VERSION")),
-        ("ports", "0.8.1"),
-        ("ssh-sessions", "0.7.0"),
-        ("ssh-files", "0.1.0"),
+        ("ports", "0.9.1"),
+        ("ssh-sessions", "0.8.0"),
+        ("ssh-files", "0.3.0"),
     ] {
         let binary = destination.join(format!("bin/{program}.exe"));
         let output = Command::new(&binary).arg("--version").output().unwrap();
@@ -32,6 +33,7 @@ pub fn verify_installed(destination: &Path, sandbox: &Path) {
     );
     for name in [
         "ports-LICENSE.txt",
+        "ports-THIRD_PARTY_NOTICES.txt",
         "ssh-sessions-LICENSE.txt",
         "ssh-files-LICENSE.txt",
         "ssh-files-THIRD_PARTY_NOTICES.txt",
@@ -202,14 +204,14 @@ pub fn reject_incomplete_update(
     sandbox: &Path,
 ) {
     let mutation_script = sandbox.join("mutate-fixture.ps1");
-    fs::write(&mutation_script, r#"param($Archive,$Mode)
+    fs::write(&mutation_script, r#"param($Archive,$Mode,$Target)
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 Add-Type -AssemblyName System.IO.Compression
 $zip=[IO.Compression.ZipFile]::Open($Archive,[IO.Compression.ZipArchiveMode]::Update)
 try {
-  $matches=@($zip.Entries | Where-Object { $_.FullName.Replace('\','/') -ceq 'bin/ssh-files.exe' })
-  if($matches.Count -ne 1) { throw 'Expected exactly one Files fixture entry' }
+  $matches=@($zip.Entries | Where-Object { $_.FullName.Replace('\','/') -ceq $Target })
+  if($matches.Count -ne 1) { throw 'Expected exactly one target fixture entry' }
   $entry=$matches[0]
   if($Mode -eq 'tamper') {
     $stream=$entry.Open(); try { $stream.SetLength(0); $stream.WriteByte(0) } finally { $stream.Dispose() }
@@ -219,7 +221,7 @@ try {
     $reader=New-Object IO.StreamReader($entry.Open())
     try { $manifest=$reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
     $entry.Delete()
-    $manifest.files.PSObject.Properties.Remove('bin/ssh-files.exe')
+    $manifest.files.PSObject.Properties.Remove($Target)
     $writer=New-Object IO.StreamWriter($zip.CreateEntry('release.json').Open())
     try { $writer.Write(($manifest | ConvertTo-Json -Depth 10)) } finally { $writer.Dispose() }
   }
@@ -227,12 +229,22 @@ try {
 "#).unwrap();
     let before = fs::read(destination.join(".machine.json")).unwrap();
     let binary = fs::read(destination.join("bin/ssh-files.exe")).unwrap();
-    for mode in ["tamper", "missing"] {
-        let archive = sandbox.join(format!("{mode}.zip"));
+    let notice = fs::read(destination.join("licenses/ports-THIRD_PARTY_NOTICES.txt")).unwrap();
+    for (target, mode) in [
+        ("bin/ssh-files.exe", "tamper"),
+        ("bin/ssh-files.exe", "missing"),
+        ("licenses/ports-THIRD_PARTY_NOTICES.txt", "tamper"),
+        ("licenses/ports-THIRD_PARTY_NOTICES.txt", "missing"),
+    ] {
+        let archive = sandbox.join(format!("{}-{mode}.zip", target.replace(['/', '.'], "-")));
         fs::copy(&arguments[3], &archive).unwrap();
         check(run(
             &mutation_script,
-            &[archive.to_string_lossy().into_owned(), mode.into()],
+            &[
+                archive.to_string_lossy().into_owned(),
+                mode.into(),
+                target.into(),
+            ],
         ));
         let mut corrupt = arguments.to_vec();
         corrupt[3] = archive.to_string_lossy().into_owned();
@@ -240,9 +252,13 @@ try {
         let output = run(script, &corrupt);
         assert!(
             !output.status.success(),
-            "Incomplete Files bundle was accepted"
+            "Incomplete bundle was accepted: {target} {mode}"
         );
         assert_eq!(fs::read(destination.join(".machine.json")).unwrap(), before);
+        assert_eq!(
+            fs::read(destination.join("licenses/ports-THIRD_PARTY_NOTICES.txt")).unwrap(),
+            notice
+        );
         assert_eq!(
             fs::read(destination.join("bin/ssh-files.exe")).unwrap(),
             binary
@@ -258,6 +274,24 @@ try {
     source_args[1] = checkout.to_string_lossy().into_owned();
     source_args.push("-SourceCheckout".into());
     check(run(script, &source_args));
+    let manifest: Value =
+        serde_json::from_slice(&fs::read(destination.join("release.json")).unwrap()).unwrap();
+    let generated: Vec<_> = manifest["files"]
+        .as_object()
+        .unwrap()
+        .keys()
+        .filter(|name| {
+            name.starts_with("bin/") || name.starts_with("build/") || name.starts_with("licenses/")
+        })
+        .collect();
+    assert_eq!(generated.len(), 13);
+    for name in generated {
+        assert_eq!(
+            fs::read(checkout.join(name)).unwrap(),
+            fs::read(destination.join(name)).unwrap(),
+            "generated payload {name}"
+        );
+    }
     assert_eq!(fs::read(checkout.join("Cargo.toml")).unwrap(), source);
     assert_eq!(
         fs::read(checkout.join("README.md")).unwrap(),

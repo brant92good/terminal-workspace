@@ -13,6 +13,11 @@ fn setup(root: &Path) -> Machine {
         b"preview must not execute this",
     )
     .unwrap();
+    fs::write(
+        root.join("bin/ssh-sessions.exe"),
+        b"chooser must not run during planning",
+    )
+    .unwrap();
     let config = root.join("config 測試; tail");
     fs::write(&config, b"Host demo\n HostName 192.0.2.4\n").unwrap();
     Machine {
@@ -26,33 +31,34 @@ fn setup(root: &Path) -> Machine {
 }
 
 #[test]
-fn four_tabs_freeze_route_and_escape_terminal_delimiters() {
+fn four_tabs_keep_local_before_ports_and_open_catalog_chooser_last() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().join("workspace;測試");
     let machine = setup(&root);
+    let catalog = root.join("catalog ; \u{958b}\u{767c}.json");
+    fs::write(&catalog, b"chooser validates this, not the parent").unwrap();
     let prefs = Preferences::read(
-        &json!({"local_herdr":true,"workspace_files":true,"herdr":"C:/my;herdr.exe"}),
+        &json!({"local_herdr":true,"workspace_files":true,"herdr":"C:/my;herdr.exe","session_catalog":catalog}),
     )
     .unwrap();
     let args = launch::tab_arguments(&root, "unique-window", &machine, &machine.directory, &prefs)
         .unwrap();
     let chunks: Vec<_> = args.split(|s| s == ";").collect();
     assert_eq!(chunks.len(), 4); // Three companions and focus; Remote already exists.
-    assert_eq!(chunks[0][4], settings::PORTS);
-    assert_eq!(chunks[1][2], settings::LOCAL);
+    assert_eq!(chunks[0][4], settings::LOCAL);
+    assert_eq!(chunks[1][2], settings::PORTS);
     assert_eq!(chunks[2][2], settings::FILES);
     assert_eq!(chunks[3], ["focus-tab", "-t", "0"]);
     let frozen: Vec<_> = chunks[2][4..]
         .iter()
         .map(|arg| arg.replace("\\;", ";"))
         .collect();
-    let (_, expected) = launch::files_arguments(&root, &machine).unwrap();
+    let (executable, expected) = launch::files_chooser_arguments(&root, &prefs).unwrap();
     assert_eq!(frozen, expected);
-    assert!(frozen.contains(&format!("--label={}", machine.name)));
-    assert!(frozen.contains(&"--host=user@demo".into()));
-    assert!(frozen.contains(&"--port=2222".into()));
-    assert!(frozen.contains(&format!("--config={}", machine.ssh_config.unwrap())));
-    assert!(!frozen.iter().any(|arg| arg.contains("route-id")));
+    assert_eq!(executable, root.join("bin/ssh-sessions.exe"));
+    assert_eq!(frozen, ["--catalog", catalog.to_str().unwrap(), "files"]);
+    assert!(!frozen.contains(&machine.id));
+    assert!(!frozen.contains(&machine.target));
     for chunk in &chunks {
         for arg in *chunk {
             for (i, _) in arg.match_indices(';') {
@@ -60,7 +66,11 @@ fn four_tabs_freeze_route_and_escape_terminal_delimiters() {
             }
         }
     }
-    fs::remove_file(root.join("bin/ssh-files.exe")).unwrap();
+    assert_eq!(
+        fs::read(&catalog).unwrap(),
+        b"chooser validates this, not the parent"
+    );
+    fs::remove_file(root.join("bin/ssh-sessions.exe")).unwrap();
     assert!(
         launch::tab_arguments(&root, "unique-window", &setup_machine(&root), &root, &prefs)
             .is_err()
@@ -79,16 +89,67 @@ fn setup_machine(root: &Path) -> Machine {
 }
 
 #[test]
+fn explicit_files_route_preserves_ports_metadata_without_catalog_conversion() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let machine = setup(root);
+    let (executable, arguments) = launch::files_arguments(root, &machine).unwrap();
+    assert_eq!(executable, root.join("bin/ssh-files.exe"));
+    assert_eq!(
+        arguments,
+        [
+            "--host=user@demo".to_owned(),
+            format!("--label={}", machine.name),
+            "--machine-id=stable-ports-id".to_owned(),
+            "--port=2222".to_owned(),
+            format!("--config={}", machine.ssh_config.unwrap()),
+        ]
+    );
+    assert!(!machine.directory.exists());
+    fs::remove_file(executable).unwrap();
+    assert!(launch::files_arguments(root, &setup_machine(root)).is_err());
+}
+
+#[test]
+fn optional_tabs_keep_ports_after_local_and_remote_selected() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let machine = setup(root);
+    for (local, files, expected) in [
+        (false, false, vec![settings::PORTS]),
+        (true, false, vec![settings::LOCAL, settings::PORTS]),
+        (false, true, vec![settings::PORTS, settings::FILES]),
+        (
+            true,
+            true,
+            vec![settings::LOCAL, settings::PORTS, settings::FILES],
+        ),
+    ] {
+        let prefs = Preferences::read(&json!({
+            "local_herdr":local,"workspace_files":files
+        }))
+        .unwrap();
+        let args =
+            launch::tab_arguments(root, "owned-window", &machine, &machine.directory, &prefs)
+                .unwrap();
+        assert_eq!(&args[..2], ["-w", "owned-window"]);
+        let profiles: Vec<_> = args
+            .windows(2)
+            .filter_map(|pair| (pair[0] == "-p").then_some(pair[1].as_str()))
+            .collect();
+        assert_eq!(profiles, expected);
+        assert_eq!(&args[args.len() - 4..], [";", "focus-tab", "-t", "0"]);
+    }
+}
+
+#[test]
 fn literal_and_backslash_semicolons_round_trip_through_terminal_boundary() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path();
-    let mut machine = setup(root);
-    let config = root.join(";ssh_config");
-    fs::write(&config, b"Host demo\n").unwrap();
-    machine.ssh_config = Some(config.to_str().unwrap().into());
-    let options = Preferences::read(&json!({"workspace_files":true})).unwrap();
+    let machine = setup(root);
     for label in [";", r"before\;after", r"trailing\;"] {
-        machine.name = label.into();
+        let options =
+            Preferences::read(&json!({"workspace_files":true,"session_catalog":label})).unwrap();
         let args = launch::tab_arguments(root, "window", &machine, root, &options).unwrap();
         let commands: Vec<_> = args.split(|arg| arg == ";").collect();
         assert_eq!(commands.len(), 3);
@@ -96,7 +157,7 @@ fn literal_and_backslash_semicolons_round_trip_through_terminal_boundary() {
             .iter()
             .map(|arg| arg.replace("\\;", ";"))
             .collect();
-        assert_eq!(restored, launch::files_arguments(root, &machine).unwrap().1);
+        assert_eq!(restored, ["--catalog", label, "files"]);
     }
 }
 
@@ -150,7 +211,8 @@ fn files_preview_is_read_only_and_resolves_relative_config_before_tab_changes_di
 }
 
 #[test]
-fn actual_workspace_dispatch_cancels_cleanly_and_freezes_files_before_remote_runs() {
+fn actual_workspace_dispatch_and_sftp_profile_defer_selection_to_ssh_catalog() {
+    use std::os::windows::process::CommandExt;
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path();
     let mut machine = setup(root);
@@ -178,18 +240,21 @@ fn main() {
         "{}",
         String::from_utf8_lossy(&result.stderr)
     );
-    for name in ["wt", "ports", "herdr", "ssh-files"] {
+    for name in ["wt", "ports", "herdr", "ssh-files", "ssh-sessions"] {
         fs::copy(
             root.join("bin/fixture.exe"),
             root.join(format!("bin/{name}.exe")),
         )
         .unwrap();
     }
+    let catalog = root.join("catalog ; \u{958b}\u{767c}.json");
+    let catalog_bytes = b"parent does not read or import this catalog";
+    fs::write(&catalog, catalog_bytes).unwrap();
     fs::write(
         root.join(".machine.json"),
         serde_json::to_vec(&json!({
         "workspace_files":true,"local_herdr":true,"remote_client":"herdr",
-        "herdr":root.join("bin/herdr.exe")}))
+        "herdr":root.join("bin/herdr.exe"),"session_catalog":catalog}))
         .unwrap(),
     )
     .unwrap();
@@ -227,7 +292,7 @@ fn main() {
             .success()
     );
     assert!(run(&["files"]).status.success());
-    for name in ["wt", "herdr", "ssh-files"] {
+    for name in ["wt", "herdr", "ssh-files", "ssh-sessions"] {
         assert!(!root.join(format!("{name}.argv")).exists());
     }
     fs::write(
@@ -238,7 +303,7 @@ fn main() {
         .unwrap(),
     )
     .unwrap();
-    fs::remove_file(root.join("bin/ssh-files.exe")).unwrap();
+    fs::remove_file(root.join("bin/ssh-sessions.exe")).unwrap();
     assert!(
         !run(&["workspace", "--window", "owned-fixture"])
             .status
@@ -246,7 +311,13 @@ fn main() {
     );
     assert!(!root.join("wt.argv").exists());
     assert!(!root.join("herdr.argv").exists());
-    fs::copy(root.join("bin/fixture.exe"), root.join("bin/ssh-files.exe")).unwrap();
+    fs::copy(
+        root.join("bin/fixture.exe"),
+        root.join("bin/ssh-sessions.exe"),
+    )
+    .unwrap();
+    // No Files binary is needed until the user chooses a destination in the UI.
+    fs::remove_file(root.join("bin/ssh-files.exe")).unwrap();
     let result = run(&["workspace", "--window", "owned-fixture"]);
     assert!(
         result.status.success(),
@@ -272,7 +343,48 @@ fn main() {
         fs::read_to_string(root.join("herdr.argv")).unwrap(),
         format!("--remote\0{}", machine.target)
     );
-    assert!(run(&["files"]).status.success());
+    assert!(!root.join("ssh-sessions.argv").exists());
+    assert!(!root.join("ssh-files.argv").exists());
+    let preferences =
+        Preferences::read(&settings::load(&root.join(".machine.json")).unwrap()).unwrap();
+    let shared: Value = serde_json::from_str(include_str!("../config/terminal.json")).unwrap();
+    let rendered = settings::render(&json!({}), &shared, root, &preferences).unwrap();
+    let menu = rendered["profiles"]["list"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["guid"] == settings::FILES)
+        .unwrap();
+    let executable = root.join("bin").join("ssh-sessions.exe");
+    let commandline = menu["commandline"].as_str().unwrap();
+    let prefix = format!("{} ", settings::quote(executable.to_str().unwrap()));
+    let raw_arguments = commandline.strip_prefix(&prefix).unwrap();
+    fs::remove_file(root.join("ports.argv")).unwrap();
+    assert!(
+        Command::new(&executable)
+            .raw_arg(raw_arguments)
+            .env("WORKSPACE_FIXTURE", root)
+            .current_dir(root)
+            .status()
+            .unwrap()
+            .success()
+    );
+    assert_eq!(
+        fs::read_to_string(root.join("ssh-sessions.argv")).unwrap(),
+        format!("--catalog\0{}\0files", catalog.display())
+    );
+    assert!(
+        !root.join("ports.argv").exists(),
+        "Menu must not select a Ports machine"
+    );
+    assert!(
+        !root.join("ssh-files.argv").exists(),
+        "Menu must not connect before choosing"
+    );
+    assert_eq!(fs::read(&catalog).unwrap(), catalog_bytes);
+    // Explicit parent CLI remains the separate Ports-catalog compatibility path.
+    fs::copy(root.join("bin/fixture.exe"), root.join("bin/ssh-files.exe")).unwrap();
+    assert!(run(&["files", "--machine", &machine.id]).status.success());
     assert_eq!(
         fs::read_to_string(root.join("ssh-files.argv"))
             .unwrap()

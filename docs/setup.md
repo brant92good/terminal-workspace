@@ -4,6 +4,11 @@
 
 These instructions describe the compiled distribution. Check the
 [release status and remaining limits](native-migration.md) before installing.
+These commands select the 0.10.0 prerelease. Check its
+[download status](https://github.com/brant92good/terminal-workspace/releases/tag/v0.10.0)
+and qualification record; use the
+[0.9.0 guide](https://github.com/brant92good/terminal-workspace/blob/v0.9.0/docs/setup.md)
+for the previous qualified bundle.
 
 ## Prerequisites
 
@@ -24,12 +29,12 @@ SSH keys or an existing key agent must allow noninteractive authentication.
 ## One-command setup
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.9.0/bootstrap.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.10.0/bootstrap.ps1 | iex"
 ```
 
 The installer downloads a versioned ZIP, verifies its SHA256 checksum and its
 file manifest, then checks the packaged executable versions. The bundle includes
-SSH Sessions, Ports, the Rust workspace launcher, and precompiled
+SSH Sessions, Ports, SSH Files beta, the Rust workspace launcher, and precompiled
 Windows focus/taskbar helpers. Git is optional for later settings/catalog sync.
 
 The default directory is `%LOCALAPPDATA%\Programs\TerminalWorkspace`. Run the
@@ -52,7 +57,7 @@ To inspect or pass options, download [bootstrap.ps1](../bootstrap.ps1), then:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\bootstrap.ps1 -InstallDir 'C:\Tools\Terminal Workspace'
 ```
 
-`-Version 0.9.0` selects a release. `-NoShortcuts` skips Start/desktop entries.
+`-Version 0.10.0` selects this prerelease. `-NoShortcuts` skips Start/desktop entries.
 `-NoConfigure` only prepares compiled files; it does not apply Terminal settings,
 Explorer entries or shortcuts. Setup opens no app window.
 
@@ -93,11 +98,12 @@ even in that mode. `-ApplySharedSettings` applies `config/terminal.json`, includ
 the compact profile menu and the saved picker/default choice.
 
 `-WorkspaceFiles` adds SFTP when the workspace button opens a machine. The order
-is Remote, Ports, optional Local Herdr, then SFTP; Remote stays selected.
+is Remote, optional Local Herdr, Ports, then SFTP; Remote stays selected.
 `-NoWorkspaceFiles` removes the automatic companion. The standalone SFTP menu
-profile remains installed. Its machine selection comes from Ports, using the
-current window's context when available; the SSH picker's X action uses the
-picker's own route instead. Neither path silently switches connection routes.
+profile remains installed. Both show the Files chooser from the configured SSH
+catalog before connecting. Choose a server or saved path there; the picker's X
+action can also open its selected machine directly. The separate Ports catalog
+does not supply an implicit SFTP destination. Neither path silently switches routes.
 
 Conflicting unrelated keyboard bindings stop configuration with a message rather
 than being overwritten. Keep the installation at its chosen path.

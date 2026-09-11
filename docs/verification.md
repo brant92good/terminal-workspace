@@ -1,5 +1,63 @@
 # Verification
 
+## 0.10.0 local package - September 11, 2026
+
+The local Windows package uses the independently qualified prerelease inputs:
+Ports 0.9.1 (`13e72672`), SSH Sessions 0.8.0 (`9a9d3a25`) and Files 0.3.0 beta
+(`fed29f62`). Ports' [eleven tag jobs](https://github.com/brant92good/port-forward-tui/actions/runs/34527217550)
+and Files' [eleven tag jobs](https://github.com/brant92good/ssh-files/actions/runs/34526491338)
+passed. Independent checks downloaded their exact public bytes and replayed
+the advertised Windows HTTPS installers on PowerShell 5.1 and 7.
+
+The local parent ZIP SHA-256 is
+`f94025551f908c15da513b41d0c3e919e36b55fbd57ef6465f5c74b5a0d2301c`.
+Three actual-ZIP tests passed: fresh/update/integrity and ownership checks,
+legacy preference migration, and real ConPTY wrapper/JSON behavior on both
+PowerShell versions. The installer retained settings and user files, rejected
+missing/tampered Files binaries and Ports notices, and installed the exact 13
+generated SourceCheckout files while preserving source and configuration.
+All 26 manifest payloads and the five released license/notice files are checked.
+The adjacent Files handoff retains distinct SSH alias/hostname, Unicode labels,
+explicit route/configuration and independent catalog identities.
+
+Three additional captured first-save/restart tests passed outside Cargo's process
+job: direct Ports, the PowerShell 5.1 wrapper and the PowerShell 7 wrapper. Each
+uses an owned stopped rule with no SSH connection, checks EOF while its controller
+is still alive, and shuts down that controller afterward.
+
+These are local package results, not a parent hosted/public-HTTPS qualification
+or a personal installation. No desktop activation or live-controller change was
+part of these checks. The [release page](https://github.com/brant92good/terminal-workspace/releases/tag/v0.10.0)
+is the authority for available parent assets.
+
+## 0.10.0 source checkpoint - September 11, 2026
+
+This source prepares the configured SSH Files chooser and workspace order
+Remote, optional Local Herdr, Ports, optional SFTP. Remote remains selected.
+It targets Ports 0.9.1, SSH Sessions 0.8.0 and Files 0.3.0 beta. At this source
+checkpoint, final pins and parent package/HTTPS checks had not been qualified.
+Check the [release page](https://github.com/brant92good/terminal-workspace/releases/tag/v0.10.0)
+for published assets; this dated checkpoint alone does not establish their gates.
+
+Twenty-three ordinary parent native tests pass against the local Ports 0.9.1
+source, including all optional tab combinations and chooser/Ports-catalog
+isolation. Formatting and Clippy with warnings denied pass. Cargo.lock adds the
+Ports title-preview dependency graph; the parent enables no screenshot feature.
+These checks establish source behavior, not final leaf artifact qualification.
+
+The build-only Ports archive check requires exactly five named payloads plus
+SHA256SUMS, verifies every internal hash, and rejects missing, duplicate,
+unexpected, path-traversing or nonordinary entries before extraction. Its 13
+owned cases pass on PowerShell 5.1 and 7. Parent install fixtures additionally
+require the five exact notice paths, a 26-payload manifest, and 13 generated
+SourceCheckout files. Actual candidate ZIP runs were deferred until released
+assets were qualified.
+The corruption cases retain missing/tampered Files checks and add missing or
+tampered Ports notices with a recomputed outer archive hash.
+
+No desktop, user SSH configuration, live controller or installed app was changed.
+The older release sections below retain their original version-specific evidence.
+
 ## Native 0.9.0 prerelease - September 10, 2026
 
 [Release 0.9.0](https://github.com/brant92good/terminal-workspace/releases/tag/v0.9.0)
@@ -232,7 +290,7 @@ preservation of developer environment settings. Existing-tab return remains on
 the installed Python path; Rust is optional research code with incomplete
 machine-selection/fallback behavior.
 
-The [setup guide](setup.md#taskbar-icon-and-closing-tips) records taskbar grouping
+The [setup guide](setup.md#explorer-and-taskbar) records taskbar grouping
 status and the built-in way to dismiss the termination
 tip while retaining useful error output. Test windows were closed and temporary
 benchmark bindings removed. No native return launcher was installed by this work.
@@ -294,7 +352,7 @@ Reproduce that opt-in check using an existing machine with default SSH settings:
 .\apps\port-forward-tui\.venv\Scripts\python.exe -E -s scripts/check_machine_routing.py --yes --machine YOUR_SSH_NAME
 ```
 
-The [timing report](before-after.md#current-version-cost-of-multiple-machine-routing)
+The [timing report](before-after.md#september-8-follow-up-cost-of-multiple-machine-routing)
 now includes six samples each for one and two saved machines: Ports medians
 404.8/571.6 ms, instrumented remote Herdr 410.6/606.2 ms. Machine/window selection
 took 0.47/182.96 ms mean in the Herdr traces. The second profile remained dormant;

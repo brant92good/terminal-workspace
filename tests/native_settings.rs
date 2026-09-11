@@ -162,8 +162,8 @@ fn session_commands_and_tab_composition_preserve_ids_and_override_fallback() {
             "unique-window",
             "new-tab",
             "-p",
-            settings::PORTS,
-            "C:/root\\bin\\ports.exe"
+            settings::LOCAL,
+            "C:/root\\bin\\terminal-workspace.exe"
         ]
     );
     assert_eq!(
@@ -260,11 +260,9 @@ fn sftp_profile_is_visible_without_enabling_auto_tab_and_preserves_custom_action
     assert_eq!(files[0]["name"], "SFTP");
     assert_eq!(files[0]["hidden"], false);
     assert_eq!(files[0]["custom"], "keep");
-    assert!(
-        files[0]["commandline"]
-            .as_str()
-            .unwrap()
-            .ends_with(" files")
+    assert_eq!(
+        files[0]["commandline"],
+        "C:/Workspace\\bin\\ssh-sessions.exe files"
     );
     assert!(updated["actions"].as_array().unwrap().contains(&custom));
     assert!(
@@ -274,4 +272,44 @@ fn sftp_profile_is_visible_without_enabling_auto_tab_and_preserves_custom_action
             .contains(&binding)
     );
     assert_eq!(updated["defaultProfile"], settings::SESSIONS);
+}
+
+#[test]
+fn sftp_and_ordinary_picker_share_catalog_arguments_without_reading_or_selecting() {
+    let root = Path::new("C:/Workspace \u{958b}\u{767c}");
+    let catalog = "C:/Catalog ; \u{958b}\u{767c}/catalog.json";
+    for picker in [false, true] {
+        let options =
+            Preferences::read(&json!({"session_picker":picker,"session_catalog":catalog})).unwrap();
+        let rendered = settings::render(&json!({}), &shared(), root, &options).unwrap();
+        let entries = rendered["profiles"]["list"].as_array().unwrap();
+        let chooser = entries
+            .iter()
+            .find(|p| p["guid"] == settings::FILES)
+            .unwrap();
+        let expected = format!(
+            "{} --catalog {}",
+            settings::quote(root.join("bin").join("ssh-sessions.exe").to_str().unwrap()),
+            settings::quote(catalog)
+        );
+        assert_eq!(chooser["commandline"], format!("{expected} files"));
+        assert_eq!(chooser["hidden"], false);
+        assert_eq!(
+            rendered["defaultProfile"],
+            if picker {
+                settings::SESSIONS
+            } else {
+                settings::PWSH
+            }
+        );
+        if picker {
+            assert_eq!(
+                entries
+                    .iter()
+                    .find(|p| p["guid"] == settings::SESSIONS)
+                    .unwrap()["commandline"],
+                expected
+            );
+        }
+    }
 }

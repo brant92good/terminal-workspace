@@ -178,6 +178,16 @@ fn command(arguments: &[String]) -> String {
         .join(" ")
 }
 
+/// Both picker profiles use the configured SSH catalog, independently of Ports.
+/// Rendering command lines must not read a catalog or launch a child process.
+pub fn sessions_arguments(root: &Path, preferences: &Preferences) -> (PathBuf, Vec<String>) {
+    let mut arguments = Vec::new();
+    if let Some(catalog) = &preferences.session_catalog {
+        arguments.extend(["--catalog".into(), catalog.clone()]);
+    }
+    (crate::binary(root, "ssh-sessions"), arguments)
+}
+
 fn chord_identity(chord: &str) -> String {
     let mut parts: Vec<_> = chord
         .split('+')
@@ -279,15 +289,11 @@ pub fn render(
         preferences.herdr.clone(),
     ]);
     let ports = command(&[crate::binary(root, "ports").to_string_lossy().into_owned()]);
-    let files = command(&[native, "files".into()]);
-    let mut session_args = vec![
-        crate::binary(root, "ssh-sessions")
-            .to_string_lossy()
-            .into_owned(),
-    ];
-    if let Some(catalog) = &preferences.session_catalog {
-        session_args.extend(["--catalog".into(), catalog.clone()]);
-    }
+    let (session_binary, mut session_args) = sessions_arguments(root, preferences);
+    session_args.insert(0, session_binary.to_string_lossy().into_owned());
+    let mut files_args = session_args.clone();
+    files_args.push("files".into());
+    let files = command(&files_args);
     let sessions = command(&session_args);
     let mut desired = vec![
         json!({"guid": PWSH, "name":"PowerShell", "source":"Windows.Terminal.PowershellCore", "hidden":false}),

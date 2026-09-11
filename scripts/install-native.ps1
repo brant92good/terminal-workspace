@@ -1,5 +1,5 @@
 param(
-    [string]$InstallDir = '', [string]$Version = '0.9.0',
+    [string]$InstallDir = '', [string]$Version = '0.10.0',
     [string]$Bundle = '', [string]$Sha256 = '', [string]$LegacyInstallDir = '',
     [switch]$NoConfigure, [switch]$NoShortcuts, [switch]$SourceCheckout,
     [switch]$ExplorerPowerShell
@@ -74,17 +74,18 @@ try {
     [IO.Compression.ZipFile]::ExtractToDirectory($workspaceArchive,$workspaceExtract)
     $workspaceManifest = [IO.File]::ReadAllText((Join-Path $workspaceExtract 'release.json')) | ConvertFrom-Json
     if ($workspaceManifest.schema_version -ne 1 -or $workspaceManifest.version -ne $Version) { throw 'Unexpected bundle version.' }
-    $workspaceLicenses = @('licenses/ports-LICENSE.txt','licenses/ssh-sessions-LICENSE.txt','licenses/ssh-files-LICENSE.txt','licenses/ssh-files-THIRD_PARTY_NOTICES.txt')
-    $workspaceRequired = @('bin/terminal-workspace.exe','bin/ports.exe','bin/ssh-sessions.exe','bin/ssh-files.exe','bin/PortsFocus.exe','bin/TerminalViews.exe','build/TerminalWorkspace.exe','build/herdr.ico','config/terminal.json','scripts/explorer.ps1','scripts/invoke-native.ps1','doctor.ps1','ports.ps1','sessions.ps1','open.ps1') + $workspaceLicenses
+    $workspaceLicenses = @('licenses/ports-LICENSE.txt','licenses/ports-THIRD_PARTY_NOTICES.txt','licenses/ssh-sessions-LICENSE.txt','licenses/ssh-files-LICENSE.txt','licenses/ssh-files-THIRD_PARTY_NOTICES.txt')
+    $workspaceRequired = @('bin/terminal-workspace.exe','bin/ports.exe','bin/ssh-sessions.exe','bin/ssh-files.exe','bin/PortsFocus.exe','bin/TerminalViews.exe','build/TerminalWorkspace.exe','build/herdr.ico','config/terminal.json','scripts/explorer.ps1','scripts/install-native.ps1','scripts/invoke-native.ps1','install.ps1','bootstrap.ps1','doctor.ps1','ports.ps1','sessions.ps1','sync.ps1','open.ps1','LICENSE','NOTICE') + $workspaceLicenses
     foreach ($workspaceName in $workspaceRequired) {
-        if (-not ($workspaceManifest.files.PSObject.Properties.Name -contains $workspaceName)) { throw "Bundle is missing $workspaceName." }
+        if ($workspaceManifest.files.PSObject.Properties.Name -cnotcontains $workspaceName) { throw "Bundle is missing $workspaceName." }
     }
+    if (@($workspaceManifest.files.PSObject.Properties).Count -ne $workspaceRequired.Count) { throw 'Bundle manifest has an unexpected payload count.' }
     foreach ($workspaceProperty in $workspaceManifest.files.PSObject.Properties) {
         $workspaceName = $workspaceProperty.Name
-        if ($workspaceName -notmatch '^(bin/[A-Za-z0-9._-]+|build/[A-Za-z0-9._-]+|scripts/[A-Za-z0-9._-]+|config/terminal\.json|doctor\.ps1|ports\.ps1|sessions\.ps1|sync\.ps1|open\.ps1|install\.ps1|bootstrap\.ps1|LICENSE|NOTICE)$' -and $workspaceLicenses -cnotcontains $workspaceName) { throw "Unexpected bundle file $workspaceName." }
+        if ($workspaceRequired -cnotcontains $workspaceName) { throw "Unexpected bundle file $workspaceName." }
         if ($workspaceProperty.Value -notmatch '^[a-f0-9]{64}$' -or (Get-WorkspaceHash (Join-Path $workspaceExtract $workspaceName)) -ne $workspaceProperty.Value) { throw "Invalid bundled file: $workspaceName." }
     }
-    foreach ($workspaceApp in @(@('terminal-workspace',$Version),@('ssh-sessions','0.7.0'),@('ports','0.8.1'),@('ssh-files','0.1.0'))) {
+    foreach ($workspaceApp in @(@('terminal-workspace',$Version),@('ssh-sessions','0.8.0'),@('ports','0.9.1'),@('ssh-files','0.3.0'))) {
         $workspaceResult = & (Join-Path $workspaceExtract ('bin\' + $workspaceApp[0] + '.exe')) --version
         if ($LASTEXITCODE -ne 0 -or ($workspaceResult -join "`n") -notmatch ('(^|\s)' + [regex]::Escape($workspaceApp[1]) + '(\s|$)')) { throw "The bundled $($workspaceApp[0]) executable did not pass its version check." }
     }
