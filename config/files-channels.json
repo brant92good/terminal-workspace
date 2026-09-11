@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "app": "ssh-files",
+  "stable": {
+    "workspace_version": "0.10.0",
+    "version": "0.3.0",
+    "binary_sha256": "f57a691fceb0bc4b4e645db84c893ab8b44decd1023facc07135119f3b642d33",
+    "selector_version": "0.8.0",
+    "selector_sha256": "c4797d09ebb9bcd0fd239dac2e6a899c10c89b82a019c60a085990100c54d14c"
+  },
+  "beta": {
+    "version": "0.4.0-beta.1",
+    "tag": "v0.4.0-beta.1",
+    "qualification": "qualified",
+    "source_commit": "340a84b1555de92afecee1a2ef8b30acb659af59",
+    "installer_sha256": "dfae1ed40465e130372d41d9f816cc34e28a292910d606a112cbda5f0f76eb88",
+    "binary_sha256": "9814653d8501ae26775434052d0f3769bf90176a80a5760e0812f295facca3e1",
+    "sidecar_sha256": "8367cab156401175836277806fbb4bd22df24e6ef304b9251493dfd598b86b7f",
+    "release_record_sha256": "88b77aa63338b4e23c222c6d9333f622d1f033cd87b3b1835a100b8775da862b"
+  }
+}

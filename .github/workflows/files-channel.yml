@@ -1,0 +1,56 @@
+name: Optional Files helper
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - files-channel.ps1
+      - scripts/files-channel-common.ps1
+      - config/files-channels.json
+      - tests/files_channel.ps1
+      - docs/files-beta-setup.md
+      - .github/workflows/files-channel.yml
+  pull_request:
+    paths:
+      - files-channel.ps1
+      - scripts/files-channel-common.ps1
+      - config/files-channels.json
+      - tests/files_channel.ps1
+      - docs/files-beta-setup.md
+      - .github/workflows/files-channel.yml
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-fixtures:
+    name: Files helper (${{ matrix.shell }})
+    runs-on: windows-2025
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Owned fixtures and release-contract preservation
+        shell: ${{ matrix.shell }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $contract = Join-Path $PWD 'config/files-channels.json'
+          $before = [IO.File]::ReadAllBytes($contract)
+          $qualification = ([Text.Encoding]::UTF8.GetString($before) | ConvertFrom-Json).beta.qualification
+          try {
+            ./tests/files_channel.ps1
+          } finally {
+            $after = [IO.File]::ReadAllBytes($contract)
+            if ([Convert]::ToBase64String($before) -cne [Convert]::ToBase64String($after)) {
+              throw 'Fixtures changed the checked-in Files release contract.'
+            }
+            $afterQualification = ([Text.Encoding]::UTF8.GetString($after) | ConvertFrom-Json).beta.qualification
+            if ($afterQualification -cne $qualification) {
+              throw 'Fixtures changed the checked-in qualification state.'
+            }
+          }
