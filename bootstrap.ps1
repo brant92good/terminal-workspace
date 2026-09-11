@@ -1,4 +1,4 @@
-param([string]$InstallDir = '', [string]$Version = '0.8.0', [string]$LegacyInstallDir = '', [switch]$NoConfigure, [switch]$NoShortcuts, [switch]$ExplorerPowerShell)
+param([string]$InstallDir = '', [string]$Version = '0.10.0', [string]$LegacyInstallDir = '', [switch]$NoConfigure, [switch]$NoShortcuts, [switch]$ExplorerPowerShell)
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 if ($Version -notmatch '^\d+\.\d+\.\d+(-[A-Za-z0-9.-]+)?$') { throw 'Invalid release version.' }

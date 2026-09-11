@@ -28,6 +28,8 @@ enum Action {
     Doctor,
     /// Open or return to a remote tab, or an independent local Herdr session.
     Remote(Remote),
+    /// Browse files on a workspace machine. --json previews an explicit machine.
+    Files(Files),
     /// Choose a machine, add its companion tabs, then run its remote session.
     Workspace(Workspace),
 }
@@ -47,6 +49,11 @@ struct Configure {
     local_herdr: bool,
     #[arg(long)]
     no_local_herdr: bool,
+    /// Open an SFTP companion whenever the workspace button is used.
+    #[arg(long, conflicts_with = "no_workspace_files")]
+    workspace_files: bool,
+    #[arg(long)]
+    no_workspace_files: bool,
     #[arg(long, conflicts_with = "no_session_picker")]
     session_picker: bool,
     #[arg(long)]
@@ -79,6 +86,15 @@ struct Remote {
     herdr: Option<String>,
     #[arg(long)]
     focus_existing: bool,
+}
+#[derive(Args)]
+struct Files {
+    #[arg(long, conflicts_with = "machines")]
+    machine: Option<String>,
+    #[arg(long)]
+    machines: bool,
+    #[arg(long)]
+    data_dir: Option<PathBuf>,
 }
 #[derive(Args)]
 struct Workspace {
@@ -141,6 +157,9 @@ fn configure(root: &std::path::Path, options: Configure) -> Result<Value> {
     if options.local_herdr || options.no_local_herdr {
         machine["local_herdr"] = json!(options.local_herdr);
     }
+    if options.workspace_files || options.no_workspace_files {
+        machine["workspace_files"] = json!(options.workspace_files);
+    }
     if options.session_picker || options.no_session_picker {
         machine["session_picker"] = json!(options.session_picker);
     }
@@ -176,6 +195,7 @@ fn configure(root: &std::path::Path, options: Configure) -> Result<Value> {
         "terminal-workspace",
         "ports",
         "ssh-sessions",
+        "ssh-files",
         "TerminalViews",
         "PortsFocus",
     ] {
@@ -227,6 +247,7 @@ fn doctor(root: &std::path::Path) -> Value {
         "terminal-workspace",
         "ports",
         "ssh-sessions",
+        "ssh-files",
         "PortsFocus",
         "TerminalViews",
     ] {
@@ -319,6 +340,35 @@ fn run(cli: Cli) -> Result<i32> {
                 &preferences,
                 options.focus_existing,
             )
+        }
+        Action::Files(options) => {
+            let directory = directory(options.data_dir)?;
+            if cli.json {
+                let id = options
+                    .machine
+                    .as_deref()
+                    .context("files --json requires --machine ID; it never opens a picker")?;
+                let machine = launch::read_machine(&directory, id)?;
+                let (executable, arguments) = launch::files_arguments(&root, &machine)?;
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&json!({"schema_version":1,
+                    "ok":true,"command":"files","machine":machine,
+                    "executable":executable,"arguments":arguments}))?
+                );
+                return Ok(0);
+            }
+            let Some(machine) = launch::select(
+                &root,
+                &directory,
+                options.machine.as_deref(),
+                options.machines,
+                true,
+            )?
+            else {
+                return Ok(0);
+            };
+            launch::files(&root, &machine)
         }
         Action::Workspace(options) => launch::workspace(
             &root,

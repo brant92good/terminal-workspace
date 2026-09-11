@@ -4,6 +4,9 @@
 
 Commands below run from your installed workspace directory, normally
 `%LOCALAPPDATA%\Programs\TerminalWorkspace`.
+These instructions describe 0.10.0; see its [qualification status](verification.md)
+and [release availability](https://github.com/brant92good/terminal-workspace/releases/tag/v0.10.0)
+before installing the prerelease.
 
 ## Choose a server in every new tab
 
@@ -28,7 +31,7 @@ Ctrl+Shift+T remains available. This optional binding is kept on this computer;
 it intercepts Ctrl+N before shells or editors can use it. Use `ctrl+t` for the
 usual browser new-tab key, or `none` to remove the extra shortcut.
 
-![SSH Sessions with example machines](https://raw.githubusercontent.com/brant92good/ssh-session-tui/main/docs/screenshots/picker.svg)
+![SSH Sessions with example machines](https://raw.githubusercontent.com/brant92good/ssh-session-tui/v0.8.0/docs/screenshots/picker.svg)
 
 *Example machines in the picker.*
 
@@ -49,10 +52,14 @@ alternative routes and waits for your choice. It never tries a fallback silently
 Groups and tags sync with the catalog and require SSH Sessions 0.4+ on each device.
 See the [picker setup and sync guide](https://github.com/brant92good/ssh-session-tui).
 
-The workspace button still opens its paired remote/Ports tabs and optional
-local Herdr tab. The picker currently has its own machine catalog; selecting a
+The workspace button opens Remote, optional Local Herdr, Ports, then optional
+SFTP, keeping Remote selected. Enable SFTP with
+`./install.ps1 -SkipDependencies -WorkspaceFiles`. The picker currently has its own machine catalog; selecting a
 picker machine does not retarget those paired tabs. SSH-config ownership and
 future agent session policy are [deferred design work](https://github.com/brant92good/ssh-session-tui/blob/main/docs/backlog.md).
+The SFTP menu and optional tab show the configured SSH catalog's Files chooser;
+select a server or saved path there before connecting. The separate Ports
+catalog supplies the shell/forwarding workspace, not the chooser's destination.
 Use `-NoSessionPicker` to disable its profile and restore PowerShell as the default.
 
 ## Use it every day
@@ -63,7 +70,7 @@ select a row for its server, press **A**,
 enter its port (for example `8000`), then Enter. When it shows ON, **B** opens
 its local HTTP address. The remote app must already be running.
 
-![The Ports tab with saved example web apps and notebooks](https://raw.githubusercontent.com/brant92good/port-forward-tui/main/docs/screenshots/connections.svg)
+![The Ports tab with saved example web apps and notebooks](https://raw.githubusercontent.com/brant92good/port-forward-tui/v0.9.1/docs/screenshots/connections.svg)
 
 *Example connections in the Ports tab.*
 
@@ -75,7 +82,7 @@ its local HTTP address. The remote app must already be running.
 | Ctrl+Alt+N, with SessionPicker enabled | Open local PowerShell |
 | Ctrl+N or Ctrl+T, when explicitly configured | Open SSH Sessions when the picker is enabled |
 | Add Shift | Open another view |
-| F2 inside Ports | Search this Terminal window or all Terminal windows |
+| F2 inside Ports | Settings: automatic forwards and shortcut window scope |
 | Esc, then H inside Ports | Add/import machines or choose a server without stopping forwards |
 
 These shortcuts apply while Terminal has focus. In the default all-windows
@@ -94,6 +101,18 @@ connections retry automatically after SSH detects the drop; Enter cancels a
 retry and R tries again now. Authentication, host-key and local-port errors need
 attention. Reboot or sign-out ends tunnels. Herdr owns
 its workspace on the remote server; use its detach command to leave a client.
+
+In Ports, select a saved row and use **E → Open automatically** or **F2 Settings** to opt it in.
+Each newly opened view starts opted-in rows across its displayed machines.
+Already requested connections are reused. Stop cancels queued automatic work;
+ordinary refresh never restarts stopped rows. Opening another new view applies
+your opt-ins again; returning to an existing view does not. These choices live
+on this device, beside each machine's saved forwards, and default off.
+
+For an ON web forward, **T** previews the HTML title at its local address;
+**U** in that preview uses it as the label in this view; the saved name is
+unchanged. This is an explicit web-page
+request, not automatic process detection or a startup scan.
 
 After updating, close old Ports views and run
 `ports.ps1 restart-manager --machine MACHINE_ID` for each running server to load

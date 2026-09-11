@@ -58,24 +58,24 @@ jobs:
           $ports = Join-Path $out 'ports-x86_64-pc-windows-msvc.zip'
           $ssh = Join-Path $out 'ssh-sessions-x86_64-pc-windows-msvc.exe'
           $files = Join-Path $out 'ssh-files-x86_64-pc-windows-msvc.exe'
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.3/ports-x86_64-pc-windows-msvc.zip' -OutFile $ports
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.9.1/ports-x86_64-pc-windows-msvc.zip' -OutFile $ports
           $portSums = Join-Path $out 'ports-SHA256SUMS'
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.7.3/SHA256SUMS' -OutFile $portSums
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/port-forward-tui/releases/download/v0.9.1/SHA256SUMS' -OutFile $portSums
           $portHash = (([IO.File]::ReadAllText($portSums) -split "`n" | Where-Object { $_ -match '  ports-x86_64-pc-windows-msvc.zip\s*$' }) -split '\s+')[0]
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.7.0/ssh-sessions-x86_64-pc-windows-msvc.exe' -OutFile $ssh
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.8.0/ssh-sessions-x86_64-pc-windows-msvc.exe' -OutFile $ssh
           $sshSum = Join-Path $out 'ssh-sessions.sha256'
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.7.0/ssh-sessions-x86_64-pc-windows-msvc.exe.sha256' -OutFile $sshSum
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.8.0/ssh-sessions-x86_64-pc-windows-msvc.exe.sha256' -OutFile $sshSum
           $sshHash = ([IO.File]::ReadAllText($sshSum).Trim() -split '\s+')[0]
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-files/releases/download/v0.1.0/ssh-files-x86_64-pc-windows-msvc.exe' -OutFile $files
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-files/releases/download/v0.3.0/ssh-files-x86_64-pc-windows-msvc.exe' -OutFile $files
           $filesSum = Join-Path $out 'ssh-files.sha256'
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-files/releases/download/v0.1.0/ssh-files-x86_64-pc-windows-msvc.exe.sha256' -OutFile $filesSum
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-files/releases/download/v0.3.0/ssh-files-x86_64-pc-windows-msvc.exe.sha256' -OutFile $filesSum
           $filesHash = ([IO.File]::ReadAllText($filesSum).Trim() -split '\s+')[0]
           $sshLicense = Join-Path $out 'ssh-sessions-LICENSE.txt'
           $filesLicense = Join-Path $out 'ssh-files-LICENSE.txt'
           $filesNotices = Join-Path $out 'ssh-files-THIRD_PARTY_NOTICES.txt'
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.7.0/LICENSE.txt' -OutFile $sshLicense
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-files/releases/download/v0.1.0/LICENSE.txt' -OutFile $filesLicense
-          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-files/releases/download/v0.1.0/THIRD_PARTY_NOTICES.txt' -OutFile $filesNotices
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-session-tui/releases/download/v0.8.0/LICENSE.txt' -OutFile $sshLicense
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-files/releases/download/v0.3.0/LICENSE.txt' -OutFile $filesLicense
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/brant92good/ssh-files/releases/download/v0.3.0/THIRD_PARTY_NOTICES.txt' -OutFile $filesNotices
           ./scripts/package-native.ps1 -PortsBundle $ports -PortsSha256 $portHash -SessionsBinary $ssh -SessionsSha256 $sshHash -SessionsLicense $sshLicense -FilesBinary $files -FilesSha256 $filesHash -FilesLicense $filesLicense -FilesNotices $filesNotices
       - name: Install the actual packaged ZIP twice in a temporary directory
         if: inputs.package

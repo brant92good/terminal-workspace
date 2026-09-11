@@ -1,6 +1,6 @@
 # Command and configuration reference
 
-The compiled `bin/terminal-workspace.exe` has four commands:
+The compiled `bin/terminal-workspace.exe` provides these commands:
 
 | Command | Purpose |
 | --- | --- |
@@ -10,6 +10,8 @@ The compiled `bin/terminal-workspace.exe` has four commands:
 | `configure --dry-run --json` | Print proposed settings without writing |
 | `remote` | Select or return to a machine's SSH/Herdr tab |
 | `remote --local` | Launch or return to independent local Herdr |
+| `files` | Open SFTP on a selected Ports machine or the window's machine |
+| `files --machine ID --json` | Preview exact Files argv without launching or changing selection |
 | `workspace --window UNIQUE_NAME` | Select a machine, add its companion tabs, then connect |
 
 `--root PATH` selects an installation for commands and diagnostics. Settings are
@@ -17,7 +19,7 @@ normally found in Windows Terminal's packaged or unpackaged LocalState directory
 `configure --settings PATH` permits an isolated fixture or explicit installation.
 
 Machine settings are in ignored `.machine.json`: `remote_client`, `herdr`,
-`local_herdr`, `session_picker`, `session_catalog`, `integration_only` and optional
+`local_herdr`, `workspace_files`, `session_picker`, `session_catalog`, `integration_only` and optional
 `shortcuts`. Existing additional fields are preserved. `config/terminal.json`
 contains shareable presentation settings and default managed shortcut choices.
 Export excludes shell commands, addresses, startup actions and working directories.
@@ -27,6 +29,22 @@ mirror the paired workspace's Ports machine-selection behavior. The parent calls
 `ports machines pick --json`: its terminal UI uses stderr, then stdout returns
 one selection object. Cancellation returns a null machine and opens no companion
 tabs. SSH Sessions has its own catalog; those machine IDs are not interchangeable.
+
+`configure --workspace-files` enables the SFTP companion; `--no-workspace-files`
+disables it. The SFTP profile is installed independently; a custom tab menu may
+need an [explicit entry](setup.md#custom-tab-menus).
+
+**0.10.0 candidate behavior:** the SFTP menu and optional last workspace tab
+invoke `ssh-sessions [--catalog PATH] files`, opening a chooser before connecting.
+The configured `session_catalog` is shared with the ordinary SSH picker. No
+workspace machine ID is copied between catalogs. The workspace order is Remote,
+optional Local Herdr, Ports, then SFTP, with Remote selected. Version 0.9.0's
+published installer still has the earlier direct-SFTP behavior.
+
+The parent's standalone `files` command keeps its Ports-based compatibility path.
+`files --machines` forces an interactive Ports picker. JSON preview requires an
+explicit machine and cannot open a picker. Relative custom config paths are made
+absolute before handing off; this direct command freezes its selected destination.
 
 The install wrappers expose the most common choices; see [setup](setup.md).
 `sessions.ps1` adds the saved SSH catalog argument before calling the leaf binary.
@@ -65,13 +83,17 @@ These three checks cover fresh/update integrity, exact legacy bootstrap migratio
 quoted/Unicode JSON pipelines and normal/interactive-picker console input. They
 also verify the adjacent Files command, distinct alias/address arguments,
 license checksums, incomplete-update refusal and SourceCheckout preservation. The
+candidate requires all 26 named manifest payloads, including five exact license
+and notice paths. Its source-checkout mode copies 13 generated binary/build/notice
+files and preserves checked-out code and preferences. Missing or corrupted Ports
+notices must fail before replacing any installed file. The
 separate captured-save runner checks direct and PowerShell-wrapped first mutations
 and controller restarts outside Cargo's process job. Hosted Windows runs use the
 CI-only verified WMI harness. After publishing a prerelease, check the real versioned HTTPS
 bootstrap, installer and release downloads without touching the desktop:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-native-release.ps1 -Version 0.8.0
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-native-release.ps1 -Version 0.10.0
 ```
 
 Older Python scripts and measurements remain reference/compatibility material;

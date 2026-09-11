@@ -9,8 +9,9 @@ An optional private parent can pin this repository; public installs never need i
 - With SessionPicker enabled, **+**, ordinary **Ctrl+Shift+T**, and optional
   **Ctrl+N/Ctrl+T** open SSH Sessions. **Ctrl+Alt+N** opens local PowerShell.
   An Explorer local-shell entry must not change the global default profile.
-- The workspace button selects a machine first, opens remote then Ports then
-  optional local Herdr, and leaves the remote tab selected.
+- The workspace button selects a machine first, opens Remote, optional local
+  Herdr, Ports, then optional SFTP, and leaves the remote tab selected.
+  `workspace_files` defaults false. The independent SFTP menu profile is visible.
 - Return shortcuts resolve the invoking window's machine, then its most recently
   focused matching view. Preserve all-window/current-window scopes. Never infer
   identity from adjacency, duplicate titles or current foreground alone.
@@ -43,6 +44,12 @@ stdout. Cancellation creates no companion tabs. Do not guess cross-catalog IDs.
 SSH Sessions owns the X action and frozen Files handoff. The parent bundles
 `ssh-files.exe` beside `ssh-sessions.exe` for adjacent discovery; Files has no
 catalog of its own. Preserve explicit route choices and no automatic fallback.
+The SFTP menu and optional workspace companion open `ssh-sessions files` with
+the configured `session_catalog`. They always show its Files chooser before a
+connection is selected. Do not pass the workspace's Ports machine ID, address or
+route into this chooser. The existing parent `files` CLI is a separate Ports-based
+compatibility path; `files --json --machine ID` reads metadata only. Escape data semicolons
+for WT separately from Windows argv quoting; leave actual tab separators intact.
 Include each bundled leaf's license notices; SourceCheckout installs generated
 `bin/`, `build/` and `licenses/` files while retaining checked-out source/config.
 

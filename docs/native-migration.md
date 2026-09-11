@@ -1,5 +1,30 @@
 # Native integration
 
+The **0.10.0 prerelease** makes the SFTP menu and optional
+last workspace tab open the SSH Sessions Files chooser. Both pass the same
+configured `session_catalog` as the ordinary SSH picker; neither preselects a
+Ports machine or connects before the chooser. The workspace order is Remote,
+optional Local Herdr, Ports, then optional SFTP, with Remote selected. The parent
+`files` CLI retains its Ports-based compatibility behavior and explicit read-only
+`--machine ID --json` preview. Check the [release page](https://github.com/brant92good/terminal-workspace/releases/tag/v0.10.0)
+for asset availability and [verification](verification.md) for the recorded
+source, package and public-download checks.
+
+The bundle uses Ports 0.9.1, SSH Sessions 0.8.0 and SSH Files 0.3.0 beta.
+Ports contributes its exact released executable, two helpers, license and third-
+party notices; the parent validates all five against the ZIP's SHA256 index before
+using them. The parent manifest requires 26 named payloads, including five license
+files. SourceCheckout applies 13 generated runtime/build/license files and retains
+checked-out source/configuration. Qualification uses isolated destinations;
+installing this version on a personal device is a separate step.
+
+Terminal Workspace 0.9.0 adds a visible SFTP profile and optional `workspace_files`
+companion after Remote/Ports/local Herdr. The companion freezes the selected Ports
+destination into Files argv; the independent SSH picker's X action retains its
+own catalog/route. Native route, cancellation, settings-preservation and command
+dispatch fixtures cover the change without opening desktop windows. Current
+release qualification is recorded in [verification](verification.md).
+
 Terminal Workspace 0.8.0 adds the released SSH Files 0.1.0 beta beside SSH Sessions
 0.7.0 and Ports 0.7.3. SSH Sessions owns X, route selection and return to the picker;
 the parent supplies the reviewed binary and license notices. Local and hosted
@@ -15,7 +40,9 @@ composition and remote/local Herdr or SSH launch. Profiles call the installed
 `ssh-sessions.exe` and `ports.exe` directly. Taskbar identity and accessibility
 helpers remain compiled C# programs using the Windows .NET Framework; no Python
 process or compiler runs during ordinary use.
-Files adds no parent launch process: SSH Sessions discovers its adjacent binary.
+SSH Sessions discovers Files beside its own binary. In the current source, the
+SFTP profile and workspace companion invoke the SSH Sessions Files chooser;
+the existing parent Files command remains a direct compatibility path.
 The optional source-checkout installer copies generated runtimes and their
 `licenses/` notices while preserving source/configuration files.
 
@@ -30,16 +57,17 @@ its own catalog. No cross-catalog machine-ID conversion is inferred.
   SSH Sessions explicitly; Ctrl+Alt+N names local PowerShell explicitly.
 - Remote/Ports/local-Herdr GUIDs, machine context, return scope and inherited
   Herdr environment guards remain. Custom SSH config/port routes use OpenSSH.
-- Remote first, Ports second, optional local Herdr third; the paired launcher
+- Remote first, optional local Herdr second, then Ports and optional SFTP; the paired launcher
   selects the first tab in its uniquely named window.
 - Explorer integration adds **Open PowerShell here** in the classic context menu.
   Windows 11's built-in modern **Open in Terminal** entry remains unchanged.
 
-## Development evidence
+## Historical 0.9.0 development evidence
 
-Fourteen native parent tests pass on Windows: new-tab behavior, idempotence, preserved
+Nineteen native parent tests pass on Windows: new-tab behavior, idempotence, preserved
 integration-only settings, shortcut collisions, JSONC, backups/concurrent changes,
-safe export, argv quoting, JSON argument errors, Explorer plan and tab composition.
+safe export, argv quoting, JSON argument errors, Explorer plan, tab composition,
+SFTP preflight/read-only routing and exact dispatcher arguments.
 Mixed-case profile GUIDs update in place; malformed personal preferences fail
 before settings are written. The dispatch regression starts an owned child with a
 longer-lived descendant: status-only calls return when the child exits, without
@@ -50,7 +78,7 @@ descendant remains alive. The three status-only call sites use explicit argument
 and a shared Windows handle-list creator, inheriting the developer's environment
 and working directory. Interactive machine selection still captures its JSON
 output with console input/stderr. Clippy passes with warnings denied.
-The [0.8.0 hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34462955825)
+The [0.9.0 hosted release run](https://github.com/brant92good/terminal-workspace/actions/runs/34478216068)
 passes with the recorded leaf source pins and packages the exact released Windows
 binaries and helpers. The versioned public HTTPS bootstrap, fresh installation
 and update also passed in isolated fixtures on PowerShell 5.1 and 7.

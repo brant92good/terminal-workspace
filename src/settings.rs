@@ -12,6 +12,7 @@ pub const PORTS: &str = "{5e483274-6f37-40d5-b42b-1eaef7f9da82}";
 pub const PWSH: &str = "{574e775e-4f2a-5b96-ac1e-a2962a402336}";
 pub const LOCAL: &str = "{f7c9cd21-fd21-429b-93ac-bd21e5ef8b11}";
 pub const SESSIONS: &str = "{2ab64c44-ef5c-48d2-8f4d-678473aae748}";
+pub const FILES: &str = "{dcbd174b-c14f-4639-ace1-47eae33360a8}";
 pub const TAB_ACTION: &str = "User.TerminalWorkspace.NewTab";
 pub const SHELL_ACTION: &str = "User.TerminalWorkspace.LocalShell";
 const ACTIONS: [(&str, &str); 8] = [
@@ -67,6 +68,7 @@ pub struct Preferences {
     pub session_picker: bool,
     pub apply_default: bool,
     pub local_herdr: bool,
+    pub workspace_files: bool,
     pub remote_client: String,
     pub herdr: String,
     pub session_catalog: Option<String>,
@@ -127,6 +129,7 @@ impl Preferences {
             session_picker: boolean("session_picker", false)?,
             apply_default: false,
             local_herdr: boolean("local_herdr", false)?,
+            workspace_files: boolean("workspace_files", false)?,
             remote_client,
             herdr: herdr.into(),
             session_catalog: match data.get("session_catalog") {
@@ -173,6 +176,16 @@ fn command(arguments: &[String]) -> String {
         .map(|arg| quote(arg))
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+/// Both picker profiles use the configured SSH catalog, independently of Ports.
+/// Rendering command lines must not read a catalog or launch a child process.
+pub fn sessions_arguments(root: &Path, preferences: &Preferences) -> (PathBuf, Vec<String>) {
+    let mut arguments = Vec::new();
+    if let Some(catalog) = &preferences.session_catalog {
+        arguments.extend(["--catalog".into(), catalog.clone()]);
+    }
+    (crate::binary(root, "ssh-sessions"), arguments)
 }
 
 fn chord_identity(chord: &str) -> String {
@@ -250,7 +263,7 @@ pub fn render(
     }
     if !preferences.integration_only && shared["compactMenu"].as_bool().unwrap_or(true) {
         for entry in &mut entries {
-            let visible = guid_in(&entry["guid"], &[PWSH, HERDR, PORTS])
+            let visible = guid_in(&entry["guid"], &[PWSH, HERDR, PORTS, FILES])
                 || guid_is(&entry["guid"], LOCAL) && preferences.local_herdr
                 || guid_is(&entry["guid"], SESSIONS) && preferences.session_picker
                 || entry["source"] == "Microsoft.WSL";
@@ -269,21 +282,18 @@ pub fn render(
         preferences.herdr.clone(),
     ]);
     let local = command(&[
-        native,
+        native.clone(),
         "remote".into(),
         "--local".into(),
         "--herdr".into(),
         preferences.herdr.clone(),
     ]);
     let ports = command(&[crate::binary(root, "ports").to_string_lossy().into_owned()]);
-    let mut session_args = vec![
-        crate::binary(root, "ssh-sessions")
-            .to_string_lossy()
-            .into_owned(),
-    ];
-    if let Some(catalog) = &preferences.session_catalog {
-        session_args.extend(["--catalog".into(), catalog.clone()]);
-    }
+    let (session_binary, mut session_args) = sessions_arguments(root, preferences);
+    session_args.insert(0, session_binary.to_string_lossy().into_owned());
+    let mut files_args = session_args.clone();
+    files_args.push("files".into());
+    let files = command(&files_args);
     let sessions = command(&session_args);
     let mut desired = vec![
         json!({"guid": PWSH, "name":"PowerShell", "source":"Windows.Terminal.PowershellCore", "hidden":false}),
@@ -303,6 +313,7 @@ pub fn render(
             "Remote",
         ),
         profile(PORTS, "Ports", &ports, "🔌".into(), "Ports"),
+        profile(FILES, "SFTP", &files, "📂".into(), "SFTP"),
     ];
     if preferences.session_picker {
         desired.push(profile(

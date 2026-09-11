@@ -8,7 +8,7 @@ param(
     [Parameter(Mandatory=$true)][string]$FilesSha256,
     [Parameter(Mandatory=$true)][string]$FilesLicense,
     [Parameter(Mandatory=$true)][string]$FilesNotices,
-    [string]$Version = '0.8.0', [string]$OutputDirectory = ''
+    [string]$Version = '0.10.0', [string]$OutputDirectory = ''
 )
 $ErrorActionPreference = 'Stop'
 $workspaceRoot = Split-Path $PSScriptRoot -Parent
@@ -28,10 +28,10 @@ if ((Read-PackageText $SessionsLicense) -cne $workspaceExpectedSessionsLicense -
     (Read-PackageText $FilesNotices) -cne (Read-PackageText (Join-Path $workspaceRoot 'apps/ssh-files/docs/licenses/THIRD_PARTY_NOTICES.txt'))) { throw 'Released leaf notices differ from their pinned source.' }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $workspacePorts = Join-Path $OutputDirectory ('ports-' + [Guid]::NewGuid().ToString('N'))
-[IO.Compression.ZipFile]::ExtractToDirectory([IO.Path]::GetFullPath($PortsBundle),$workspacePorts)
-foreach ($workspaceName in @('ports.exe','PortsFocus.exe','TerminalViews.exe')) {
-    if (-not (Test-Path -LiteralPath (Join-Path $workspacePorts $workspaceName) -PathType Leaf)) { throw "Ports release lacks $workspaceName." }
-}
+. (Join-Path $PSScriptRoot 'validate-ports-release.ps1')
+Expand-WorkspacePortsRelease -Bundle $PortsBundle -Destination $workspacePorts
+if ((Read-PackageText (Join-Path $workspacePorts 'LICENSE.txt')) -cne (Read-PackageText (Join-Path $workspaceRoot 'apps/port-forward-tui/LICENSE')) -or
+    (Read-PackageText (Join-Path $workspacePorts 'THIRD_PARTY_NOTICES.txt')) -cne (Read-PackageText (Join-Path $workspaceRoot 'apps/port-forward-tui/docs/licenses/THIRD_PARTY_NOTICES.txt'))) { throw 'Released Ports notices differ from their pinned source.' }
 $workspaceBuildRoot = Join-Path $OutputDirectory ('compiled-' + [Guid]::NewGuid().ToString('N'))
 & (Join-Path $PSScriptRoot 'build_native.ps1') -PortsBinary (Join-Path $workspacePorts 'ports.exe') -SessionsBinary $SessionsBinary -FilesBinary $FilesBinary -OutputDirectory $workspaceBuildRoot
 # Use the exact released leaf helpers; the build script also compiles them for
@@ -40,7 +40,8 @@ foreach ($workspaceName in @('PortsFocus.exe','TerminalViews.exe')) { [IO.File]:
 $workspacePackage = Join-Path $OutputDirectory ('package-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $workspacePackage | Out-Null
 $workspaceLicenseSources = [ordered]@{
-    'licenses/ports-LICENSE.txt' = Join-Path $workspaceRoot 'apps/port-forward-tui/LICENSE'
+    'licenses/ports-LICENSE.txt' = Join-Path $workspacePorts 'LICENSE.txt'
+    'licenses/ports-THIRD_PARTY_NOTICES.txt' = Join-Path $workspacePorts 'THIRD_PARTY_NOTICES.txt'
     'licenses/ssh-sessions-LICENSE.txt' = [IO.Path]::GetFullPath($SessionsLicense)
     'licenses/ssh-files-LICENSE.txt' = [IO.Path]::GetFullPath($FilesLicense)
     'licenses/ssh-files-THIRD_PARTY_NOTICES.txt' = [IO.Path]::GetFullPath($FilesNotices)
@@ -59,9 +60,9 @@ foreach ($workspaceFile in $workspaceFiles) {
 $workspaceManifest = [ordered]@{
     schema_version=1;version=$Version;platform='x86_64-pc-windows-msvc';
     dependencies=[ordered]@{
-        ports=@{version='0.7.3';url='https://github.com/brant92good/port-forward-tui/releases/download/v0.7.3/ports-x86_64-pc-windows-msvc.zip';sha256=$PortsSha256;binary_sha256=$workspaceHashes['bin/ports.exe']}
-        ssh_sessions=@{version='0.7.0';url='https://github.com/brant92good/ssh-session-tui/releases/download/v0.7.0/ssh-sessions-x86_64-pc-windows-msvc.exe';sha256=$SessionsSha256}
-        ssh_files=@{version='0.1.0';status='beta';url='https://github.com/brant92good/ssh-files/releases/download/v0.1.0/ssh-files-x86_64-pc-windows-msvc.exe';sha256=$FilesSha256}
+        ports=@{version='0.9.1';url='https://github.com/brant92good/port-forward-tui/releases/download/v0.9.1/ports-x86_64-pc-windows-msvc.zip';sha256=$PortsSha256;binary_sha256=$workspaceHashes['bin/ports.exe']}
+        ssh_sessions=@{version='0.8.0';url='https://github.com/brant92good/ssh-session-tui/releases/download/v0.8.0/ssh-sessions-x86_64-pc-windows-msvc.exe';sha256=$SessionsSha256}
+        ssh_files=@{version='0.3.0';status='beta';url='https://github.com/brant92good/ssh-files/releases/download/v0.3.0/ssh-files-x86_64-pc-windows-msvc.exe';sha256=$FilesSha256}
     };files=$workspaceHashes
 }
 [IO.File]::WriteAllText((Join-Path $workspacePackage 'release.json'),($workspaceManifest | ConvertTo-Json -Depth 8),(New-Object Text.UTF8Encoding($false)))
