@@ -1,7 +1,17 @@
 Set-StrictMode -Version Latest
 
 function Get-PortsChannelHash([string]$Path) {
-    return (Get-FileHash -LiteralPath $Path -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
+    # PS5 can inherit a PS7 module search path where Get-FileHash is unavailable.
+    # Hash with the built-in runtime, independent of optional script modules.
+    $algorithm=[Security.Cryptography.SHA256]::Create()
+    $stream=$null
+    try {
+        $stream=[IO.File]::OpenRead($Path)
+        return [BitConverter]::ToString($algorithm.ComputeHash($stream)).Replace('-','').ToLowerInvariant()
+    } finally {
+        if ($stream) { $stream.Dispose() }
+        $algorithm.Dispose()
+    }
 }
 function Get-PortsChannelTextHash([string]$Text) {
     $algorithm=[Security.Cryptography.SHA256]::Create()

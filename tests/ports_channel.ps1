@@ -21,6 +21,16 @@ try {
         Copy-Item -LiteralPath (Join-Path $root $relative) -Destination $destination
     }
     . (Join-Path $workspace 'scripts/ports-channel-common.ps1')
+    # A fresh PS5 bootstrap may not resolve PS7's script-module path. Keep the
+    # hashing contract usable even when that optional command cannot be loaded.
+    function Get-FileHash { throw 'Get-FileHash is unavailable in this shell environment.' }
+    $hashFixture=Join-Path $fixture 'hash-bytes.txt'
+    Text $hashFixture 'abc'
+    Check ((Get-PortsChannelHash $hashFixture) -ceq 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad') 'hashing does not depend on Get-FileHash module discovery'
+    Expect-Error { Get-PortsChannelHash (Join-Path $fixture 'missing-hash-file') } '.+' 'missing hash input still fails'
+    $hashHandle=[IO.File]::Open($hashFixture,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+    $hashHandle.Dispose()
+    Check $true 'hashing releases its file handle'
     $env:LOCALAPPDATA=Join-Path $fixture 'local'; $env:PORTS_CHANNEL_FIXTURE=$fixture
     $env:PORTS_BUNDLE='https://invalid.test/never'; $env:PORTS_VERSION='999'; $env:PORTS_INSTALL_DIR=Join-Path $fixture 'never'
     $helper=Join-Path $workspace 'ports-channel.ps1'; $contractPath=Join-Path $workspace 'config/ports-channels.json'
