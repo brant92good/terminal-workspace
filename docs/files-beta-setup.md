@@ -93,6 +93,21 @@ verified pins/catalog/local arguments. It starts the existing stable
 Only the child receives `SSH_FILES_BIN` pointing at the verified beta. The
 caller's environment and ordinary sibling tabs keep their values.
 
+The generated profile uses Windows PowerShell 5.1 as its launcher. That exact
+path passed four real chooser/SFTP cases with the published Files binary:
+pane switching and a selected two-file drag transfer, transfer cancellation,
+quitting during a transfer, and closing its ConPTY terminal. Cancellation kept
+the browser usable; terminal closure stopped the child processes. These were
+owned terminal tests, not a visible Windows Terminal desktop test.
+
+PowerShell 7 setup and source-guard checks also passed. A manual interactive
+Launch under the tested MSIX PowerShell 7.6.6 reached the chooser and completed
+the transfer case, but its full close/cancel test remains unqualified: packaged
+process activation escaped the test Job, and Windows denied explicit Job
+assignment. This is a test-containment limitation, not evidence that all
+PowerShell 7 launches fail. Use the generated profile for the qualified launch
+path; it does not change your default shell.
+
 Choose a group/server and then its home or a saved remote path. R selects a
 route once without replacing your device preference. Saved paths still use
 the existing catalog's `.files.json` sibling. They are not cloned or migrated;
@@ -112,6 +127,9 @@ Removal does not delete beta binaries or undo file transfers already performed.
 
 Owned fake-download/native-child tests cover this helper's source guards,
 installation dispatch, argument/environment handling and fragment ownership.
-Actual released chooser-to-beta PTY/SFTP, close/cancel, public HTTPS and personal
-installation receipts remain separate gates. None establishes native Explorer
-drag-in/out or replaces the unfinished Windows console-reader experiment.
+The actual released chooser-to-beta tests and containment checks are in
+`tests/files_channel_pty.rs`; their loopback relay is in
+`tests/support/files_channel_gate.rs`.
+Public HTTPS and personal installation receipts remain separate gates. None
+establishes native Explorer drag-in/out or replaces the unfinished Windows
+console-reader experiment.
