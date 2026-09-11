@@ -31,12 +31,14 @@ jobs:
       fail-fast: false
       matrix:
         shell: [powershell, pwsh]
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
       - name: Owned fixtures and release-contract preservation
-        shell: ${{ matrix.shell }}
         run: |
           $ErrorActionPreference = 'Stop'
           $contract = Join-Path $PWD 'config/files-channels.json'
