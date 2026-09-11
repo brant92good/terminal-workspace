@@ -1,5 +1,32 @@
 # Verification
 
+## 0.10.0 published package - September 11, 2026
+
+The immutable [prerelease](https://github.com/brant92good/terminal-workspace/releases/tag/v0.10.0)
+at `1dafe6ac1104533a4a5f8f30a5a6a440537d518b` passed
+[hosted package run 34565041108](https://github.com/brant92good/terminal-workspace/actions/runs/34565041108).
+It includes all 23 ordinary native tests, formatting, Clippy, three actual-ZIP
+installation tests and three out-of-job first-save/restart capture tests.
+
+The published Windows ZIP SHA-256 is
+`80081248b1b98e0cb84ccecef9a4118f356f86505232d1bb2963b154ea601e5f`.
+An independent download matched its sidecar, GitHub asset digest, all 26 manifest
+payloads, three released leaf binaries, two helpers and five license/notice files.
+This hosted ZIP differs from the earlier local-build ZIP recorded below.
+
+The documented tagged HTTPS bootstrap passed independently under PowerShell 5.1
+and 7, without local bundle/hash overrides. Fresh install, update, saved settings,
+configured SSH catalog and the SFTP chooser profile passed in disposable locations.
+The exact released executable also reproduced a reviewed settings preview and
+preserved device preferences during an actual configure call on copied fixture
+data. These checks required no Python or compiler in the installed runtime.
+
+An independent README, source-claim and rendered-visual review passed. These
+results establish package and installer behavior; they do not establish physical
+taskbar clicks, desktop focus latency, OS file drag/drop or macOS desktop support.
+The Windows integration and beta boundaries remain unchanged. The sections below
+retain their earlier source/local-build observations.
+
 ## 0.10.0 local package - September 11, 2026
 
 The local Windows package uses the independently qualified prerelease inputs:
