@@ -1,6 +1,6 @@
 # Native integration
 
-The **0.10.0 prerelease** makes the SFTP menu and optional
+The **stable 0.10.0 bundle** makes the SFTP menu and optional
 last workspace tab open the SSH Sessions Files chooser. Both pass the same
 configured `session_catalog` as the ordinary SSH picker; neither preselects a
 Ports machine or connects before the chooser. The workspace order is Remote,

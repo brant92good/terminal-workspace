@@ -19,7 +19,7 @@ reach across tabs and windows.
 
 *The included SSH Sessions picker, using example machines.*
 
-> **0.10.0 prerelease.** Includes the Files server/path chooser,
+> **Current stable bundle: 0.10.0.** Includes the Files server/path chooser,
 > Remote–Local–Ports–SFTP order, grouped Ports rows and updated file controls.
 > Check [downloads and release status](https://github.com/brant92good/terminal-workspace/releases/tag/v0.10.0)
 > for availability and [verification](docs/verification.md) for qualification.
@@ -28,9 +28,15 @@ reach across tabs and windows.
 
 ## Install
 
+Optional Windows Ports beta setup is being qualified separately. Its
+[explicit channel helper](docs/ports-beta-setup.md) leaves the normal bundle,
+workspace tabs and hotkeys unchanged and pins the separately qualified
+Ports 0.10.0-beta.1 release. The helper's source publication and device setup
+remain separate steps.
+
 On **Windows 10/11 x64**, with Windows Terminal, PowerShell 7 and OpenSSH Client:
 
-The pinned command uses this prerelease's compiled assets.
+The pinned command uses the stable bundle's compiled assets.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/brant92good/terminal-workspace/v0.10.0/bootstrap.ps1 | iex"

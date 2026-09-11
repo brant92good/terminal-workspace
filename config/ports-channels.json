@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "app": "ports",
+  "stable": {
+    "workspace_version": "0.10.0",
+    "version": "0.9.1",
+    "source_commit": "13e72672f0681547b916b3bb3e071f92fec5e64f",
+    "binary_sha256": "2a3447b4b15f392cd942451d230e1fb79704f1c84d789dc4736bddbaed3f4337"
+  },
+  "beta": {
+    "version": "0.10.0-beta.1",
+    "tag": "v0.10.0-beta.1",
+    "qualification": "qualified",
+    "source_commit": "cbb225f533276dffb76167ecd4ff85e7082405aa",
+    "installer_sha256": "52567663048b250c02f6577977cb089a7f843647a5974e9a148be904455fcca0",
+    "archive_sha256": "d9f4172c4e8c6637b8b2b5e34b5611a2ec49a52549ef1fa94005c0e597751d5b",
+    "binary_sha256": "d92f1998b42a4339ad3a1475b6ce748f285ff805be5eb8fa919532b0ff654a9c",
+    "release_record_sha256": "ee5ab57186862be1188f3b7982ae2c2c833062f78297db33355d25df1715f7b2"
+  }
+}

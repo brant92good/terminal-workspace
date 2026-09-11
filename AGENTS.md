@@ -57,6 +57,15 @@ Read each child's AGENTS.md before editing it. Publish reviewed child versions,
 then parent pins, then the optional private pin. Never reset dirty child worktrees
 or silently advance their source to main.
 
+`ports-channel.ps1` is a Windows-only additive beta setup helper. Its consumed
+`config/ports-channels.json` must keep unqualified beta hashes pending. Stable
+Plan/Status is read-only; stable installation stays in the existing installer.
+Beta install, metadata import and optional profile creation are separate explicit
+actions. The owned Terminal fragment must not alter settings/defaults/hotkeys or
+existing workspace composition. Never equate its JSON readback with visible-menu
+or focus qualification. Bootstrap uses one caller-supplied immutable integration
+commit. Do not change the bundled Ports gitlink to opt a user into beta.
+
 ## Build and verify
 
 Production uses Rust and precompiled C# Windows helpers. Normal installation

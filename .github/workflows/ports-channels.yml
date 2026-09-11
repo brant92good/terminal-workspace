@@ -1,0 +1,36 @@
+name: Optional Ports channel setup
+on:
+  push:
+    branches: [main, feat/ports-beta-setup]
+    paths:
+      - 'ports-channel.ps1'
+      - 'bootstrap-ports.ps1'
+      - 'scripts/ports-channel-common.ps1'
+      - 'config/ports-channels.json'
+      - 'tests/ports_channel.ps1'
+      - '.github/workflows/ports-channels.yml'
+  pull_request:
+    paths:
+      - 'ports-channel.ps1'
+      - 'bootstrap-ports.ps1'
+      - 'scripts/ports-channel-common.ps1'
+      - 'config/ports-channels.json'
+      - 'tests/ports_channel.ps1'
+      - '.github/workflows/ports-channels.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-installer:
+    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Isolated channel and fragment checks
+        run: ./tests/ports_channel.ps1
