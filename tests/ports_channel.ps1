@@ -168,6 +168,21 @@ if($Channel -cne 'beta' -or $Version -cne '0.10.0-beta.1' -or -not $NoPath -or -
     Check ((Get-PortsChannelHash $settings) -ceq $settingsHash -and $profile.profile_visibility -match 'not_observed') 'custom menu default and hotkeys remain byte-identical with no UI claim'
     $repeat=(& $helper @arguments -Action AddProfile | Out-String) | ConvertFrom-Json
     Check ($repeat.state -eq 'unchanged') 'repeated AddProfile is idempotent'
+    # Simulate another shell's valid JSON serialization, including apostrophe
+    # escaping. Both files are the unchanged output of that simulated owner.
+    $otherShell=($fragmentData | ConvertTo-Json -Depth 8 -Compress).Replace("'",'\u0027')
+    Text $fragment $otherShell
+    Text (Join-Path $profile.fragment_directory '.workspace-owner') ('terminal-workspace-ports-beta-v1 '+(Get-PortsChannelHash $fragment)+"`n")
+    $otherHash=Get-PortsChannelHash $fragment
+    $repeat=(& $helper @arguments -Action AddProfile | Out-String) | ConvertFrom-Json
+    Check ($repeat.state -eq 'unchanged' -and (Get-PortsChannelHash $fragment) -ceq $otherHash) 'equivalent cross-shell owned JSON is retained byte-for-byte'
+    $badType=$fragmentData | ConvertTo-Json -Depth 8 | ConvertFrom-Json
+    $badType.profiles[0].name=@('Ports (BETA)')
+    Text $fragment ($badType | ConvertTo-Json -Depth 8)
+    Text (Join-Path $profile.fragment_directory '.workspace-owner') ('terminal-workspace-ports-beta-v1 '+(Get-PortsChannelHash $fragment)+"`n")
+    Expect-Error { & $helper @arguments -Action AddProfile } 'values must be strings' 'owned JSON cannot coerce a name array into an equal string'
+    Text $fragment $otherShell
+    Text (Join-Path $profile.fragment_directory '.workspace-owner') ('terminal-workspace-ports-beta-v1 '+$otherHash+"`n")
     $original=[IO.File]::ReadAllText($fragment); Text $fragment ($original+' ')
     Expect-Error { & $helper @arguments -Action RemoveProfile } 'changed outside' 'edited fragment is retained on removal'
     Check ([IO.File]::Exists($fragment)) 'refused removal preserves edited fragment'

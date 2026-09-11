@@ -162,7 +162,21 @@ function Update-PortsChannelProfile([string]$Directory,[string]$Command,[string]
         if (@(Get-ChildItem -LiteralPath $directory -Force).Count) { throw 'Choose the empty owned fragment directory; unknown files were retained.' }
     }
     if ($Action -eq 'RemoveProfile' -and $null -eq $existingFragment) { return 'absent' }
-    if ($Action -eq 'AddProfile' -and $null -ne $existingFragment -and $existingFragment -cne $text) { throw 'The owned profile uses different paths. Remove it explicitly before adding new paths.' }
+    if ($Action -eq 'AddProfile' -and $null -ne $existingFragment) {
+        # PS5 and PS7 serialize the same JSON with different whitespace/escaping.
+        # Ownership still checks the exact existing bytes; idempotence compares
+        # the five generated values and retains those bytes without rewriting.
+        Assert-PortsChannelKeys $parsed @('profiles')
+        if ($parsed.profiles -isnot [array]) { throw 'The owned profile list must be an array.' }
+        $profile=$parsed.profiles[0]
+        Assert-PortsChannelKeys $profile @('guid','name','tabTitle','commandline','hidden')
+        foreach ($key in @('guid','name','tabTitle','commandline')) {
+            if ($profile.$key -isnot [string]) { throw 'The owned profile values must be strings.' }
+        }
+        if ($profile.guid -cne $guid -or $profile.name -cne 'Ports (BETA)' -or
+            $profile.tabTitle -cne 'Ports BETA' -or $profile.commandline -cne $Command -or
+            $profile.hidden -isnot [bool] -or $profile.hidden) { throw 'The owned profile uses different paths or values. Remove it explicitly before adding new paths.' }
+    }
     [IO.Directory]::CreateDirectory($directory) | Out-Null
     $lock=$null
     try {
