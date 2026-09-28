@@ -113,6 +113,22 @@ prompt and an already trusted host. Uploads currently need OpenSSH's SFTP hardli
 extension. Existing destinations are preserved, and interrupted or uncertain
 transfers stay visible. [Connection requirements and transfer controls](https://github.com/brant92good/ssh-files/blob/v0.3.0/docs/usage.md).
 
+## A remote voice app, with your local microphone
+
+Keep a voice-enabled tool on your Linux server and use the microphone and
+headphones at your desk. The **optional Ports audio preview** carries input and
+reply audio over SSH; the remote app runs the conversation. Voice-capable coding
+assistants are one use case, alongside speech tools and other remote audio apps.
+
+This is a **Windows-to-Linux source preview**, not part of the 0.10.0 installer
+above. Audio stays off until you explicitly start it. It currently needs a
+separately prepared Linux bridge and FFmpeg/FFplay; no specific coding agent's
+voice mode has been qualified. [Preview setup and transport checks](https://github.com/brant92good/port-forward-tui/blob/feat/audio-beta/docs/audio.md).
+
+The [optional integration source](https://github.com/brant92good/terminal-workspace/blob/feat/audio-preview-integration/docs/ports-audio-preview.md)
+lets the Ports menu, return shortcuts and workspace's Ports tab share that
+preview. The default bundle remains unchanged.
+
 ## Use only what you need
 
 - **[SSH Sessions](https://github.com/brant92good/ssh-session-tui)** — searchable
