@@ -288,7 +288,18 @@ pub fn render(
         "--herdr".into(),
         preferences.herdr.clone(),
     ]);
-    let ports = command(&[crate::binary(root, "ports").to_string_lossy().into_owned()]);
+    let preview = crate::preview::load(root)?;
+    let ports_executable = preview
+        .as_ref()
+        .map_or_else(|| crate::binary(root, "ports"), |p| p.executable.clone());
+    let mut ports_args = vec![ports_executable.to_string_lossy().into_owned()];
+    if let Some(preview) = &preview {
+        ports_args.extend([
+            "--data-dir".into(),
+            preview.data_directory.to_string_lossy().into_owned(),
+        ]);
+    }
+    let ports = command(&ports_args);
     let (session_binary, mut session_args) = sessions_arguments(root, preferences);
     session_args.insert(0, session_binary.to_string_lossy().into_owned());
     let mut files_args = session_args.clone();
@@ -312,7 +323,17 @@ pub fn render(
             },
             "Remote",
         ),
-        profile(PORTS, "Ports", &ports, "🔌".into(), "Ports"),
+        profile(
+            PORTS,
+            if preview.is_some() {
+                "Ports + Audio (Preview)"
+            } else {
+                "Ports"
+            },
+            &ports,
+            "🔌".into(),
+            "Ports",
+        ),
         profile(FILES, "SFTP", &files, "📂".into(), "SFTP"),
     ];
     if preferences.session_picker {

@@ -1,4 +1,5 @@
 .machine.json
+ports-preview.json
 build/
 bin/
 target/

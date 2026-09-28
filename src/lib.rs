@@ -1,4 +1,5 @@
 pub mod launch;
+pub mod preview;
 pub mod settings;
 
 use anyhow::{Context, Result, bail};

@@ -26,6 +26,11 @@ enum Action {
     Configure(Configure),
     /// Read-only installation checks; does not start SSH or change Terminal.
     Doctor,
+    /// Forward explicit CLI arguments to the selected Ports installation.
+    Ports {
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        arguments: Vec<std::ffi::OsString>,
+    },
     /// Open or return to a remote tab, or an independent local Herdr session.
     Remote(Remote),
     /// Browse files on a workspace machine. --json previews an explicit machine.
@@ -108,14 +113,6 @@ struct Workspace {
     data_dir: Option<PathBuf>,
     #[arg(long)]
     taskbar_identity: bool,
-}
-
-fn directory(value: Option<PathBuf>) -> Result<PathBuf> {
-    Ok(value.unwrap_or(
-        dirs::data_local_dir()
-            .context("Cannot find application data")?
-            .join("PortForwardTUI"),
-    ))
 }
 
 fn configure(root: &std::path::Path, options: Configure) -> Result<Value> {
@@ -213,13 +210,16 @@ fn configure(root: &std::path::Path, options: Configure) -> Result<Value> {
     settings::write(&path, &updated, original.as_deref(), true)?;
     settings::write(&machine_path, &machine, machine_original.as_deref(), true)?;
     if let Some(host) = options.ssh_host {
+        let ports_directory = terminal_workspace::preview::directory(root, None)?;
         let result = terminal_workspace::dispatch(
-            &binary(root, "ports"),
+            &terminal_workspace::preview::selected(root, &ports_directory)?.0,
             &[
                 "machines".into(),
                 "add".into(),
                 host.into(),
                 "--json".into(),
+                "--data-dir".into(),
+                ports_directory.into_os_string(),
             ],
             Duration::from_secs(10),
         )?;
@@ -236,6 +236,14 @@ fn configure(root: &std::path::Path, options: Configure) -> Result<Value> {
 
 fn doctor(root: &std::path::Path) -> Value {
     let mut checks = vec![];
+    let preview = terminal_workspace::preview::load(root);
+    if let Ok(Some(selection)) = &preview {
+        for helper in ["PortsFocus.exe", "TerminalViews.exe"] {
+            let path = selection.executable.parent().unwrap().join(helper);
+            checks.push(json!({"name":format!("preview_{helper}"),"ok":path.is_file(),"fix":format!("Install the preview helper at {}",path.display())}));
+        }
+    }
+    checks.push(json!({"name":"ports_preview","ok":preview.is_ok(),"fix":preview.err().map(|e|e.to_string()).unwrap_or_default()}));
     for (name, fix) in [
         ("wt.exe", "Install Windows Terminal."),
         ("pwsh.exe", "Install PowerShell 7."),
@@ -288,6 +296,38 @@ fn run(cli: Cli) -> Result<i32> {
             }
             Ok(0)
         }
+        Action::Ports { arguments } => {
+            let preview = terminal_workspace::preview::load(&root)?;
+            let executable = preview
+                .as_ref()
+                .map_or_else(|| binary(&root, "ports"), |p| p.executable.clone());
+            let mut command = std::process::Command::new(executable);
+            if let Some(preview) = preview {
+                if arguments
+                    .iter()
+                    .any(|a| a == "--data-dir" || a.to_string_lossy().starts_with("--data-dir="))
+                {
+                    bail!(
+                        "This preview wrapper uses its configured data directory; call the standalone binary for another directory"
+                    );
+                }
+                command.arg("--data-dir").arg(preview.data_directory);
+            } else {
+                for (i, arg) in arguments.iter().enumerate() {
+                    let explicit = if arg == "--data-dir" {
+                        arguments.get(i + 1).map(PathBuf::from)
+                    } else {
+                        arg.to_str()
+                            .and_then(|a| a.strip_prefix("--data-dir="))
+                            .map(PathBuf::from)
+                    };
+                    if let Some(explicit) = explicit {
+                        terminal_workspace::preview::directory(&root, Some(explicit))?;
+                    }
+                }
+            }
+            Ok(command.args(arguments).status()?.code().unwrap_or(1))
+        }
         Action::Doctor => {
             let result = doctor(&root);
             let ok = result["ok"] == true;
@@ -317,7 +357,7 @@ fn run(cli: Cli) -> Result<i32> {
             if let Some(herdr) = options.herdr {
                 preferences.herdr = herdr;
             }
-            let directory = directory(options.data_dir)?;
+            let directory = terminal_workspace::preview::directory(&root, options.data_dir)?;
             let machine = if options.local {
                 None
             } else {
@@ -342,13 +382,18 @@ fn run(cli: Cli) -> Result<i32> {
             )
         }
         Action::Files(options) => {
-            let directory = directory(options.data_dir)?;
+            let directory = terminal_workspace::preview::directory(&root, options.data_dir)?;
             if cli.json {
                 let id = options
                     .machine
                     .as_deref()
                     .context("files --json requires --machine ID; it never opens a picker")?;
-                let machine = launch::read_machine(&directory, id)?;
+                let machine = if terminal_workspace::preview::load(&root)?.is_some() {
+                    launch::select(&root, &directory, Some(id), false, false)?
+                        .context("Machine not found")?
+                } else {
+                    launch::read_machine(&directory, id)?
+                };
                 let (executable, arguments) = launch::files_arguments(&root, &machine)?;
                 println!(
                     "{}",
@@ -370,14 +415,40 @@ fn run(cli: Cli) -> Result<i32> {
             };
             launch::files(&root, &machine)
         }
-        Action::Workspace(options) => launch::workspace(
-            &root,
-            &options.window,
-            &directory(options.data_dir)?,
-            options.machine.as_deref(),
-            options.machines,
-            options.taskbar_identity,
-        ),
+        Action::Workspace(options) => {
+            let directory = terminal_workspace::preview::directory(&root, options.data_dir)?;
+            if cli.json {
+                let id = options
+                    .machine
+                    .as_deref()
+                    .context("workspace --json requires --machine; it never opens a picker")?;
+                let machine = launch::select(&root, &directory, Some(id), false, false)?
+                    .context("Machine not found")?;
+                let preferences = Preferences::read(&settings::load(&root.join(".machine.json"))?)?;
+                let args = launch::tab_arguments(
+                    &root,
+                    &options.window,
+                    &machine,
+                    &directory,
+                    &preferences,
+                )?;
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(
+                        &json!({"schema_version":1,"ok":true,"command":"workspace plan","arguments":args,"data_directory":directory,"machine":machine})
+                    )?
+                );
+                return Ok(0);
+            }
+            launch::workspace(
+                &root,
+                &options.window,
+                &directory,
+                options.machine.as_deref(),
+                options.machines,
+                options.taskbar_identity,
+            )
+        }
     }
 }
 

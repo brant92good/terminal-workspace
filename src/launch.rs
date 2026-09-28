@@ -30,7 +30,8 @@ pub fn select(
     picker: bool,
     window_context: bool,
 ) -> Result<Option<Machine>> {
-    let mut command = Command::new(binary(root, "ports"));
+    let (executable, preview) = crate::preview::selected(root, directory)?;
+    let mut command = Command::new(executable);
     command
         .args(["machines", "pick", "--json", "--data-dir"])
         .arg(directory);
@@ -55,7 +56,11 @@ pub fn select(
                 .unwrap_or("Ports machine selection failed")
         );
     }
-    if data["schema_version"] != 1 || data["command"] != "machines pick" {
+    let schema = if preview { 2 } else { 1 };
+    if data["schema_version"] != schema
+        || data["command"] != "machines pick"
+        || (preview && data["channel"] != "beta")
+    {
         bail!("Unsupported Ports selection response");
     }
     if data["machine"].is_null() {
@@ -83,6 +88,7 @@ pub fn tab_arguments(
     // before adding the deliberate command separators, not Windows argv quotes.
     // See Microsoft Terminal v1.24.11911.0 Commandline::AddArg.
     let wt = |value: &str| value.replace(';', "\\;");
+    let (ports_executable, _) = crate::preview::selected(root, directory)?;
     let mut arguments = vec!["-w".into(), wt(window)];
     if preferences.local_herdr {
         arguments.extend([
@@ -103,7 +109,7 @@ pub fn tab_arguments(
         "new-tab".into(),
         "-p".into(),
         settings::PORTS.into(),
-        wt(&binary(root, "ports").to_string_lossy()),
+        wt(&ports_executable.to_string_lossy()),
         "--data-dir".into(),
         wt(&directory.to_string_lossy()),
         "--machine".into(),
